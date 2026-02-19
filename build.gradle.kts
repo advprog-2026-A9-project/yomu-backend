@@ -43,7 +43,14 @@ tasks.withType<Test> {
 }
 
 pmd {
-    isConsoleOutput = true
-    toolVersion = "6.55.0"
-    ruleSets = listOf("category/java/bestpractices.xml", "category/java/errorprone.xml")
+    toolVersion = "7.0.0"
+    isIgnoreFailures = false
+    ruleSets = listOf("category/java/errorprone.xml", "category/java/bestpractices.xml")
+}
+
+tasks.withType<Pmd>().configureEach {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
 }
