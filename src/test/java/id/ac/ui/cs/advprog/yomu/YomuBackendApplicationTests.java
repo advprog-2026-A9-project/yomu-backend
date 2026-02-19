@@ -9,12 +9,14 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @TestPropertySource(properties = {
-        "DB_URL=jdbc:h2:mem:testdb",
+        "DB_URL=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
         "DB_USERNAME=sa",
-        "DB_PASSWORD=password"
+        "DB_PASSWORD=password",
+        //mengganti "Sopir" PostgreSQL menjadi H2
+        "spring.datasource.driver-class-name=org.h2.Driver",
+        "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
 })
 class YomuBackendApplicationTests {
-
 
     @Autowired
     private ApplicationContext applicationContext;
