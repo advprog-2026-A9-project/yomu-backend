@@ -8,6 +8,7 @@ class YomuBackendApplicationTests {
 
     @Test
     void contextLoads() {
+
     }
 
 }

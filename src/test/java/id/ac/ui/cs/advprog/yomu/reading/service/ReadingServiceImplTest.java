@@ -8,14 +8,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ReadingServiceImplTest {
+class ReadingServiceImplTest { // Hapus 'public'
 
     @Mock
     private ReadingTextRepository repository;
@@ -27,7 +29,7 @@ public class ReadingServiceImplTest {
     void testFindAll() {
         // Arrange: Siapkan data palsu (mock)
         ReadingText dummyBook = new ReadingText(null, "Buku Tes", "Isi Tes", "Edukasi");
-        when(repository.findAll()).thenReturn(Arrays.asList(dummyBook));
+        when(repository.findAll()).thenReturn(List.of(dummyBook)); // Pakai List.of
 
         // Act: Panggil method yang ingin dites
         List<ReadingText> result = service.findAll();

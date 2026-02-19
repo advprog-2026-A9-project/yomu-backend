@@ -25,13 +25,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew clean build
-
-      - name: Run PMD Code Quality
-        run: ./gradlew pmdMain
-        # Ini akan gagal jika ada kode yang melanggar aturan PMD
-      - name: Build with Gradle
+      - name: Build, Test, and Run PMD
         run: ./gradlew clean build
         env:
           DB_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
