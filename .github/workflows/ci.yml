@@ -26,9 +26,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew clean build -x test
-        # Kita skip test dulu (-x test) karena belum bikin test, biar CI passed hijau dulu.
-        # Nanti kalau sudah ada test beneran, hapus "-x test"
+        run: ./gradlew clean build
 
       - name: Run PMD Code Quality
         run: ./gradlew pmdMain
