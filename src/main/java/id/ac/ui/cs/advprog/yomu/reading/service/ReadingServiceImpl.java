@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ReadingServiceImpl implements ReadingService {
+class ReadingServiceImpl implements ReadingService {
 
     @Autowired
     private ReadingTextRepository repository;
@@ -23,8 +23,8 @@ public class ReadingServiceImpl implements ReadingService {
         return repository.save(readingText);
     }
 
-    @Override
-    public void seedData() {
+
+    private void seedData() {
         if (repository.count() == 0) {
             repository.save(new ReadingText(null, "Modular Monolith 101", "Panduan arsitektur.", "Teknologi"));
             repository.save(new ReadingText(null, "Sejarah Fasilkom", "Gedung baru vs lama.", "Sejarah"));

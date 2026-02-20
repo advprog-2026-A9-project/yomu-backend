@@ -6,5 +6,5 @@ import java.util.List;
 public interface ReadingService {
     List<ReadingText> findAll();
     ReadingText create(ReadingText readingText);
-    void seedData(); // Untuk dummy data
+
 }
