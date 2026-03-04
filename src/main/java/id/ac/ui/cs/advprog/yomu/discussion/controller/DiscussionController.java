@@ -13,6 +13,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/discussion")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class DiscussionController {
 
     private final DiscussionService discussionService;
