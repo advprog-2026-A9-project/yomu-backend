@@ -14,11 +14,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        // TODO: Change this before production!
+        // For development: allow all requests without authentication
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()  // Allow all requests for development
+            )
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.sameOrigin())  // Allow H2 console frames
             );
         return http.build();
     }
