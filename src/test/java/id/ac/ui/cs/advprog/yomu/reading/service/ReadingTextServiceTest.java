@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,5 +66,52 @@ class ReadingTextServiceTest {
             readingTextService.createText(request, role);
         });
         verify(readingTextRepository, never()).save(any(ReadingText.class));
+    }
+
+    @Test
+    void getAllTexts_ShouldReturnListOfResponses() {
+        // Arrange
+        Category category = new Category(1L, "Edukasi");
+        ReadingText text1 = new ReadingText(1L, "Judul 1", "Isi 1", category);
+        ReadingText text2 = new ReadingText(2L, "Judul 2", "Isi 2", category);
+
+        when(readingTextRepository.findAll()).thenReturn(List.of(text1, text2));
+
+        // Act
+        List<ReadingTextResponse> responses = readingTextService.getAllTexts();
+
+        // Assert
+        assertNotNull(responses);
+        assertEquals(2, responses.size());
+        assertEquals("Judul 1", responses.get(0).title());
+        assertEquals("Edukasi", responses.get(0).categoryName());
+        verify(readingTextRepository, times(1)).findAll();
+    }
+
+    @Test
+    void deleteText_WhenRoleIsAdmin_ShouldDeleteSuccessfully() {
+        // Arrange
+        String role = "ADMIN";
+        Long textId = 1L;
+        when(readingTextRepository.existsById(textId)).thenReturn(true);
+
+        // Act
+        assertDoesNotThrow(() -> readingTextService.deleteText(textId, role));
+
+        // Assert
+        verify(readingTextRepository, times(1)).deleteById(textId);
+    }
+
+    @Test
+    void deleteText_WhenRoleIsStudent_ShouldThrowException() {
+        // Arrange
+        String role = "STUDENT";
+        Long textId = 1L;
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> readingTextService.deleteText(textId, role));
+
+        // Pastikan repository.deleteById tidak pernah dipanggil
+        verify(readingTextRepository, never()).deleteById(anyLong());
     }
 }
