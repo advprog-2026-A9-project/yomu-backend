@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.auth.service;
 
+import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.auth.dto.AuthResponse;
 import id.ac.ui.cs.advprog.yomu.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
@@ -15,7 +16,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final JwtUtil jwtUtil; 
+    
     @Override
     public AuthResponse register(RegisterRequest request) {
         if (request.getEmail() == null && request.getPhoneNumber() == null) {
@@ -40,12 +42,12 @@ public class AuthServiceImpl implements AuthService {
         user.setRole("PELAJAR");
 
         final User saved = userRepository.save(user);
-        return new AuthResponse(saved.getId(), saved.getUsername(), saved.getRole(), "Registrasi berhasil");
+        final String token = jwtUtil.generateToken(saved.getId(), saved.getUsername(), saved.getRole());
+        return new AuthResponse(saved.getId(), saved.getUsername(), saved.getRole(), token, "Registrasi berhasil");
     }
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        
         final User user = userRepository.findByUsername(request.getIdentifier())
                 .or(() -> userRepository.findByEmail(request.getIdentifier()))
                 .or(() -> userRepository.findByPhoneNumber(request.getIdentifier()))
@@ -55,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Password salah");
         }
 
-        return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), "Login berhasil");
+        final String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+        return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), token, "Login berhasil");
     }
 }
