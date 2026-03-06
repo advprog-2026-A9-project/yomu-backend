@@ -118,9 +118,11 @@ class ClanControllerTest {
 
     @Test
     void testDeleteClan() throws Exception {
+        String jsonRequest = "{\"userId\":\"" + leaderId + "\"}";
+
         mockMvc.perform(post("/api/clans/" + clanId + "/delete")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(leaderId))
+                .content(jsonRequest))
                 .andExpect(status().isOk())
                 .andExpect(content().string(deleteSuccessMsg));
 

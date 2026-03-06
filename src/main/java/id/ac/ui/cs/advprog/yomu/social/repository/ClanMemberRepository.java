@@ -20,4 +20,7 @@ public interface ClanMemberRepository extends JpaRepository<ClanMember, Long> {
 
     @Transactional
     void deleteByClanIdAndUserId(String clanId, String userId);
+
+    @Transactional
+    void deleteByClanId(String clanId);
 }
