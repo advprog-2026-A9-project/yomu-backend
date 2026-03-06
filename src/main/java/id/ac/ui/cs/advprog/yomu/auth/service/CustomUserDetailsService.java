@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.yomu.auth.service;
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import id.ac.ui.cs.advprog.yomu.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +16,7 @@ import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnBean(UserRepository.class)
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
