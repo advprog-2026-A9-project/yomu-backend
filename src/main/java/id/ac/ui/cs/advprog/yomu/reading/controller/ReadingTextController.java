@@ -22,7 +22,7 @@ public class ReadingTextController {
     @PostMapping
     public ResponseEntity<ReadingTextResponse> createText(
             @RequestBody ReadingTextRequest request,
-            @RequestHeader(value = "X-Dummy-Role", defaultValue = "STUDENT") String role) {
+            @RequestHeader(value = "X-User-Role", defaultValue = "PELAJAR") String role) {
 
         ReadingTextResponse response = readingTextService.createText(request, role);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -39,7 +39,7 @@ public class ReadingTextController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteText(
             @PathVariable Long id,
-            @RequestHeader(value = "X-Dummy-Role", defaultValue = "STUDENT") String role) {
+            @RequestHeader(value = "X-User-Role", defaultValue = "PELAJAR") String role) {
 
         readingTextService.deleteText(id, role);
         return ResponseEntity.noContent().build();
