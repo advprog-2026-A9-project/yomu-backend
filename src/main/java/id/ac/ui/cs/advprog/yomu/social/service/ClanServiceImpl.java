@@ -75,6 +75,8 @@ public class ClanServiceImpl implements ClanService {
             throw new IllegalStateException("Hanya Leader yang bisa menghapus Clan");
         }
         
+        memberRepository.deleteByClanId(clanId);
+        
         clanRepository.delete(clan);
     }
 
