@@ -21,7 +21,7 @@ public class ReadingTextServiceImpl implements ReadingTextService {
     @Override
     public ReadingTextResponse createText(ReadingTextRequest request, String role) {
         if (!"ADMIN".equalsIgnoreCase(role)) {
-            throw new RuntimeException("Hanya Admin yang dapat membuat teks bacaan.");
+            throw new RuntimeException("Hanya Admin yang dapat melakukan aksi ini.");
         }
 
         Category category = categoryRepository.findById(request.categoryId())
@@ -58,7 +58,7 @@ public class ReadingTextServiceImpl implements ReadingTextService {
     @Override
     public void deleteText(Long id, String role) {
         if (!"ADMIN".equalsIgnoreCase(role)) {
-            throw new RuntimeException("Hanya Admin yang dapat menghapus teks bacaan.");
+            throw new RuntimeException("Hanya Admin yang dapat melakukan aksi ini.");
         }
 
         if (!readingTextRepository.existsById(id)) {

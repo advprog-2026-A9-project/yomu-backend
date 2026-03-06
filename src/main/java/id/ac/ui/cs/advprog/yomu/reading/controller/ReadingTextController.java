@@ -12,7 +12,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reading-texts")
-@CrossOrigin(origins = "*") // Mengizinkan Frontend mengakses endpoint ini
 @RequiredArgsConstructor
 public class ReadingTextController {
 
