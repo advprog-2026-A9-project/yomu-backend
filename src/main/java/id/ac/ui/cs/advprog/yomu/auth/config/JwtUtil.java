@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.auth.config;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -23,5 +24,49 @@ public class JwtUtil {
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(key)
                 .compact();
+    }
+
+    /**
+     * Ekstrak userId dari JWT token
+     */
+    public String extractUserId(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    /**
+     * Ekstrak username dari JWT token
+     */
+    public String extractUsername(String token) {
+        return getClaims(token).get("username", String.class);
+    }
+
+    /**
+     * Ekstrak role dari JWT token
+     */
+    public String extractRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    /**
+     * Validasi JWT token (cek signature dan expiration)
+     */
+    public boolean validateToken(String token) {
+        try {
+            getClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Parse claims dari JWT token
+     */
+    private Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
