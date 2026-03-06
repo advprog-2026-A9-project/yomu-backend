@@ -2,9 +2,9 @@ name: Java CI with Gradle & PMD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "staging" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "staging" ]
 
 jobs:
   build-and-check:
@@ -31,3 +31,28 @@ jobs:
           DB_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
           DB_USERNAME: sa
           DB_PASSWORD: password
+
+  deploy-staging:
+    name: Dummy CD (Staging - Railway)
+    runs-on: ubuntu-latest
+    needs: [ build-and-check ]
+    if: github.ref == 'refs/heads/staging'
+    steps:
+      - name: Trigger Railway Staging Deployment
+        run: |
+          echo "✅ CI Backend Lulus! Memicu deployment ke Railway Environment: Staging..."
+          echo "⚙️ Menjalankan perintah: railway up --environment=staging"
+          echo "🌐 API Staging URL Target: (URL Railway Staging Sementara)"
+
+
+  deploy-production:
+    name: Dummy CD (Production - Railway)
+    runs-on: ubuntu-latest
+    needs: [ build-and-check ]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger Railway Production Deployment
+        run: |
+          echo "🚀 CI Backend Lulus! Memicu deployment ke Railway Environment: Production..."
+          echo "⚙️ Menjalankan perintah: railway up --environment=production"
+          echo "🌐 API Production URL Target: https://api.yomu.info"
