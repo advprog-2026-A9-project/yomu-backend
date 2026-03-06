@@ -20,26 +20,21 @@ public class ReadingTextServiceImpl implements ReadingTextService {
 
     @Override
     public ReadingTextResponse createText(ReadingTextRequest request, String role) {
-        // Logika dummy auth: Tolak jika bukan ADMIN
         if (!"ADMIN".equalsIgnoreCase(role)) {
             throw new RuntimeException("Hanya Admin yang dapat membuat teks bacaan.");
         }
 
-        // Cari kategori dari database
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new RuntimeException("Kategori tidak ditemukan"));
 
-        // Buat objek teks bacaan baru
         ReadingText text = ReadingText.builder()
                 .title(request.title())
                 .content(request.content())
                 .category(category)
                 .build();
 
-        // Simpan ke database
         ReadingText savedText = readingTextRepository.save(text);
 
-        // Kembalikan DTO response
         return new ReadingTextResponse(
                 savedText.getId(),
                 savedText.getTitle(),
@@ -50,12 +45,26 @@ public class ReadingTextServiceImpl implements ReadingTextService {
 
     @Override
     public List<ReadingTextResponse> getAllTexts() {
-        // STUB: Sengaja return null agar test gagal (Fase RED)
-        return null;
+        return readingTextRepository.findAll().stream()
+                .map(text -> new ReadingTextResponse(
+                        text.getId(),
+                        text.getTitle(),
+                        text.getContent(),
+                        text.getCategory().getName()
+                ))
+                .toList();
     }
 
     @Override
     public void deleteText(Long id, String role) {
-        // STUB: Sengaja kosong agar tidak melakukan apa-apa (Fase RED)
+        if (!"ADMIN".equalsIgnoreCase(role)) {
+            throw new RuntimeException("Hanya Admin yang dapat menghapus teks bacaan.");
+        }
+
+        if (!readingTextRepository.existsById(id)) {
+            throw new RuntimeException("Teks bacaan tidak ditemukan.");
+        }
+
+        readingTextRepository.deleteById(id);
     }
 }
