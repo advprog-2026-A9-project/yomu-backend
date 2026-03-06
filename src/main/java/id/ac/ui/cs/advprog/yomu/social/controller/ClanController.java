@@ -47,8 +47,8 @@ public class ClanController {
     }
 
     @PostMapping("/{id}/delete")
-    public ResponseEntity<String> delete(@PathVariable String id, @RequestBody String userId) {
-        clanService.deleteClan(id, userId);
+    public ResponseEntity<String> delete(@PathVariable String id, @RequestBody ClanRequest request) {
+        clanService.deleteClan(id, request.getUserId());
         return ResponseEntity.ok("Clan berhasil dihapus");
     }
 }
