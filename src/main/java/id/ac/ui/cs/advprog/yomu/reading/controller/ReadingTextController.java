@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.reading.controller;
 
+import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.reading.dto.ReadingTextRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.ReadingTextResponse;
 import id.ac.ui.cs.advprog.yomu.reading.service.ReadingTextService;
@@ -16,13 +17,24 @@ import java.util.List;
 public class ReadingTextController {
 
     private final ReadingTextService readingTextService;
+    private final JwtUtil jwtUtil; // Memanggil utility buatan temanmu
+
+
+    private String getRoleFromHeader(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            return jwtUtil.extractRole(token);
+        }
+        return "PELAJAR";
+    }
 
     // 1. Admin dapat membuat teks bacaan
     @PostMapping
     public ResponseEntity<ReadingTextResponse> createText(
             @RequestBody ReadingTextRequest request,
-            @RequestHeader(value = "X-User-Role", defaultValue = "PELAJAR") String role) {
+            @RequestHeader("Authorization") String authHeader) {
 
+        String role = getRoleFromHeader(authHeader);
         ReadingTextResponse response = readingTextService.createText(request, role);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -38,8 +50,9 @@ public class ReadingTextController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteText(
             @PathVariable Long id,
-            @RequestHeader(value = "X-User-Role", defaultValue = "PELAJAR") String role) {
+            @RequestHeader("Authorization") String authHeader) {
 
+        String role = getRoleFromHeader(authHeader);
         readingTextService.deleteText(id, role);
         return ResponseEntity.noContent().build();
     }
