@@ -1,7 +1,9 @@
 package id.ac.ui.cs.advprog.yomu.social.controller;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
+import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +46,18 @@ public class ClanController {
     @GetMapping
     public ResponseEntity<List<Clan>> getAll() {
         return ResponseEntity.ok(clanService.findAll());
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<MyClanResponse> getMyClan(@RequestHeader("Authorization") String authHeader) {
+        String userId = getUserIdFromHeader(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Optional<MyClanResponse> myClan = clanService.getMyClanByUserId(userId);
+        return myClan.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/{id}/join")
