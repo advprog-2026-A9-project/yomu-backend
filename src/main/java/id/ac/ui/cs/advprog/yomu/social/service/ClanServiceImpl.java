@@ -1,8 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.social.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.stereotype.Service;

@@ -1,7 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.social.strategy;
 
-import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import org.springframework.stereotype.Component;
+
+import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 
 /**
  * Gold tier scoring: Base points with 25% bonus.
