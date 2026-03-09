@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.yomu.social.service;
 
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
+import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
 import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyFactory;
@@ -46,12 +47,15 @@ class ClanServiceLeaderboardTest {
         bronzeClan.setId("clan-1");
         bronzeClan.setName("Bronze Warriors");
         bronzeClan.setLeaderUserId("user-1");
-        // Will set tier once Tier enum exists
+        bronzeClan.setTier(Tier.BRONZE);
+        bronzeClan.setScore(100);
 
         silverClan = new Clan();
         silverClan.setId("clan-2");
         silverClan.setName("Silver Champions");
         silverClan.setLeaderUserId("user-2");
+        silverClan.setTier(Tier.SILVER);
+        silverClan.setScore(200);
     }
 
     @Test

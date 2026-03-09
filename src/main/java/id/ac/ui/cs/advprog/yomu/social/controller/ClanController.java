@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
+import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
@@ -82,5 +83,17 @@ public class ClanController {
         String userId = getUserIdFromHeader(authHeader);
         clanService.deleteClan(id, userId);
         return ResponseEntity.ok("Clan berhasil dihapus");
+    }
+
+    @GetMapping("/leaderboard")
+    public ResponseEntity<List<LeaderboardResponse>> getLeaderboard() {
+        return ResponseEntity.ok(clanService.getLeaderboardByTier());
+    }
+
+    @PostMapping("/admin/end-season")
+    public ResponseEntity<String> endSeason(@RequestHeader("Authorization") String authHeader) {
+        // TODO: Add admin authorization check
+        clanService.endSeason();
+        return ResponseEntity.ok("Season ended. Clans promoted/demoted.");
     }
 }
