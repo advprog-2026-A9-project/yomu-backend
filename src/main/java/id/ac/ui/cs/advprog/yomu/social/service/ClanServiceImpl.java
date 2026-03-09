@@ -1,11 +1,13 @@
 package id.ac.ui.cs.advprog.yomu.social.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
+import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
@@ -66,6 +68,13 @@ public class ClanServiceImpl implements ClanService {
     }
 
     @Override
+    public Optional<MyClanResponse> getMyClanByUserId(final String userId) {
+        return memberRepository.findByUserId(userId)
+                .flatMap(member -> clanRepository.findById(member.getClanId())
+                        .map(clan -> toMyClanResponse(clan, userId)));
+    }
+
+    @Override
     @Transactional
     public void deleteClan(final String clanId, final String leaderId) {
         final Clan clan = clanRepository.findById(clanId)
@@ -113,5 +122,19 @@ public class ClanServiceImpl implements ClanService {
             clanRepository.save(clan);
             memberRepository.deleteByClanIdAndUserId(clan.getId(), leaderId);
         }
+    }
+
+    private MyClanResponse toMyClanResponse(final Clan clan, final String currentUserId) {
+        String role = clan.getLeaderUserId().equals(currentUserId) ? "KETUA" : "ANGGOTA";
+        int members = Math.toIntExact(memberRepository.countByClanId(clan.getId()));
+
+        return new MyClanResponse(
+                clan.getId(),
+                clan.getName(),
+                clan.getDescription(),
+                clan.getLeaderUserId(),
+                role,
+                members
+        );
     }
 }
