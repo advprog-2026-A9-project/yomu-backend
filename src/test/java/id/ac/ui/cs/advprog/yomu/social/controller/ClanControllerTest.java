@@ -1,6 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.social.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
+import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
@@ -15,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,6 +35,9 @@ class ClanControllerTest {
     @MockBean
     private ClanService clanService;
 
+    @MockBean
+    private JwtUtil jwtUtil;
+
     private ObjectMapper objectMapper;
     private Clan dummyClan;
 
@@ -40,6 +46,8 @@ class ClanControllerTest {
     private String leaderId;
     private String memberId;
     private String clanName;
+    private String authHeader;
+    private String token;
     private String joinSuccessMsg;
     private String leaveSuccessMsg;
     private String deleteSuccessMsg;
@@ -53,6 +61,8 @@ class ClanControllerTest {
         leaderId = "user-456";
         memberId = "user-789";
         clanName = "Wibu Elite";
+        token = "dummy-token";
+        authHeader = "Bearer " + token;
         joinSuccessMsg = "Berhasil bergabung";
         leaveSuccessMsg = "Berhasil keluar dari clan";
         deleteSuccessMsg = "Clan berhasil dihapus";
@@ -70,8 +80,10 @@ class ClanControllerTest {
         request.setUserId(leaderId);
 
         when(clanService.createClan(any(ClanRequest.class))).thenReturn(dummyClan);
+        when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
 
         mockMvc.perform(post("/api/clans")
+            .header("Authorization", authHeader)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -96,9 +108,11 @@ class ClanControllerTest {
 
     @Test
     void testJoinClan() throws Exception {
+        when(jwtUtil.extractUserId(token)).thenReturn(memberId);
+
         mockMvc.perform(post("/api/clans/" + clanId + "/join")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(memberId))
+            .header("Authorization", authHeader)
+            .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(joinSuccessMsg));
 
@@ -107,9 +121,11 @@ class ClanControllerTest {
 
     @Test
     void testLeaveClan() throws Exception {
+        when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
+
         mockMvc.perform(post("/api/clans/" + clanId + "/leave")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(leaderId))
+            .header("Authorization", authHeader)
+            .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(leaveSuccessMsg));
 
@@ -118,14 +134,43 @@ class ClanControllerTest {
 
     @Test
     void testDeleteClan() throws Exception {
-        String jsonRequest = "{\"userId\":\"" + leaderId + "\"}";
+        when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
 
         mockMvc.perform(post("/api/clans/" + clanId + "/delete")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequest))
+            .header("Authorization", authHeader)
+            .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(deleteSuccessMsg));
 
         verify(clanService, times(1)).deleteClan(eq(clanId), eq(leaderId));
     }
+
+        @Test
+        void testGetMyClan_WhenUserHasClan() throws Exception {
+        MyClanResponse response = new MyClanResponse(dummyClan.getId(), dummyClan.getName(),
+            dummyClan.getDescription(), dummyClan.getLeaderUserId(), "KETUA", 2);
+        when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
+        when(clanService.getMyClanByUserId(leaderId)).thenReturn(Optional.of(response));
+
+        mockMvc.perform(get("/api/clans/me")
+            .header("Authorization", authHeader))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(clanId))
+            .andExpect(jsonPath("$.role").value("KETUA"))
+            .andExpect(jsonPath("$.members").value(2));
+
+        verify(clanService, times(1)).getMyClanByUserId(leaderId);
+        }
+
+        @Test
+        void testGetMyClan_WhenUserHasNoClan() throws Exception {
+        when(jwtUtil.extractUserId(token)).thenReturn(memberId);
+        when(clanService.getMyClanByUserId(memberId)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/clans/me")
+            .header("Authorization", authHeader))
+            .andExpect(status().isNotFound());
+
+        verify(clanService, times(1)).getMyClanByUserId(memberId);
+        }
 }

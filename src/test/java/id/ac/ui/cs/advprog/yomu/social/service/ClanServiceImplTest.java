@@ -6,6 +6,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
+import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
@@ -99,9 +101,9 @@ class ClanServiceImplTest {
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
         when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(new ClanMember()));
 
-        assertThrows(IllegalStateException.class, 
-            () -> clanService.joinClan(clanId, memberId),
-            "Should throw IllegalStateException when user is already in a clan");
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> clanService.joinClan(clanId, memberId));
+        assertEquals("Kamu sudah tergabung di Clan lain", exception.getMessage());
     }
 
     @Test
@@ -150,5 +152,52 @@ class ClanServiceImplTest {
             () -> verify(clanRepository).delete(dummyClan),
             () -> verify(memberRepository).deleteByClanIdAndUserId(clanId, leaderId)
         );
+    }
+
+    @Test
+    void testGetMyClanByUserId_AsLeader_ShouldReturnKetuaRole() {
+        ClanMember membership = new ClanMember();
+        membership.setClanId(clanId);
+        membership.setUserId(leaderId);
+        when(memberRepository.findByUserId(leaderId)).thenReturn(Optional.of(membership));
+        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
+        when(memberRepository.countByClanId(clanId)).thenReturn(2L);
+
+        Optional<MyClanResponse> result = clanService.getMyClanByUserId(leaderId);
+
+        assertAll("Verify leader clan response",
+            () -> assertTrue(result.isPresent()),
+            () -> assertEquals("KETUA", result.get().role()),
+            () -> assertEquals(2, result.get().members())
+        );
+    }
+
+    @Test
+    void testGetMyClanByUserId_AsMember_ShouldReturnAnggotaRole() {
+        ClanMember membership = new ClanMember();
+        membership.setClanId(clanId);
+        membership.setUserId(memberId);
+
+        when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(membership));
+        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
+        when(memberRepository.countByClanId(clanId)).thenReturn(1L);
+
+        Optional<MyClanResponse> result = clanService.getMyClanByUserId(memberId);
+
+        assertAll("Verify member clan response",
+            () -> assertTrue(result.isPresent()),
+            () -> assertEquals("ANGGOTA", result.get().role()),
+            () -> assertEquals(1, result.get().members())
+        );
+    }
+
+    @Test
+    void testGetMyClanByUserId_WhenNoMembership_ShouldReturnEmpty() {
+        when(memberRepository.findByUserId(memberId)).thenReturn(Optional.empty());
+
+        Optional<MyClanResponse> result = clanService.getMyClanByUserId(memberId);
+
+        assertTrue(result.isEmpty());
+        verify(clanRepository, never()).findById(anyString());
     }
 }
