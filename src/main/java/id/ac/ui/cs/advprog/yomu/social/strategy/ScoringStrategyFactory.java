@@ -1,7 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.social.strategy;
 
-import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import org.springframework.stereotype.Component;
+
+import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 
 /**
  * Factory for retrieving the appropriate scoring strategy based on tier.

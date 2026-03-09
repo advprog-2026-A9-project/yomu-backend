@@ -103,7 +103,8 @@ class ClanServiceImplTest {
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
             () -> clanService.joinClan(clanId, memberId));
-        assertEquals("Kamu sudah tergabung di Clan lain", exception.getMessage());
+        assertEquals("Kamu sudah tergabung di Clan lain", exception.getMessage(), 
+            "Exception message should indicate user already in another clan");
     }
 
     @Test
@@ -165,11 +166,9 @@ class ClanServiceImplTest {
 
         Optional<MyClanResponse> result = clanService.getMyClanByUserId(leaderId);
 
-        assertAll("Verify leader clan response",
-            () -> assertTrue(result.isPresent()),
-            () -> assertEquals("KETUA", result.get().role()),
-            () -> assertEquals(2, result.get().members())
-        );
+        assertTrue(result.isPresent(), "Leader should have a clan");
+        assertEquals("KETUA", result.get().role(), "Leader role should be KETUA");
+        assertEquals(2, result.get().members(), "Clan should have 2 members");
     }
 
     @Test
@@ -184,11 +183,9 @@ class ClanServiceImplTest {
 
         Optional<MyClanResponse> result = clanService.getMyClanByUserId(memberId);
 
-        assertAll("Verify member clan response",
-            () -> assertTrue(result.isPresent()),
-            () -> assertEquals("ANGGOTA", result.get().role()),
-            () -> assertEquals(1, result.get().members())
-        );
+        assertTrue(result.isPresent(), "Member should have a clan");
+        assertEquals("ANGGOTA", result.get().role(), "Member role should be ANGGOTA");
+        assertEquals(1, result.get().members(), "Clan should have 1 member");
     }
 
     @Test
@@ -197,7 +194,7 @@ class ClanServiceImplTest {
 
         Optional<MyClanResponse> result = clanService.getMyClanByUserId(memberId);
 
-        assertTrue(result.isEmpty());
+        assertTrue(result.isEmpty(), "User with no membership should have empty result");
         verify(clanRepository, never()).findById(anyString());
     }
 }
