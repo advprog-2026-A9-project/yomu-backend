@@ -6,8 +6,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -103,7 +103,7 @@ class ClanServiceImplTest {
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
             () -> clanService.joinClan(clanId, memberId));
-        assertNotNull(exception, "Exception should be thrown");
+        assertNotNull(exception);
     }
 
     @Test
