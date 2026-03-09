@@ -2,16 +2,22 @@ package id.ac.ui.cs.advprog.yomu.social.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
+import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
+import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
+import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyFactory;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -20,6 +26,7 @@ public class ClanServiceImpl implements ClanService {
 
     private final ClanRepository clanRepository;
     private final ClanMemberRepository memberRepository;
+    private final ScoringStrategyFactory scoringStrategyFactory;
 
     @Override
     @Transactional
@@ -136,5 +143,93 @@ public class ClanServiceImpl implements ClanService {
                 role,
                 members
         );
+    }
+
+    @Override
+    public List<LeaderboardResponse> getLeaderboardByTier() {
+        List<Clan> allClans = clanRepository.findAll();
+        
+        // Group clans by tier and create leaderboard entries
+        return List.of(Tier.values()).stream()
+                .map(tier -> {
+                    List<Clan> tierClans = allClans.stream()
+                            .filter(clan -> clan.getTier() == tier)
+                            .sorted(Comparator.comparingInt(Clan::getScore).reversed())
+                            .toList();
+                    
+                    AtomicInteger rank = new AtomicInteger(1);
+                    List<LeaderboardEntryResponse> entries = tierClans.stream()
+                            .map(clan -> new LeaderboardEntryResponse(
+                                    clan.getId(),
+                                    clan.getName(),
+                                    clan.getTier().getDisplayName(),
+                                    clan.getScore(),
+                                    rank.getAndIncrement(),
+                                    Math.toIntExact(memberRepository.countByClanId(clan.getId()))
+                            ))
+                            .toList();
+                    
+                    return new LeaderboardResponse(tier.getDisplayName(), entries);
+                })
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateClanScore(String clanId, int basePoints) {
+        Clan clan = clanRepository.findById(clanId)
+                .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
+        
+        var strategy = scoringStrategyFactory.getStrategy(clan.getTier());
+        int calculatedScore = strategy.calculateScore(clan, basePoints);
+        
+        clan.setScore(calculatedScore);
+        clanRepository.save(clan);
+    }
+
+    @Override
+    @Transactional
+    public void endSeason() {
+        List<LeaderboardResponse> leaderboard = getLeaderboardByTier();
+        
+        // Promote top 20% and demote bottom 20% of each tier
+        for (LeaderboardResponse tierBoard : leaderboard) {
+            if (tierBoard.entries().isEmpty()) continue;
+            
+            int totalClans = tierBoard.entries().size();
+            int promoteCount = Math.max(1, (int) Math.ceil(totalClans * 0.2));
+            int demoteCount = Math.max(1, (int) Math.ceil(totalClans * 0.2));
+            
+            // Promote top clans
+            for (int i = 0; i < Math.min(promoteCount, totalClans); i++) {
+                String clanId = tierBoard.entries().get(i).clanId();
+                Clan clan = clanRepository.findById(clanId).orElse(null);
+                if (clan != null && clan.getTier() != Tier.DIAMOND) {
+                    clan.setTier(clan.getTier().promote());
+                    clan.setScore(0); // Reset score for new season
+                    clanRepository.save(clan);
+                }
+            }
+            
+            // Demote bottom clans
+            for (int i = Math.max(0, totalClans - demoteCount); i < totalClans; i++) {
+                String clanId = tierBoard.entries().get(i).clanId();
+                Clan clan = clanRepository.findById(clanId).orElse(null);
+                if (clan != null && clan.getTier() != Tier.BRONZE) {
+                    clan.setTier(clan.getTier().demote());
+                    clan.setScore(0); // Reset score for new season
+                    clanRepository.save(clan);
+                }
+            }
+        }
+        
+        // Reset scores for all clans not promoted/demoted
+        List<Clan> allClans = clanRepository.findAll();
+        allClans.forEach(clan -> {
+            if (clan.getScore() > 0) {
+                clan.setScore(0);
+                clanRepository.save(clan);
+            }
+        });
     }
 }
