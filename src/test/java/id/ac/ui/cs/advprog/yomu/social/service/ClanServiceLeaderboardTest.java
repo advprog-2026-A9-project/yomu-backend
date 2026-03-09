@@ -5,7 +5,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,24 +63,39 @@ class ClanServiceLeaderboardTest {
     }
 
     @Test
-    void testGetLeaderboardByTier_ReturnsGroupedByTier() {
-        // This test will fail until implementation
+    void testGetLeaderboardByTier_ShouldNotReturnNull() {
         when(clanRepository.findAll()).thenReturn(List.of(bronzeClan, silverClan));
         when(memberRepository.countByClanId(anyString())).thenReturn(5L);
 
         List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier();
 
         assertNotNull(leaderboard, "Leaderboard should not be null");
+    }
+
+    @Test
+    void testGetLeaderboardByTier_ShouldContainTiers() {
+        when(clanRepository.findAll()).thenReturn(List.of(bronzeClan, silverClan));
+        when(memberRepository.countByClanId(anyString())).thenReturn(5L);
+
+        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier();
+
         assertFalse(leaderboard.isEmpty(), "Leaderboard should contain at least one tier");
     }
 
     @Test
-    void testEndSeason_PromotesTopClans() {
-        // This test will fail until implementation
+    void testEndSeason_ShouldNotThrowException() {
         when(clanRepository.findAll()).thenReturn(List.of(bronzeClan));
         when(memberRepository.countByClanId(anyString())).thenReturn(5L);
 
         assertDoesNotThrow(() -> clanService.endSeason());
+    }
+
+    @Test
+    void testEndSeason_ShouldSaveClans() {
+        when(clanRepository.findAll()).thenReturn(List.of(bronzeClan));
+        when(memberRepository.countByClanId(anyString())).thenReturn(5L);
+
+        clanService.endSeason();
         
         verify(clanRepository, atLeastOnce()).save(any(Clan.class));
     }
