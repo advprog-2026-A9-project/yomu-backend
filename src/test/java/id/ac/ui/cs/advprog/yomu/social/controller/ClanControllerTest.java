@@ -173,4 +173,27 @@ class ClanControllerTest {
 
         verify(clanService, times(1)).getMyClanByUserId(memberId);
         }
+
+    @Test
+    void testGetLeaderboard() throws Exception {
+        // This test will fail until we implement the endpoint
+        mockMvc.perform(get("/api/clans/leaderboard"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        verify(clanService, times(1)).getLeaderboardByTier();
+    }
+
+    @Test
+    void testEndSeason_AsAdmin() throws Exception {
+        // This test will fail until we implement the endpoint
+        when(jwtUtil.extractUserId(token)).thenReturn("admin-user");
+
+        mockMvc.perform(post("/api/clans/admin/end-season")
+            .header("Authorization", authHeader))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Season ended. Clans promoted/demoted."));
+
+        verify(clanService, times(1)).endSeason();
+    }
 }
