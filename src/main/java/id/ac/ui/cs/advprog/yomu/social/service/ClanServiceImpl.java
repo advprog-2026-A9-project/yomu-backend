@@ -3,7 +3,6 @@ package id.ac.ui.cs.advprog.yomu.social.service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,11 +38,11 @@ public class ClanServiceImpl implements ClanService {
         clan.setName(request.getName());
         clan.setDescription(request.getDescription());
         clan.setLeaderUserId(request.getUserId());
-        
+
         final Clan savedClan = clanRepository.save(clan);
 
         joinClan(savedClan.getId(), request.getUserId());
-        
+
         return savedClan;
     }
 
@@ -86,13 +85,13 @@ public class ClanServiceImpl implements ClanService {
     public void deleteClan(final String clanId, final String leaderId) {
         final Clan clan = clanRepository.findById(clanId)
                 .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
-        
+
         if (!clan.getLeaderUserId().equals(leaderId)) {
             throw new IllegalStateException("Hanya Leader yang bisa menghapus Clan");
         }
-        
+
         memberRepository.deleteByClanId(clanId);
-        
+
         clanRepository.delete(clan);
     }
 
@@ -141,35 +140,39 @@ public class ClanServiceImpl implements ClanService {
                 clan.getDescription(),
                 clan.getLeaderUserId(),
                 role,
-                members
-        );
+                members);
     }
 
     @Override
     public List<LeaderboardResponse> getLeaderboardByTier() {
         List<Clan> allClans = clanRepository.findAll();
-        
-        // Group clans by tier and create leaderboard entries
+
         return List.of(Tier.values()).stream()
                 .map(tier -> {
-                    List<Clan> tierClans = allClans.stream()
-                            .filter(clan -> clan.getTier() == tier)
+                    List<LeaderboardEntryResponse> entries = allClans.stream()
+                            .filter(clan -> clan.getTier() != null && clan.getTier() == tier)
                             .sorted(Comparator.comparingInt(Clan::getScore).reversed())
+                            .limit(100)
+                            .map(clan -> {
+                                int memberCount = Math.toIntExact(memberRepository.countByClanId(clan.getId()));
+                                return new LeaderboardEntryResponse(
+                                        clan.getId(),
+                                        clan.getName(),
+                                        clan.getTier().getDisplayName(),
+                                        clan.getScore(),
+                                        0,
+                                        memberCount);
+                            })
                             .toList();
-                    
-                    AtomicInteger rank = new AtomicInteger(1);
-                    List<LeaderboardEntryResponse> entries = tierClans.stream()
-                            .map(clan -> new LeaderboardEntryResponse(
-                                    clan.getId(),
-                                    clan.getName(),
-                                    clan.getTier().getDisplayName(),
-                                    clan.getScore(),
-                                    rank.getAndIncrement(),
-                                    Math.toIntExact(memberRepository.countByClanId(clan.getId()))
-                            ))
-                            .toList();
-                    
-                    return new LeaderboardResponse(tier.getDisplayName(), entries);
+
+                    List<LeaderboardEntryResponse> rankedEntries = new java.util.ArrayList<>();
+                    for (int i = 0; i < entries.size(); i++) {
+                        LeaderboardEntryResponse e = entries.get(i);
+                        rankedEntries.add(new LeaderboardEntryResponse(
+                                e.clanId(), e.clanName(), e.tier(), e.score(), i + 1, e.memberCount()));
+                    }
+
+                    return new LeaderboardResponse(tier.getDisplayName(), rankedEntries);
                 })
                 .toList();
     }
@@ -179,10 +182,10 @@ public class ClanServiceImpl implements ClanService {
     public void updateClanScore(String clanId, int basePoints) {
         Clan clan = clanRepository.findById(clanId)
                 .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
-        
+
         var strategy = scoringStrategyFactory.getStrategy(clan.getTier());
         int calculatedScore = strategy.calculateScore(clan, basePoints);
-        
+
         clan.setScore(calculatedScore);
         clanRepository.save(clan);
     }
@@ -191,15 +194,16 @@ public class ClanServiceImpl implements ClanService {
     @Transactional
     public void endSeason() {
         List<LeaderboardResponse> leaderboard = getLeaderboardByTier();
-        
+
         // Promote top 20% and demote bottom 20% of each tier
         for (LeaderboardResponse tierBoard : leaderboard) {
-            if (tierBoard.entries().isEmpty()) continue;
-            
+            if (tierBoard.entries().isEmpty())
+                continue;
+
             int totalClans = tierBoard.entries().size();
             int promoteCount = Math.max(1, (int) Math.ceil(totalClans * 0.2));
             int demoteCount = Math.max(1, (int) Math.ceil(totalClans * 0.2));
-            
+
             // Promote top clans
             for (int i = 0; i < Math.min(promoteCount, totalClans); i++) {
                 String clanId = tierBoard.entries().get(i).clanId();
@@ -210,7 +214,7 @@ public class ClanServiceImpl implements ClanService {
                     clanRepository.save(clan);
                 }
             }
-            
+
             // Demote bottom clans
             for (int i = Math.max(0, totalClans - demoteCount); i < totalClans; i++) {
                 String clanId = tierBoard.entries().get(i).clanId();
@@ -222,7 +226,7 @@ public class ClanServiceImpl implements ClanService {
                 }
             }
         }
-        
+
         // Reset scores for all clans not promoted/demoted
         List<Clan> allClans = clanRepository.findAll();
         allClans.forEach(clan -> {
