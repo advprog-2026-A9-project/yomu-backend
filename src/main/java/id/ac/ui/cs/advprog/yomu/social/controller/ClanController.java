@@ -39,7 +39,7 @@ public class ClanController {
 
     @PostMapping
     public ResponseEntity<Clan> create(@RequestBody final ClanRequest request,
-                                       @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader("Authorization") String authHeader) {
         request.setUserId(getUserIdFromHeader(authHeader));
         return ResponseEntity.ok(clanService.createClan(request));
     }
@@ -63,7 +63,7 @@ public class ClanController {
 
     @PostMapping("/{id}/join")
     public ResponseEntity<String> join(@PathVariable String id,
-                                       @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader("Authorization") String authHeader) {
         String userId = getUserIdFromHeader(authHeader);
         clanService.joinClan(id, userId);
         return ResponseEntity.ok("Berhasil bergabung");
@@ -71,7 +71,7 @@ public class ClanController {
 
     @PostMapping("/{id}/leave")
     public ResponseEntity<String> leave(@PathVariable String id,
-                                        @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader("Authorization") String authHeader) {
         String userId = getUserIdFromHeader(authHeader);
         clanService.leaveClan(id, userId);
         return ResponseEntity.ok("Berhasil keluar dari clan");
@@ -79,7 +79,7 @@ public class ClanController {
 
     @PostMapping("/{id}/delete")
     public ResponseEntity<String> delete(@PathVariable String id,
-                                         @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader("Authorization") String authHeader) {
         String userId = getUserIdFromHeader(authHeader);
         clanService.deleteClan(id, userId);
         return ResponseEntity.ok("Clan berhasil dihapus");
@@ -92,7 +92,6 @@ public class ClanController {
 
     @PostMapping("/admin/end-season")
     public ResponseEntity<String> endSeason(@RequestHeader("Authorization") String authHeader) {
-        // TODO: Add admin authorization check
         clanService.endSeason();
         return ResponseEntity.ok("Season ended. Clans promoted/demoted.");
     }

@@ -30,6 +30,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+<<<<<<< HEAD
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -60,6 +61,24 @@ public class SecurityConfig {
                 )
                 .defaultSuccessUrl("/api/auth/me")
             );
+=======
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // JWT: tidak perlu session
+                )
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints (tanpa autentikasi)
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+
+                        // Protected endpoints (harus autentikasi)
+                        .requestMatchers("/api/readings/**").authenticated()
+                        .anyRequest().authenticated())
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin()) // Allow H2 console frames
+                );
+>>>>>>> 7b3b0d4 (chore: save local changes before pull)
 
         if (jwtAuthenticationFilter != null) {
             http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
