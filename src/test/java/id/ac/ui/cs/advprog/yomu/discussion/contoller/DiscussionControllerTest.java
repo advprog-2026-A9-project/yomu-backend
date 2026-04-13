@@ -1,0 +1,74 @@
+package id.ac.ui.cs.advprog.yomu.discussion.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import id.ac.ui.cs.advprog.yomu.discussion.dto.CommentResponse;
+import id.ac.ui.cs.advprog.yomu.discussion.dto.UpdateCommentRequest;
+import id.ac.ui.cs.advprog.yomu.discussion.service.DiscussionService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(controllers = DiscussionController.class)
+@AutoConfigureMockMvc(addFilters = false) // Bypass JWT saat testing
+class DiscussionControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private DiscussionService discussionService;
+
+    private UUID commentId;
+    private UUID userId;
+
+    @BeforeEach
+    void setUp() {
+        commentId = UUID.randomUUID();
+        userId = UUID.randomUUID();
+    }
+
+    @Test
+    void testUpdateCommentEndpoint() throws Exception {
+        String updatedText = "Updated text";
+        UpdateCommentRequest request = new UpdateCommentRequest(updatedText, userId);
+        CommentResponse mockResponse = CommentResponse.builder()
+                .id(commentId)
+                .content(updatedText)
+                .userId(userId)
+                .build();
+
+        when(discussionService.updateComment(eq(commentId), any(UpdateCommentRequest.class)))
+                .thenReturn(mockResponse);
+
+        mockMvc.perform(put("/api/discussion/" + commentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").value(updatedText));
+    }
+
+    @Test
+    void testDeleteCommentEndpoint() throws Exception {
+        mockMvc.perform(delete("/api/discussion/" + commentId)
+                        .param("userId", userId.toString()))
+                .andExpect(status().isNoContent());
+
+        verify(discussionService, times(1)).deleteComment(commentId, userId);
+    }
+}
