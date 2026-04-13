@@ -2,7 +2,6 @@ package id.ac.ui.cs.advprog.yomu.discussion.dto;
 
 import lombok.Builder;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -12,5 +11,7 @@ public class CommentResponse {
     private String content;
     private UUID userId;
     private UUID readingId;
+    private UUID parentId; // Tambahkan ini
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt; // Tambahkan ini
 }

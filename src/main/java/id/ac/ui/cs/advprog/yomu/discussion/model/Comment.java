@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.yomu.discussion.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,7 +27,13 @@ public class Comment {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
+    @Column(name = "parent_id")
+    private UUID parentId;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }
