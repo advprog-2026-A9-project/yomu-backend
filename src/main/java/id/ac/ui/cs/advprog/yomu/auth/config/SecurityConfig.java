@@ -14,6 +14,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import id.ac.ui.cs.advprog.yomu.auth.filter.JwtAuthenticationFilter;
 
+import org.springframework.http.HttpMethod;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -34,6 +36,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+
+                // Role-based access untuk reading  ← TAMBAHKAN INI
+                .requestMatchers(HttpMethod.POST, "/api/reading-texts/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/reading-texts/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/reading-texts/**").authenticated()
                 
                 // Protected endpoints (harus autentikasi)
                 .requestMatchers("/api/readings/**").authenticated()
