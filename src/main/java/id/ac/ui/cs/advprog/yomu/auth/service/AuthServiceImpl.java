@@ -60,4 +60,11 @@ public class AuthServiceImpl implements AuthService {
         final String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
         return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), token, "Login berhasil");
     }
+
+    @Override
+    public AuthResponse getMe(String username) {
+        final User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
+        return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), null, "OK");
+    }
 }
