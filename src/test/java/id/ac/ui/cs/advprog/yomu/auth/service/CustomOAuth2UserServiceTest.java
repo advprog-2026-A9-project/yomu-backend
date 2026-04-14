@@ -16,6 +16,8 @@ import static org.mockito.Mockito.*;
 
 class CustomOAuth2UserServiceTest {
 
+    private static final String TEST_EMAIL = "test@gmail.com";
+
     @Mock
     private UserRepository userRepository;
 
@@ -35,9 +37,9 @@ class CustomOAuth2UserServiceTest {
 
     @Test
     void whenUserNotExists_thenSaveNewUser() {
-        when(oAuth2User.getAttribute("email")).thenReturn("test@gmail.com");
+        when(oAuth2User.getAttribute("email")).thenReturn(TEST_EMAIL);
         when(oAuth2User.getAttribute("name")).thenReturn("Test User");
-        when(userRepository.findByEmail("test@gmail.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
 
         service.processOAuth2User(oAuth2User);
 
@@ -47,11 +49,11 @@ class CustomOAuth2UserServiceTest {
     @Test
     void whenUserAlreadyExists_thenDoNotSave() {
         User existingUser = new User();
-        existingUser.setEmail("test@gmail.com");
+        existingUser.setEmail(TEST_EMAIL);
 
-        when(oAuth2User.getAttribute("email")).thenReturn("test@gmail.com");
+        when(oAuth2User.getAttribute("email")).thenReturn(TEST_EMAIL);
         when(oAuth2User.getAttribute("name")).thenReturn("Test User");
-        when(userRepository.findByEmail("test@gmail.com")).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(existingUser));
 
         service.processOAuth2User(oAuth2User);
 

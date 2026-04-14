@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class SecurityConfigTest {
@@ -22,21 +24,28 @@ class SecurityConfigTest {
     @MockitoBean
     private CustomOAuth2UserService customOAuth2UserService;
 
+
     @Test
     void publicEndpointShouldBeAccessible() throws Exception {
-        mockMvc.perform(post("/api/auth/login"))
-            .andExpect(status().is4xxClientError()); // 400 karena body kosong, tapi endpoint accessible
+        final var result = mockMvc.perform(post("/api/auth/login"))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+        assertNotNull(result, "Response should not be null");
     }
 
     @Test
     void protectedEndpointShouldReturn3xxWhenNotAuthenticated() throws Exception {
-        mockMvc.perform(get("/api/readings"))
-            .andExpect(status().is3xxRedirection()); // redirect ke google login
+        final var result = mockMvc.perform(get("/api/readings"))
+            .andExpect(status().is3xxRedirection())
+            .andReturn();
+        assertNotNull(result, "Response should not be null");
     }
 
     @Test
     void oauth2LoginEndpointShouldBeAccessible() throws Exception {
-        mockMvc.perform(get("/oauth2/authorization/google"))
-            .andExpect(status().is3xxRedirection());
+        final var result = mockMvc.perform(get("/oauth2/authorization/google"))
+            .andExpect(status().is3xxRedirection())
+            .andReturn();
+        assertNotNull(result, "Response should not be null");
     }
 }
