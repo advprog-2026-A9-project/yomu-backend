@@ -44,6 +44,7 @@ out/
 .env
 application.properties
 !src/main/resources/application.properties
+!src/test/resources/application.properties
 
 # Ignore Build results
 build/
