@@ -7,4 +7,5 @@ import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
 public interface AuthService {
     AuthResponse register(RegisterRequest request);
     AuthResponse login(LoginRequest request);
+    AuthResponse getMe(String username);
 }
