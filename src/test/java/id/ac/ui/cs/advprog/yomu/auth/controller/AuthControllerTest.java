@@ -15,9 +15,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class AuthControllerTest {
+
+    private static final String TEST_USER = "testuser";
 
     @Autowired
     private MockMvc mockMvc;
@@ -26,21 +30,25 @@ class AuthControllerTest {
     private AuthService authService;
 
     @Test
-    @WithMockUser(username = "testuser", roles = "PELAJAR")
+    @WithMockUser(username = TEST_USER, roles = "PELAJAR")
     void getMeShouldReturnUserInfo() throws Exception {
-        when(authService.getMe("testuser")).thenReturn(
-            new AuthResponse("123", "testuser", "PELAJAR", null, "OK")
+        when(authService.getMe(TEST_USER)).thenReturn(
+            new AuthResponse("123", TEST_USER, "PELAJAR", null, "OK")
         );
 
-        mockMvc.perform(get("/api/auth/me"))
+        final var result = mockMvc.perform(get("/api/auth/me"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.username").value("testuser"))
-            .andExpect(jsonPath("$.role").value("PELAJAR"));
+            .andExpect(jsonPath("$.username").value(TEST_USER))
+            .andExpect(jsonPath("$.role").value("PELAJAR"))
+            .andReturn();
+        assertNotNull(result, "Response should not be null");
     }
 
     @Test
-    void getMeShouldReturn3xxWhenNotAuthenticated() throws Exception {
-        mockMvc.perform(get("/api/auth/me"))
-            .andExpect(status().is3xxRedirection());
+    void getMeShouldReturn401WhenNotAuthenticated() throws Exception {
+        final var result = mockMvc.perform(get("/api/auth/me"))
+            .andExpect(status().isUnauthorized())
+            .andReturn();
+        assertNotNull(result, "Response should not be null");
     }
 }
