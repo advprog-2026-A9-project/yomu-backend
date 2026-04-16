@@ -51,7 +51,7 @@ public class SecurityConfig {
             );
 
         if (jwtAuthenticationFilter != null) {
-            http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+              http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         }
 
         return http.build();
