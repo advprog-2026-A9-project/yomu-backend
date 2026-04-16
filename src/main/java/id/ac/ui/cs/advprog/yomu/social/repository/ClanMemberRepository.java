@@ -18,7 +18,7 @@ public interface ClanMemberRepository extends JpaRepository<ClanMember, Long> {
     
     Optional<ClanMember> findByUserId(String userId);
 
-    Optional<ClanMember> getClanMembersByClanId(String clanId);
+    List<ClanMember> getClanMembersByClanId(String clanId);
     
     long countByClanId(String clanId);
 

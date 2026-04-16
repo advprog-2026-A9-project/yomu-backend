@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.social.service;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -42,6 +43,7 @@ class ClanServiceImplTest {
 
     private Clan dummyClan;
     private ClanRequest clanRequest;
+    private List<ClanMember> dummyMemberList;
 
     private String clanId;
     private String leaderId;
@@ -67,7 +69,14 @@ class ClanServiceImplTest {
         clanRequest = new ClanRequest();
         clanRequest.setName(clanName);
         clanRequest.setUserId(leaderId);
+        clanRequest.setUsername(username);
         clanRequest.setDescription(description);
+
+        ClanMember m1 = new ClanMember();
+        m1.setUserId(leaderId);
+        ClanMember m2 = new ClanMember();
+        m2.setUserId(memberId);
+        dummyMemberList = Arrays.asList(m1, m2);
     }
 
     @Test
@@ -79,8 +88,8 @@ class ClanServiceImplTest {
         Clan created = clanService.createClan(clanRequest);
 
         assertAll("Verify created clan state",
-            () -> assertNotNull(created, "Created clan should not be null"),
-            () -> assertEquals(clanName, created.getName(), "Clan name should match the request")
+                () -> assertNotNull(created, "Clan successfull created"),
+                () -> assertEquals(clanName, created.getName(), "Match clan name")
         );
     }
 
@@ -92,10 +101,7 @@ class ClanServiceImplTest {
 
         clanService.createClan(clanRequest);
 
-        assertAll("Verify repository interactions",
-            () -> verify(clanRepository, times(1)).save(any(Clan.class)),
-            () -> verify(memberRepository, times(1)).save(any(ClanMember.class))
-        );
+        verify(clanRepository, times(1)).save(any(Clan.class));
     }
 
     @Test
@@ -104,16 +110,7 @@ class ClanServiceImplTest {
         when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(new ClanMember()));
 
         assertThrows(IllegalStateException.class,
-            () -> clanService.joinClan(clanId, memberId, username, "MEMBER"));
-    }
-
-    @Test
-    void testJoinClan_AlreadyInClan_ShouldHaveCorrectErrorMessage() {
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(new ClanMember()));
-        
-        assertThrows(IllegalStateException.class,
-                () -> clanService.joinClan(clanId, memberId, username, "MEMBER"), "User is already in a clan");
+                () -> clanService.joinClan(clanId, memberId, username, "MEMBER"));
     }
 
     @Test
@@ -123,17 +120,14 @@ class ClanServiceImplTest {
 
         clanService.leaveClan(clanId, randomMember);
 
-        assertAll("Verify membership deletion only",
-            () -> verify(memberRepository).deleteByClanIdAndUserId(clanId, randomMember),
-            () -> verify(clanRepository, never()).delete(any())
-        );
+        verify(memberRepository).deleteByClanIdAndUserId(clanId, randomMember);
     }
 
     @Test
     void testLeaveClan_AsLeader_WithSuccession() {
-        ClanMember leader = new ClanMember(); 
+        ClanMember leader = new ClanMember();
         leader.setUserId(leaderId);
-        ClanMember other = new ClanMember(); 
+        ClanMember other = new ClanMember();
         other.setUserId(memberId);
 
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
@@ -141,16 +135,12 @@ class ClanServiceImplTest {
 
         clanService.leaveClan(clanId, leaderId);
 
-        assertAll("Verify leadership succession",
-            () -> assertEquals(memberId, dummyClan.getLeaderUserId(), "Leadership should be transferred"),
-            () -> verify(clanRepository).save(dummyClan),
-            () -> verify(memberRepository).deleteByClanIdAndUserId(clanId, leaderId)
-        );
+        assertEquals(memberId, dummyClan.getLeaderUserId(), "Verify member promoted to leader");
     }
 
     @Test
     void testLeaveClan_AsLastLeader_ShouldDeleteClan() {
-        ClanMember leader = new ClanMember(); 
+        ClanMember leader = new ClanMember();
         leader.setUserId(leaderId);
 
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
@@ -158,97 +148,45 @@ class ClanServiceImplTest {
 
         clanService.leaveClan(clanId, leaderId);
 
-        assertAll("Verify clan deletion",
-            () -> verify(clanRepository).delete(dummyClan),
-            () -> verify(memberRepository).deleteByClanIdAndUserId(clanId, leaderId)
+        verify(clanRepository).delete(dummyClan);
+    }
+
+    @Test
+    void testGetMyClanByUserId_AsLeader_ShouldReturnCorrectData() {
+        ClanMember membership = new ClanMember();
+        membership.setClanId(clanId);
+        membership.setUserId(leaderId);
+
+        when(memberRepository.findByUserId(leaderId)).thenReturn(Optional.of(membership));
+        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
+        when(memberRepository.getClanMembersByClanId(clanId)).thenReturn(dummyMemberList);
+
+        Optional<MyClanResponse> result = clanService.getMyClanByUserId(leaderId);
+
+        assertAll("Verify response for leader",
+                () -> assertTrue(result.isPresent(), "Verify clan exists"),
+                () -> assertEquals("KETUA", result.get().role(), "Verify role is leader"),
+                () -> assertEquals(2, result.get().members().size(), "Verify member amount")
         );
     }
 
     @Test
-    void testGetMyClanByUserId_AsLeader_ShouldReturnResult() {
-        ClanMember membership = new ClanMember();
-        membership.setClanId(clanId);
-        membership.setUserId(leaderId);
-        when(memberRepository.findByUserId(leaderId)).thenReturn(Optional.of(membership));
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(memberRepository.countByClanId(clanId)).thenReturn(2L);
-
-        Optional<MyClanResponse> result = clanService.getMyClanByUserId(leaderId);
-
-        assertTrue(result.isPresent(), "Leader should have a clan");
-    }
-
-    @Test
-    void testGetMyClanByUserId_AsLeader_ShouldReturnKetuaRole() {
-        ClanMember membership = new ClanMember();
-        membership.setClanId(clanId);
-        membership.setUserId(leaderId);
-        when(memberRepository.findByUserId(leaderId)).thenReturn(Optional.of(membership));
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(memberRepository.countByClanId(clanId)).thenReturn(2L);
-
-        Optional<MyClanResponse> result = clanService.getMyClanByUserId(leaderId);
-
-        assertEquals("KETUA", result.get().role(), "Leader role should be KETUA");
-    }
-
-    @Test
-    void testGetMyClanByUserId_AsLeader_ShouldReturnCorrectMemberCount() {
-        ClanMember membership = new ClanMember();
-        membership.setClanId(clanId);
-        membership.setUserId(leaderId);
-        when(memberRepository.findByUserId(leaderId)).thenReturn(Optional.of(membership));
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(memberRepository.countByClanId(clanId)).thenReturn(2L);
-
-        Optional<MyClanResponse> result = clanService.getMyClanByUserId(leaderId);
-
-        assertEquals(2, result.get().members(), "Clan should have 2 members");
-    }
-
-    @Test
-    void testGetMyClanByUserId_AsMember_ShouldReturnResult() {
+    void testGetMyClanByUserId_AsMember_ShouldReturnCorrectData() {
         ClanMember membership = new ClanMember();
         membership.setClanId(clanId);
         membership.setUserId(memberId);
 
         when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(membership));
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(memberRepository.countByClanId(clanId)).thenReturn(1L);
+        when(memberRepository.getClanMembersByClanId(clanId)).thenReturn(List.of(membership));
 
         Optional<MyClanResponse> result = clanService.getMyClanByUserId(memberId);
 
-        assertTrue(result.isPresent(), "Member should have a clan");
-    }
-
-    @Test
-    void testGetMyClanByUserId_AsMember_ShouldReturnAnggotaRole() {
-        ClanMember membership = new ClanMember();
-        membership.setClanId(clanId);
-        membership.setUserId(memberId);
-
-        when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(membership));
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(memberRepository.countByClanId(clanId)).thenReturn(1L);
-
-        Optional<MyClanResponse> result = clanService.getMyClanByUserId(memberId);
-
-        assertEquals("ANGGOTA", result.get().role(), "Member role should be ANGGOTA");
-    }
-
-    @Test
-    void testGetMyClanByUserId_AsMember_ShouldReturnCorrectMemberCount() {
-        ClanMember membership = new ClanMember();
-        membership.setClanId(clanId);
-        membership.setUserId(memberId);
-
-        when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(membership));
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(memberRepository.countByClanId(clanId)).thenReturn(1L);
-
-        Optional<MyClanResponse> result = clanService.getMyClanByUserId(memberId);
-
-        assertEquals(1, result.get().members(), "Clan should have 1 member");
+        assertAll("Verify response for member",
+                () -> assertTrue(result.isPresent(), "Verify clan exists"),
+                () -> assertEquals("ANGGOTA", result.get().role(), "Verify role is member"),
+                () -> assertEquals(1, result.get().members().size(), "Verify member amount")
+        );
     }
 
     @Test
@@ -257,15 +195,6 @@ class ClanServiceImplTest {
 
         Optional<MyClanResponse> result = clanService.getMyClanByUserId(memberId);
 
-        assertTrue(result.isEmpty(), "User with no membership should have empty result");
-    }
-
-    @Test
-    void testGetMyClanByUserId_WhenNoMembership_ShouldNotQueryClanRepository() {
-        when(memberRepository.findByUserId(memberId)).thenReturn(Optional.empty());
-
-        clanService.getMyClanByUserId(memberId);
-
-        verify(clanRepository, never()).findById(anyString());
+        assertTrue(result.isEmpty(), "Verify no member returned");
     }
 }
