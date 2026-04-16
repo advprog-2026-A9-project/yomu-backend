@@ -42,9 +42,9 @@ public class SecurityConfig {
 
                 // Role-based access untuk reading  ← TAMBAHKAN INI
                 .requestMatchers(HttpMethod.POST, "/api/reading-texts/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/clans/admin/end-season").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/reading-texts/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/reading-texts/**").authenticated()
-                
                 // Protected endpoints (harus autentikasi)
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                 .requestMatchers("/api/readings/**").authenticated()

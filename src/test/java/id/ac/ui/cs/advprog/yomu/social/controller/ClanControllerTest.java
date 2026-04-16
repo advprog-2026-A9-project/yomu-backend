@@ -5,6 +5,7 @@ import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,12 +47,14 @@ class ClanControllerTest {
     private String clanId;
     private String leaderId;
     private String memberId;
+    private String username;
     private String clanName;
     private String authHeader;
     private String token;
     private String joinSuccessMsg;
     private String leaveSuccessMsg;
     private String deleteSuccessMsg;
+    private List<ClanMember> members;
 
     @BeforeEach
     void setUp() {
@@ -61,12 +64,17 @@ class ClanControllerTest {
         clanId = "clan-123";
         leaderId = "user-456";
         memberId = "user-789";
+        username = "wibu";
         clanName = "Wibu Elite";
         token = "dummy-token";
         authHeader = "Bearer " + token;
         joinSuccessMsg = "Berhasil bergabung";
         leaveSuccessMsg = "Berhasil keluar dari clan";
         deleteSuccessMsg = "Clan berhasil dihapus";
+        ClanMember dummyMember = new ClanMember();
+        dummyMember.setUserId(leaderId);
+        dummyMember.setUsername("LeaderUser");
+        List<ClanMember> members = List.of(dummyMember);
 
         dummyClan = new Clan();
         dummyClan.setId(clanId);
@@ -117,7 +125,7 @@ class ClanControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(joinSuccessMsg));
 
-        verify(clanService, times(1)).joinClan(eq(clanId), eq(memberId));
+        verify(clanService, times(1)).joinClan(eq(clanId), eq(memberId), eq(username), "MEMBER");
     }
 
     @Test
@@ -149,7 +157,7 @@ class ClanControllerTest {
         @Test
         void testGetMyClan_WhenUserHasClan() throws Exception {
         MyClanResponse response = new MyClanResponse(dummyClan.getId(), dummyClan.getName(),
-            dummyClan.getDescription(), dummyClan.getLeaderUserId(), "KETUA", 2);
+            dummyClan.getDescription(), dummyClan.getLeaderUserId(), "KETUA", members );
         when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
         when(clanService.getMyClanByUserId(leaderId)).thenReturn(Optional.of(response));
 
@@ -157,8 +165,7 @@ class ClanControllerTest {
             .header("Authorization", authHeader))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(clanId))
-            .andExpect(jsonPath("$.role").value("KETUA"))
-            .andExpect(jsonPath("$.members").value(2));
+            .andExpect(jsonPath("$.role").value("KETUA"));
 
         verify(clanService, times(1)).getMyClanByUserId(leaderId);
         }

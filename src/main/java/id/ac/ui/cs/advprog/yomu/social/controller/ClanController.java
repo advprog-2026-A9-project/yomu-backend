@@ -37,10 +37,19 @@ public class ClanController {
         return null;
     }
 
+    private String getUsernameFromHeader(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            return jwtUtil.extractUsername(token);
+        }
+        return null;
+    }
+
     @PostMapping
     public ResponseEntity<Clan> create(@RequestBody final ClanRequest request,
             @RequestHeader("Authorization") String authHeader) {
         request.setUserId(getUserIdFromHeader(authHeader));
+        request.setUsername(getUsernameFromHeader(authHeader));
         return ResponseEntity.ok(clanService.createClan(request));
     }
 
@@ -65,7 +74,8 @@ public class ClanController {
     public ResponseEntity<String> join(@PathVariable String id,
             @RequestHeader("Authorization") String authHeader) {
         String userId = getUserIdFromHeader(authHeader);
-        clanService.joinClan(id, userId);
+        String username = getUsernameFromHeader(authHeader);
+        clanService.joinClan(id, userId, username, "MEMBER");
         return ResponseEntity.ok("Berhasil bergabung");
     }
 
