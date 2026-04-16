@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,17 +56,17 @@ public class ClanServiceImpl implements ClanService {
         final String validClanId = Objects.requireNonNull(clanId);
         final String validUserId = Objects.requireNonNull(userId);
 
+        ClanValidation.requireClanNameAvailable(clanRepository.existsByName(request.getName()));
+
         Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        ClanValidation.requireLeaderCanEdit(clan, validUserId);
+        ClanValidation.requireLeaderPrivilege(clan, validUserId, "Permission to edit clan information denied");
         
         clan.setName(request.getName());
         clan.setDescription(request.getDescription());
 
-        final Clan savedClan = clanRepository.save(clan);
-
-        return savedClan;
+        return clanRepository.save(clan);
     }
 
     @Override
@@ -78,11 +79,8 @@ public class ClanServiceImpl implements ClanService {
         clanRepository.findById(validClanId)
             .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        memberRepository.findByClanIdAndUserId(validClanId, validUserId)
-            .ifPresent(existing -> ClanValidation.requireMemberNotAlreadyInClan(true));
-
-        memberRepository.findByUserId(validUserId)
-            .ifPresent(existing -> ClanValidation.requireMemberNotInOtherClan(true));
+        ClanValidation.requireNotAlreadyMember(memberRepository.findByClanIdAndUserId(clanId, userId).isPresent());
+        ClanValidation.requireNotMemberOfOtherClan(memberRepository.findByUserId(userId).isPresent());
 
         final ClanMember member = new ClanMember();
         member.setUsername(username);
@@ -129,7 +127,7 @@ public class ClanServiceImpl implements ClanService {
         final Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        ClanValidation.requireLeaderCanDelete(clan, validLeaderId);
+        ClanValidation.requireLeaderPrivilege(clan, validLeaderId, "You have no permission to delete this clan.");
 
         memberRepository.deleteByClanId(validClanId);
 
@@ -191,7 +189,7 @@ public class ClanServiceImpl implements ClanService {
     public List<LeaderboardResponse> getLeaderboardByTier() {
         List<Clan> allClans = clanRepository.findAll();
 
-        return List.of(Tier.values()).stream()
+        return Stream.of(Tier.values())
                 .map(tier -> {
                     List<LeaderboardEntryResponse> entries = allClans.stream()
                             .filter(clan -> clan.getTier() != null && clan.getTier() == tier)
