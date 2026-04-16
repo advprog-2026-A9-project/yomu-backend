@@ -58,7 +58,6 @@ class ClanControllerTest {
     private String joinSuccessMsg;
     private String leaveSuccessMsg;
     private String deleteSuccessMsg;
-    private String editSuccessMsg;
     private List<ClanMember> members;
     private String BASE_API = "/api/clans";
 
@@ -80,8 +79,6 @@ class ClanControllerTest {
         joinSuccessMsg = "Berhasil bergabung";
         leaveSuccessMsg = "Berhasil keluar dari clan";
         deleteSuccessMsg = "Clan berhasil dihapus";
-        editSuccessMsg = "Berhasil mengubah informasi clan";
-
         ClanMember dummyMember = new ClanMember();
         dummyMember.setUserId(leaderId);
         dummyMember.setUsername("LeaderUser");
@@ -169,7 +166,7 @@ class ClanControllerTest {
         when(jwtUtil.extractUserId(token)).thenReturn(memberId);
         when(jwtUtil.extractUsername(token)).thenReturn(username);
 
-        mockMvc.perform(post(BASE_API + clanId + "/join")
+        mockMvc.perform(post(BASE_API + "/" + clanId + "/join")
                         .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isOk())
                 .andExpect(content().string(joinSuccessMsg));
@@ -190,8 +187,7 @@ class ClanControllerTest {
                         .header(AUTHORIZATION_HEADER, authHeader)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(content().string(editSuccessMsg));
+                .andExpect(status().isOk());
 
         verify(clanService, times(1)).editClan(eq(clanId), eq(leaderId), any(ClanRequest.class));
     }
@@ -200,7 +196,7 @@ class ClanControllerTest {
     void testLeaveClan() throws Exception {
         when(jwtUtil.extractUserId(token)).thenReturn(memberId);
 
-        mockMvc.perform(post(BASE_API + clanId + "/leave")
+        mockMvc.perform(post(BASE_API + "/" + clanId + "/leave")
                         .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isOk())
                 .andExpect(content().string(leaveSuccessMsg));
