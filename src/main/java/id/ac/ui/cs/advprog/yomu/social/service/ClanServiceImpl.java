@@ -5,10 +5,13 @@ import java.util.List;
 import java.util.Optional;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 >>>>>>> 89eb63e (feat(social-clan): update security and clan access)
+=======
+>>>>>>> 4bf0004 (feat(social-league): create edit clan function in Clan controller, service, and serviceImplement)
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +50,23 @@ public class ClanServiceImpl implements ClanService {
         final Clan savedClan = clanRepository.save(clan);
 
         joinClan(savedClan.getId(), request.getUserId(), request.getUsername(), "LEADER");
+
+        return savedClan;
+    }
+    
+    @Override
+    public Clan editClan(final String clanId, final ClanRequest request) {
+        if (clanId == null) {
+            throw new IllegalStateException("Class ID is null");
+        }
+
+        Clan clan = clanRepository.findById(clanId)
+            .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
+
+        clan.setName(request.getName());
+        clan.setDescription(request.getDescription());
+
+        final Clan savedClan = clanRepository.save(clan);
 
         return savedClan;
     }
