@@ -4,6 +4,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+<<<<<<< HEAD
+=======
+import id.ac.ui.cs.advprog.yomu.auth.model.User;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+>>>>>>> 89eb63e (feat(social-clan): update security and clan access)
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,14 +46,22 @@ public class ClanServiceImpl implements ClanService {
 
         final Clan savedClan = clanRepository.save(clan);
 
-        joinClan(savedClan.getId(), request.getUserId());
+        joinClan(savedClan.getId(), request.getUserId(), request.getUsername(), "LEADER");
 
         return savedClan;
     }
 
     @Override
     @Transactional
+<<<<<<< HEAD
     public void joinClan(final String clanId, final String userId) {
+=======
+    public void joinClan(final String clanId, final String userId, final String username, final String role) {
+        if (clanId == null) {
+            throw new IllegalStateException("Class ID is null");
+        }
+
+>>>>>>> 89eb63e (feat(social-clan): update security and clan access)
         clanRepository.findById(clanId)
                 .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
 
@@ -63,9 +76,19 @@ public class ClanServiceImpl implements ClanService {
                 });
 
         final ClanMember member = new ClanMember();
+        member.setUsername(username);
         member.setClanId(clanId);
         member.setUserId(userId);
+        member.setRole(role);
         memberRepository.save(member);
+    }
+
+    public List<ClanMember> getMembersByClanId(final String clanId) {
+        if (clanId == null) {
+            throw new IllegalStateException("Clan ID is null");
+        }
+
+        return memberRepository.getClanMembersByClanId(clanId).stream().toList();
     }
 
     @Override
@@ -132,7 +155,7 @@ public class ClanServiceImpl implements ClanService {
 
     private MyClanResponse toMyClanResponse(final Clan clan, final String currentUserId) {
         String role = clan.getLeaderUserId().equals(currentUserId) ? "KETUA" : "ANGGOTA";
-        int members = Math.toIntExact(memberRepository.countByClanId(clan.getId()));
+        List<ClanMember> members = memberRepository.getClanMembersByClanId(clan.getId()).stream().toList();
 
         return new MyClanResponse(
                 clan.getId(),
