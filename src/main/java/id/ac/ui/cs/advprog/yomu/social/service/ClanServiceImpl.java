@@ -2,12 +2,13 @@ package id.ac.ui.cs.advprog.yomu.social.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
@@ -18,6 +19,7 @@ import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
 import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyFactory;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -31,9 +33,7 @@ public class ClanServiceImpl implements ClanService {
     @Override
     @Transactional
     public Clan createClan(final ClanRequest request) {
-        if (clanRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException("Nama Clan sudah digunakan");
-        }
+        ClanValidation.requireClanNameAvailable(clanRepository.existsByName(request.getName()));
 
         final Clan clan = new Clan();
         clan.setName(request.getName());
@@ -42,7 +42,7 @@ public class ClanServiceImpl implements ClanService {
 
         final Clan savedClan = clanRepository.save(clan);
 
-        joinClan(savedClan.getId(), request.getUserId(), request.getUsername(), "LEADER");
+        joinClan(savedClan.getId(), request.getUserId(), request.getUsername(), SocialConstants.ROLE_LEADER);
 
         return savedClan;
     }
@@ -50,21 +50,15 @@ public class ClanServiceImpl implements ClanService {
     @Override
     @Transactional
     public Clan editClan(final String clanId, final String userId, final ClanRequest request) {
-        if (clanId == null) {
-            throw new IllegalStateException("Class ID is null");
-        }
+        ClanValidation.requireClanId(clanId);
+        ClanValidation.requireUserId(userId);
+        final String validClanId = Objects.requireNonNull(clanId);
+        final String validUserId = Objects.requireNonNull(userId);
 
-        if (userId == null) {
-            throw new IllegalStateException("User ID is null");
-        }
+        Clan clan = clanRepository.findById(validClanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        
-        Clan clan = clanRepository.findById(clanId)
-        .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
-
-        if (!clan.getLeaderUserId().equals(userId)) {
-            throw new IllegalStateException("Only Clan Leader can change clan information");
-        }
+        ClanValidation.requireLeaderCanEdit(clan, validUserId);
         
         clan.setName(request.getName());
         clan.setDescription(request.getDescription());
@@ -77,35 +71,30 @@ public class ClanServiceImpl implements ClanService {
     @Override
     @Transactional
     public void joinClan(final String clanId, final String userId, final String username, final String role) {
-        if (clanId == null) {
-            throw new IllegalStateException("Class ID is null");
-        }
+        ClanValidation.requireClanId(clanId);
+        final String validClanId = Objects.requireNonNull(clanId);
+        final String validUserId = Objects.requireNonNull(userId);
 
-        clanRepository.findById(clanId)
-                .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
+        clanRepository.findById(validClanId)
+            .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        memberRepository.findByClanIdAndUserId(clanId, userId)
-                .ifPresent(existing -> {
-                    throw new IllegalStateException("Kamu sudah menjadi anggota Clan ini");
-                });
+        memberRepository.findByClanIdAndUserId(validClanId, validUserId)
+            .ifPresent(existing -> ClanValidation.requireMemberNotAlreadyInClan(true));
 
-        memberRepository.findByUserId(userId)
-                .ifPresent(existing -> {
-                    throw new IllegalStateException("Kamu sudah tergabung di Clan lain");
-                });
+        memberRepository.findByUserId(validUserId)
+            .ifPresent(existing -> ClanValidation.requireMemberNotInOtherClan(true));
 
         final ClanMember member = new ClanMember();
         member.setUsername(username);
-        member.setClanId(clanId);
-        member.setUserId(userId);
+        member.setClanId(validClanId);
+        member.setUserId(validUserId);
         member.setRole(role);
         memberRepository.save(member);
     }
 
+    @Override
     public List<ClanMember> getMembersByClanId(final String clanId) {
-        if (clanId == null) {
-            throw new IllegalStateException("Clan ID is null");
-        }
+        ClanValidation.requireClanId(clanId);
 
         return memberRepository.getClanMembersByClanId(clanId).stream().toList();
     }
@@ -118,53 +107,64 @@ public class ClanServiceImpl implements ClanService {
     @Override
     public Optional<MyClanResponse> getMyClanByUserId(final String userId) {
         return memberRepository.findByUserId(userId)
-                .flatMap(member -> clanRepository.findById(member.getClanId())
-                        .map(clan -> toMyClanResponse(clan, userId)));
+                .flatMap(member -> {
+                    final String clanId = member.getClanId();
+                    if (clanId == null) {
+                        return Optional.empty();
+                    }
+
+                    return clanRepository.findById(clanId)
+                            .map(clan -> toMyClanResponse(clan, userId));
+                });
     }
 
     @Override
     @Transactional
     public void deleteClan(final String clanId, final String leaderId) {
-        final Clan clan = clanRepository.findById(clanId)
-                .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
+        ClanValidation.requireClanId(clanId);
+        ClanValidation.requireUserId(leaderId);
+        final String validClanId = Objects.requireNonNull(clanId);
+        final String validLeaderId = Objects.requireNonNull(leaderId);
 
-        if (!clan.getLeaderUserId().equals(leaderId)) {
-            throw new IllegalStateException("Hanya Leader yang bisa menghapus Clan");
-        }
+        final Clan clan = clanRepository.findById(validClanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        memberRepository.deleteByClanId(clanId);
+        ClanValidation.requireLeaderCanDelete(clan, validLeaderId);
 
-        clanRepository.delete(clan);
+        memberRepository.deleteByClanId(validClanId);
+
+        clanRepository.delete(Objects.requireNonNull(clan));
     }
 
     @Override
     @Transactional
     public void leaveClan(final String clanId, final String userId) {
-        final Clan clan = clanRepository.findById(clanId)
-                .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
+        ClanValidation.requireClanId(clanId);
+        ClanValidation.requireUserId(userId);
+        final String validClanId = Objects.requireNonNull(clanId);
+        final String validUserId = Objects.requireNonNull(userId);
 
-        if (clan.getLeaderUserId().equals(userId)) {
-            handleLeaderLeave(clan, userId);
+        final Clan clan = clanRepository.findById(validClanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+
+        if (clan.getLeaderUserId().equals(validUserId)) {
+            handleLeaderLeave(clan, validUserId);
         } else {
-            memberRepository.deleteByClanIdAndUserId(clanId, userId);
+            memberRepository.deleteByClanIdAndUserId(validClanId, validUserId);
         }
     }
 
     private void handleLeaderLeave(final Clan clan, final String leaderId) {
         final List<ClanMember> allMembers = memberRepository.findByClanId(clan.getId());
-        int MIN_CLAN_SIZE = 1;
+        int minClanSize = SocialConstants.MIN_CLAN_SIZE;
 
-        if (allMembers.size() <= MIN_CLAN_SIZE) {
+        if (allMembers.size() <= minClanSize) {
             memberRepository.deleteByClanIdAndUserId(clan.getId(), leaderId);
-            clanRepository.delete(clan);
+            clanRepository.delete(Objects.requireNonNull(clan));
         }
 
         else {
-            final String newLeaderId = allMembers.stream()
-                    .map(ClanMember::getUserId)
-                    .filter(id -> !id.equals(leaderId))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Gagal menemukan pengganti Leader"));
+            final String newLeaderId = ClanValidation.resolveReplacementLeader(allMembers, leaderId);
 
             clan.setLeaderUserId(newLeaderId);
             clanRepository.save(clan);
@@ -173,7 +173,9 @@ public class ClanServiceImpl implements ClanService {
     }
 
     private MyClanResponse toMyClanResponse(final Clan clan, final String currentUserId) {
-        String role = clan.getLeaderUserId().equals(currentUserId) ? "KETUA" : "ANGGOTA";
+        String role = clan.getLeaderUserId().equals(currentUserId)
+            ? SocialConstants.MY_CLAN_ROLE_LEADER
+            : SocialConstants.MY_CLAN_ROLE_MEMBER;
         List<ClanMember> members = memberRepository.getClanMembersByClanId(clan.getId()).stream().toList();
 
         return new MyClanResponse(
@@ -194,7 +196,7 @@ public class ClanServiceImpl implements ClanService {
                     List<LeaderboardEntryResponse> entries = allClans.stream()
                             .filter(clan -> clan.getTier() != null && clan.getTier() == tier)
                             .sorted(Comparator.comparingInt(Clan::getScore).reversed())
-                            .limit(100)
+                            .limit(SocialConstants.LEADERBOARD_LIMIT)
                             .map(clan -> {
                                 int memberCount = Math.toIntExact(memberRepository.countByClanId(clan.getId()));
                                 return new LeaderboardEntryResponse(
@@ -222,8 +224,11 @@ public class ClanServiceImpl implements ClanService {
     @Override
     @Transactional
     public void updateClanScore(String clanId, int basePoints) {
-        Clan clan = clanRepository.findById(clanId)
-                .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
+        ClanValidation.requireClanId(clanId);
+        final String validClanId = Objects.requireNonNull(clanId);
+
+        Clan clan = clanRepository.findById(validClanId)
+            .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
         var strategy = scoringStrategyFactory.getStrategy(clan.getTier());
         int calculatedScore = strategy.calculateScore(clan, basePoints);
@@ -243,12 +248,12 @@ public class ClanServiceImpl implements ClanService {
                 continue;
 
             int totalClans = tierBoard.entries().size();
-            int promoteCount = Math.max(1, (int) Math.ceil(totalClans * 0.2));
-            int demoteCount = Math.max(1, (int) Math.ceil(totalClans * 0.2));
+            int promoteCount = Math.max(1, (int) Math.ceil(totalClans * SocialConstants.SEASON_CHANGE_RATIO));
+            int demoteCount = Math.max(1, (int) Math.ceil(totalClans * SocialConstants.SEASON_CHANGE_RATIO));
 
             // Promote top clans
             for (int i = 0; i < Math.min(promoteCount, totalClans); i++) {
-                String clanId = tierBoard.entries().get(i).clanId();
+                final String clanId = Objects.requireNonNull(tierBoard.entries().get(i).clanId());
                 Clan clan = clanRepository.findById(clanId).orElse(null);
                 if (clan != null && clan.getTier() != Tier.DIAMOND) {
                     clan.setTier(clan.getTier().promote());
@@ -259,7 +264,7 @@ public class ClanServiceImpl implements ClanService {
 
             // Demote bottom clans
             for (int i = Math.max(0, totalClans - demoteCount); i < totalClans; i++) {
-                String clanId = tierBoard.entries().get(i).clanId();
+                final String clanId = Objects.requireNonNull(tierBoard.entries().get(i).clanId());
                 Clan clan = clanRepository.findById(clanId).orElse(null);
                 if (clan != null && clan.getTier() != Tier.BRONZE) {
                     clan.setTier(clan.getTier().demote());
