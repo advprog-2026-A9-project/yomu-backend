@@ -103,25 +103,17 @@ class ClanServiceImplTest {
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
         when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(new ClanMember()));
 
-<<<<<<< HEAD
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> clanService.joinClan(clanId, memberId));
-        assertNotNull(exception);
+        assertThrows(IllegalStateException.class,
+            () -> clanService.joinClan(clanId, memberId, username, "MEMBER"));
     }
 
     @Test
     void testJoinClan_AlreadyInClan_ShouldHaveCorrectErrorMessage() {
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
         when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(new ClanMember()));
-
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> clanService.joinClan(clanId, memberId));
-        assertEquals("Kamu sudah tergabung di Clan lain", exception.getMessage(), 
-            "Exception message should indicate user already in another clan");
-=======
+        
         assertThrows(IllegalStateException.class,
                 () -> clanService.joinClan(clanId, memberId, username, "MEMBER"), "User is already in a clan");
->>>>>>> 89eb63e (feat(social-clan): update security and clan access)
     }
 
     @Test

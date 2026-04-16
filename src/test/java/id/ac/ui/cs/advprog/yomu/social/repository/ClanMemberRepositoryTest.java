@@ -3,8 +3,9 @@ package id.ac.ui.cs.advprog.yomu.social.repository;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,10 +14,10 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class ClanMemberRepositoryTest {
 
-    @MockBean
+    @Mock
     private ClanMemberRepository clanMemberRepository;
 
     private String clanId123;
@@ -52,9 +53,9 @@ class ClanMemberRepositoryTest {
         List<ClanMember> result = clanMemberRepository.findByClanId(clanId123);
 
         assertAll("Verify findByClanId results and interaction",
-            () -> assertEquals(1, result.size(), "The result list size should be 1"),
-            () -> assertEquals(userId456, result.get(0).getUserId(), "The User ID should match"),
-            () -> verify(clanMemberRepository, times(1)).findByClanId(clanId123)
+                () -> assertEquals(1, result.size(), "Find One Clan"),
+                () -> assertEquals(userId456, result.get(0).getUserId(), "Verify member Id"),
+                () -> verify(clanMemberRepository, times(1)).findByClanId(clanId123)
         );
     }
 
@@ -66,9 +67,9 @@ class ClanMemberRepositoryTest {
         Optional<ClanMember> result = clanMemberRepository.findByClanIdAndUserId(clanId1, userId1);
 
         assertAll("Verify findByClanIdAndUserId results",
-            () -> assertTrue(result.isPresent(), "The result should contain a ClanMember object"),
-            () -> assertEquals(clanId1, result.get().getClanId(), "The Clan ID should match"),
-            () -> verify(clanMemberRepository, times(1)).findByClanIdAndUserId(clanId1, userId1)
+                () -> assertTrue(result.isPresent(), "Verify member exists"),
+                () -> assertEquals(clanId1, result.get().getClanId(), "Verify Clan Match"),
+                () -> verify(clanMemberRepository, times(1)).findByClanIdAndUserId(clanId1, userId1)
         );
     }
 
