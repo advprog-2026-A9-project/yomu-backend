@@ -59,7 +59,7 @@ class ClanControllerTest {
     private String leaveSuccessMsg;
     private String deleteSuccessMsg;
     private List<ClanMember> members;
-    private String BASE_API = "/api/clans";
+    private final String BASE_API = "/api/clans";
 
     @BeforeEach
     void setUp() {
