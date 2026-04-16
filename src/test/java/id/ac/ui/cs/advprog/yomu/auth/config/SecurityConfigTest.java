@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @AutoConfigureMockMvc
 class SecurityConfigTest {
 
+    private static final String RESPONSE_NOT_NULL = "Response should not be null";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -35,7 +37,7 @@ class SecurityConfigTest {
                 .content("{\"identifier\":\"missing-user\",\"password\":\"secret\"}"))
             .andExpect(status().is4xxClientError())
             .andReturn();
-        assertNotNull(result, "Response should not be null");
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 
     @Test
@@ -43,7 +45,7 @@ class SecurityConfigTest {
         final var result = mockMvc.perform(get("/api/readings"))
             .andExpect(status().is3xxRedirection())
             .andReturn();
-        assertNotNull(result, "Response should not be null");
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 
     @Test
@@ -51,7 +53,7 @@ class SecurityConfigTest {
         final var result = mockMvc.perform(get("/oauth2/authorization/google"))
             .andExpect(status().is3xxRedirection())
             .andReturn();
-        assertNotNull(result, "Response should not be null");
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 
     @Test
@@ -62,6 +64,6 @@ class SecurityConfigTest {
             .andExpect(status().isOk())
             .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
             .andReturn();
-        assertNotNull(result, "Response should not be null");
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 }
