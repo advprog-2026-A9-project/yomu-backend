@@ -3,11 +3,8 @@ package id.ac.ui.cs.advprog.yomu.auth.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-<<<<<<< HEAD
 import org.springframework.http.HttpMethod;
-=======
 import org.springframework.security.config.Customizer;
->>>>>>> a1983e08f2e3ee1699e5c962f7c46cfd32e7d690
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
