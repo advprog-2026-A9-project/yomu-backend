@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
-public class CreateCommentRequest {
+public class UpdateCommentRequest {
     private String content;
-    private UUID readingId;
     private UUID userId;
-    private UUID parentId; 
 }
