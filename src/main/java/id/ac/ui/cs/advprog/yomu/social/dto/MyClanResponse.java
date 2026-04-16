@@ -1,8 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.social.dto;
 
-import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
-
 import java.util.List;
+
+import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 
 public record MyClanResponse(
         String id,

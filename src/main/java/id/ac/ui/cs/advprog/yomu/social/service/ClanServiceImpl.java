@@ -55,14 +55,24 @@ public class ClanServiceImpl implements ClanService {
     }
     
     @Override
-    public Clan editClan(final String clanId, final ClanRequest request) {
+    @Transactional
+    public Clan editClan(final String clanId, final String userId, final ClanRequest request) {
         if (clanId == null) {
             throw new IllegalStateException("Class ID is null");
         }
 
-        Clan clan = clanRepository.findById(clanId)
-            .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
+        if (userId == null) {
+            throw new IllegalStateException("User ID is null");
+        }
 
+        
+        Clan clan = clanRepository.findById(clanId)
+        .orElseThrow(() -> new IllegalArgumentException("Clan tidak ditemukan"));
+
+        if (!clan.getLeaderUserId().equals(userId)) {
+            throw new IllegalStateException("Only Clan Leader can change clan information");
+        }
+        
         clan.setName(request.getName());
         clan.setDescription(request.getDescription());
 

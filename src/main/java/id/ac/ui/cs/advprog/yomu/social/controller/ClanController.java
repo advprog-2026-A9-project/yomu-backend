@@ -80,11 +80,10 @@ public class ClanController {
     }
 
     @PostMapping("/{id}/edit")
-    public ResponseEntity<String> edit(@PathVariable String id,
+    public ResponseEntity<Clan> edit(@PathVariable String id,
         @RequestHeader("Authorization") String authHeader, @RequestBody final ClanRequest request) {
             String userId = getUserIdFromHeader(authHeader);
-            clanService.editClan(id, userId, request);
-            return ResponseEntity.ok("Berhasil mengubah informasi clan");
+            return ResponseEntity.ok(clanService.editClan(id, userId, request));
         }
 
     @PostMapping("/{id}/leave")

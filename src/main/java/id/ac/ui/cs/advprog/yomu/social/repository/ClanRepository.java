@@ -11,4 +11,5 @@ import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 public interface ClanRepository extends JpaRepository<Clan, String> {
     Optional<Clan> findByName(String name);
     boolean existsByName(String name);
+    
 }
