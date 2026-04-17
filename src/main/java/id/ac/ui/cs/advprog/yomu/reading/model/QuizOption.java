@@ -6,12 +6,12 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "quiz_options")
@@ -28,17 +28,9 @@ public class QuizOption {
     private String optionText;
 
     @Column(nullable = false)
-    private boolean isCorrect;
+    private boolean correct;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_question_id", nullable = false)
     private QuizQuestion quizQuestion;
-
-    public boolean isCorrect() {
-        return isCorrect;
-    }
-
-    public void setCorrect(boolean correct) {
-        isCorrect = correct;
-    }
 }

@@ -15,16 +15,31 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ReadingTextController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
 class ReadingTextControllerTest {
+
+    private static final String DUMMY_TOKEN = "dummy-token";
+    private static final String ADMIN_ROLE = "ADMIN";
+    private static final String TITLE_ONE = "Judul 1";
+    private static final String TITLE_TWO = "Judul 2";
+    private static final String CONTENT_ONE = "Isi 1";
+    private static final String CONTENT_TWO = "Isi 2";
+    private static final String CATEGORY_ONE = "Edukasi";
+    private static final String CATEGORY_TWO = "Teknologi";
+    private static final String NEW_TITLE = "Judul Baru";
+    private static final String NEW_CONTENT = "Isi Baru";
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,62 +56,78 @@ class ReadingTextControllerTest {
     @Test
     void createText_WhenAuthorized_ShouldReturnCreated() throws Exception {
         final ReadingTextRequest request = new ReadingTextRequest(
-                "Judul Baru",
-                "Isi Baru",
+                NEW_TITLE,
+                NEW_CONTENT,
                 1L
         );
 
         final ReadingTextResponse response = new ReadingTextResponse(
                 1L,
-                "Judul Baru",
-                "Isi Baru",
-                "Edukasi"
+                NEW_TITLE,
+                NEW_CONTENT,
+                CATEGORY_ONE
         );
 
-        when(jwtUtil.extractRole("dummy-token")).thenReturn("ADMIN");
-        when(readingTextService.createText(eq(request), eq("ADMIN"))).thenReturn(response);
+        assertNotNull(request, "Request tidak boleh null");
+        assertNotNull(response, "Response tidak boleh null");
+
+        when(jwtUtil.extractRole(DUMMY_TOKEN)).thenReturn(ADMIN_ROLE);
+        when(readingTextService.createText(eq(request), eq(ADMIN_ROLE))).thenReturn(response);
 
         mockMvc.perform(post("/api/reading-texts")
-                        .header("Authorization", "Bearer dummy-token")
+                        .header("Authorization", "Bearer " + DUMMY_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.title").value(NEW_TITLE));
     }
 
     @Test
     void getAllTexts_ShouldReturnOk() throws Exception {
         final List<ReadingTextResponse> responses = List.of(
-                new ReadingTextResponse(1L, "Judul 1", "Isi 1", "Edukasi"),
-                new ReadingTextResponse(2L, "Judul 2", "Isi 2", "Teknologi")
+                new ReadingTextResponse(1L, TITLE_ONE, CONTENT_ONE, CATEGORY_ONE),
+                new ReadingTextResponse(2L, TITLE_TWO, CONTENT_TWO, CATEGORY_TWO)
         );
+
+        assertNotNull(responses, "Responses tidak boleh null");
 
         when(readingTextService.getAllTexts()).thenReturn(responses);
 
         mockMvc.perform(get("/api/reading-texts"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value(TITLE_ONE))
+                .andExpect(jsonPath("$[1].title").value(TITLE_TWO));
     }
 
     @Test
     void getTextById_WhenTextExists_ShouldReturnOk() throws Exception {
         final ReadingTextResponse response = new ReadingTextResponse(
                 1L,
-                "Judul 1",
-                "Isi 1",
-                "Edukasi"
+                TITLE_ONE,
+                CONTENT_ONE,
+                CATEGORY_ONE
         );
+
+        assertNotNull(response, "Response tidak boleh null");
 
         when(readingTextService.getTextById(1L)).thenReturn(response);
 
         mockMvc.perform(get("/api/reading-texts/1"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.title").value(TITLE_ONE));
     }
 
     @Test
     void deleteText_WhenAuthorized_ShouldReturnNoContent() throws Exception {
-        when(jwtUtil.extractRole("dummy-token")).thenReturn("ADMIN");
+        assertNotNull(DUMMY_TOKEN, "Token dummy tidak boleh null");
+
+        when(jwtUtil.extractRole(DUMMY_TOKEN)).thenReturn(ADMIN_ROLE);
 
         mockMvc.perform(delete("/api/reading-texts/1")
-                        .header("Authorization", "Bearer dummy-token"))
-                .andExpect(status().isNoContent());
+                        .header("Authorization", "Bearer " + DUMMY_TOKEN))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
     }
 }
