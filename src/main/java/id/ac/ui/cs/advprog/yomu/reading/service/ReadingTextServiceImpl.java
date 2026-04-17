@@ -67,4 +67,9 @@ public class ReadingTextServiceImpl implements ReadingTextService {
 
         readingTextRepository.deleteById(id);
     }
+
+    @Override
+    public ReadingTextResponse getTextById(Long id) {
+        return null;
+    }
 }
