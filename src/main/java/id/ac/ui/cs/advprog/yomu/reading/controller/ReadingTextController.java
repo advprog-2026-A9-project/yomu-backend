@@ -56,4 +56,10 @@ public class ReadingTextController {
         readingTextService.deleteText(id, role);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ReadingTextResponse> getTextById(@PathVariable Long id) {
+        final ReadingTextResponse response = readingTextService.getTextById(id);
+        return ResponseEntity.ok(response);
+    }
 }

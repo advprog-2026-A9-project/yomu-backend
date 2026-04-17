@@ -67,4 +67,17 @@ public class ReadingTextServiceImpl implements ReadingTextService {
 
         readingTextRepository.deleteById(id);
     }
+
+    @Override
+    public ReadingTextResponse getTextById(Long id) {
+        final ReadingText text = readingTextRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Teks bacaan tidak ditemukan."));
+
+        return new ReadingTextResponse(
+                text.getId(),
+                text.getTitle(),
+                text.getContent(),
+                text.getCategory().getName()
+        );
+    }
 }
