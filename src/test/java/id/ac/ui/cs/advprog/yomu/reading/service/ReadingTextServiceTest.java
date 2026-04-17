@@ -106,4 +106,31 @@ class ReadingTextServiceTest {
 
         verify(readingTextRepository, never()).deleteById(anyLong());
     }
+
+    @Test
+    void getTextById_WhenTextExists_ShouldReturnResponse() {
+        final Category category = new Category(1L, "Edukasi");
+        final ReadingText text = new ReadingText(1L, "Judul 1", "Isi 1", category);
+
+        when(readingTextRepository.findById(1L)).thenReturn(Optional.of(text));
+
+        final ReadingTextResponse response = readingTextService.getTextById(1L);
+
+        assertNotNull(response, "Response tidak boleh null");
+        assertEquals(1L, response.id(), "ID harus sesuai");
+        assertEquals("Judul 1", response.title(), "Judul harus sesuai");
+        assertEquals("Isi 1", response.content(), "Konten harus sesuai");
+        assertEquals("Edukasi", response.categoryName(), "Kategori harus sesuai");
+    }
+
+    @Test
+    void getTextById_WhenTextDoesNotExist_ShouldThrowException() {
+        when(readingTextRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(
+                RuntimeException.class,
+                () -> readingTextService.getTextById(99L),
+                "Harus melempar exception jika bacaan tidak ditemukan"
+        );
+    }
 }
