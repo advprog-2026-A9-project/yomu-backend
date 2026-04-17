@@ -12,4 +12,5 @@ public class ClanRequest {
     private String name;
     private String description;
     private String userId;
+    private String username;
 }

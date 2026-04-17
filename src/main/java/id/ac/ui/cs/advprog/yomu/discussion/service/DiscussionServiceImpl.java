@@ -1,7 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.discussion.service;
 
-import id.ac.ui.cs.advprog.yomu.discussion.dto.CommentResponse;
-import id.ac.ui.cs.advprog.yomu.discussion.dto.CreateCommentRequest;
+import id.ac.ui.cs.advprog.yomu.discussion.dto.*;
 import id.ac.ui.cs.advprog.yomu.discussion.model.Comment;
 import id.ac.ui.cs.advprog.yomu.discussion.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +20,13 @@ public class DiscussionServiceImpl implements DiscussionService {
     @Override
     @Transactional
     public CommentResponse createComment(CreateCommentRequest request) {
-        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            throw new IllegalArgumentException("Comment content cannot be empty");
-        }
-
         Comment comment = Comment.builder()
                 .content(request.getContent())
                 .readingId(request.getReadingId())
                 .userId(request.getUserId())
+                .parentId(request.getParentId())
                 .build();
-
-        Comment savedComment = commentRepository.save(comment);
-        return mapToResponse(savedComment);
+        return mapToResponse(commentRepository.save(comment));
     }
 
     @Override
@@ -43,13 +37,42 @@ public class DiscussionServiceImpl implements DiscussionService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
+    public CommentResponse updateComment(UUID commentId, UpdateCommentRequest request) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        if (!comment.getUserId().equals(request.getUserId())) {
+            throw new IllegalStateException("You are not authorized to edit this comment");
+        }
+
+        comment.setContent(request.getContent());
+        return mapToResponse(commentRepository.save(comment));
+    }
+
+    @Override
+    @Transactional
+    public void deleteComment(UUID commentId, UUID userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        if (!comment.getUserId().equals(userId)) {
+            throw new IllegalStateException("You are not authorized to delete this comment");
+        }
+
+        commentRepository.delete(comment);
+    }
+
     private CommentResponse mapToResponse(Comment comment) {
         return CommentResponse.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
                 .userId(comment.getUserId())
                 .readingId(comment.getReadingId())
+                .parentId(comment.getParentId())
                 .createdAt(comment.getCreatedAt())
+                .updatedAt(comment.getUpdatedAt())
                 .build();
     }
 }

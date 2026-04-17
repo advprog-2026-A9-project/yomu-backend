@@ -16,4 +16,6 @@ public interface ReadingTextService {
     // Fitur: Admin dapat menghapus teks bacaan
     void deleteText(Long id, String role);
 
+    ReadingTextResponse getTextById(Long id);
+
 }

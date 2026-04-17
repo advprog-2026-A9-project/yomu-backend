@@ -114,6 +114,25 @@ class AuthServiceImplTest {
     }
 
     @Test
+    void testRegisterFailInvalidEmailFormat() {
+        registerRequest.setEmail("invalid-email");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus throw exception jika format email tidak valid");
+    }
+
+    @Test
+    void testRegisterTrimsBlankEmailAndPhone() {
+        registerRequest.setEmail("   ");
+        registerRequest.setPhoneNumber("   ");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus treat email dan HP kosong sebagai null");
+    }
+
+    @Test
     void testRegisterReturnsToken() {
         when(userRepository.existsByUsername(any())).thenReturn(false);
         when(userRepository.existsByEmail(any())).thenReturn(false);
