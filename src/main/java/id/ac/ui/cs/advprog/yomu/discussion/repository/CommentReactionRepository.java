@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface CommentReactionRepository extends JpaRepository<CommentReaction, UUID> {
     Optional<CommentReaction> findByCommentIdAndUserId(UUID commentId, UUID userId);
+    void deleteAllByCommentId(UUID commentId);
 }

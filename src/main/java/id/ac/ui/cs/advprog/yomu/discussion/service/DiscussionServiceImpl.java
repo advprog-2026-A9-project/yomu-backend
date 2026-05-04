@@ -18,8 +18,10 @@ import java.util.stream.Collectors;
 public class DiscussionServiceImpl implements DiscussionService {
 
     private final CommentRepository commentRepository;
-    
+
     private final CommentReactionRepository reactionRepository;
+
+    private static final String COMMENT_NOT_FOUND = "Comment not found";
 
     @Override
     @Transactional
@@ -45,7 +47,7 @@ public class DiscussionServiceImpl implements DiscussionService {
     @Transactional
     public CommentResponse updateComment(UUID commentId, UpdateCommentRequest request) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+                .orElseThrow(() -> new IllegalArgumentException(COMMENT_NOT_FOUND));
 
         if (!comment.getUserId().equals(request.getUserId())) {
             throw new IllegalStateException("You are not authorized to edit this comment");
@@ -59,7 +61,7 @@ public class DiscussionServiceImpl implements DiscussionService {
     @Transactional
     public void deleteComment(UUID commentId, UUID userId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+                .orElseThrow(() -> new IllegalArgumentException(COMMENT_NOT_FOUND));
 
         if (!comment.getUserId().equals(userId)) {
             throw new IllegalStateException("You are not authorized to delete this comment");
@@ -84,7 +86,7 @@ public class DiscussionServiceImpl implements DiscussionService {
     @Transactional
     public void addReaction(UUID commentId, UUID userId, ReactionRequest request) {
         final Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+                .orElseThrow(() -> new IllegalArgumentException(COMMENT_NOT_FOUND));
 
         CommentReaction reaction = reactionRepository.findByCommentIdAndUserId(commentId, userId)
                 .orElse(new CommentReaction());
@@ -101,8 +103,10 @@ public class DiscussionServiceImpl implements DiscussionService {
     @Transactional
     public void deleteCommentByAdmin(UUID commentId) {
         final Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+                .orElseThrow(() -> new IllegalArgumentException(COMMENT_NOT_FOUND));
 
+        reactionRepository.deleteAllByCommentId(commentId);
         commentRepository.delete(comment);
+
     }
 }

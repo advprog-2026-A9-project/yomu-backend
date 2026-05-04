@@ -4,6 +4,7 @@ import id.ac.ui.cs.advprog.yomu.discussion.dto.CommentResponse;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.CreateCommentRequest;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.UpdateCommentRequest;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.ReactionRequest;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import id.ac.ui.cs.advprog.yomu.discussion.model.Comment;
 import id.ac.ui.cs.advprog.yomu.discussion.model.CommentReaction;
 import id.ac.ui.cs.advprog.yomu.discussion.model.ReactionType;
@@ -109,17 +110,20 @@ class DiscussionServiceImplTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(mockComment));
         when(reactionRepository.findByCommentIdAndUserId(commentId, userId)).thenReturn(Optional.empty());
 
-        assertDoesNotThrow(() -> discussionService.addReaction(commentId, userId, request), "Adding reaction must not throw exception");
-        
-        verify(reactionRepository, times(1)).save(any(CommentReaction.class));
+        assertAll("Add Reaction Success",
+            () -> assertDoesNotThrow(() -> discussionService.addReaction(commentId, userId, request)),
+            () -> verify(reactionRepository, times(1)).save(any(CommentReaction.class))
+        );
     }
 
     @Test
     void testDeleteCommentByAdminSuccess() {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(mockComment));
 
-        assertDoesNotThrow(() -> discussionService.deleteCommentByAdmin(commentId), "Admin moderation must not throw exception");
-        
-        verify(commentRepository, times(1)).delete(mockComment);
+        assertAll("Admin Moderation Success",
+            () -> assertDoesNotThrow(() -> discussionService.deleteCommentByAdmin(commentId)),
+            () -> verify(reactionRepository, times(1)).deleteAllByCommentId(commentId),
+            () -> verify(commentRepository, times(1)).delete(mockComment)
+        );
     }
 }
