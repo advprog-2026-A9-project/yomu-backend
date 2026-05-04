@@ -2,6 +2,8 @@ package id.ac.ui.cs.advprog.yomu.discussion.service;
 
 import id.ac.ui.cs.advprog.yomu.discussion.dto.*;
 import id.ac.ui.cs.advprog.yomu.discussion.model.Comment;
+import id.ac.ui.cs.advprog.yomu.discussion.model.CommentReaction;
+import id.ac.ui.cs.advprog.yomu.discussion.repository.CommentReactionRepository;
 import id.ac.ui.cs.advprog.yomu.discussion.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 public class DiscussionServiceImpl implements DiscussionService {
 
     private final CommentRepository commentRepository;
+    
+    private final CommentReactionRepository reactionRepository;
 
     @Override
     @Transactional
@@ -74,5 +78,31 @@ public class DiscussionServiceImpl implements DiscussionService {
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void addReaction(UUID commentId, UUID userId, ReactionRequest request) {
+        final Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        CommentReaction reaction = reactionRepository.findByCommentIdAndUserId(commentId, userId)
+                .orElse(new CommentReaction());
+
+        reaction.setCommentId(comment.getId());
+        reaction.setUserId(userId);
+        reaction.setType(request.getType());
+        reaction.setEmojiCode(request.getEmojiCode());
+
+        reactionRepository.save(reaction);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCommentByAdmin(UUID commentId) {
+        final Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        commentRepository.delete(comment);
     }
 }

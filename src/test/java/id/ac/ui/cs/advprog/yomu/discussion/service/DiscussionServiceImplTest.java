@@ -111,7 +111,6 @@ class DiscussionServiceImplTest {
 
         assertDoesNotThrow(() -> discussionService.addReaction(commentId, userId, request), "Adding reaction must not throw exception");
         
-        // Memastikan method save pada reactionRepository terpanggil 1x
         verify(reactionRepository, times(1)).save(any(CommentReaction.class));
     }
 
@@ -119,7 +118,6 @@ class DiscussionServiceImplTest {
     void testDeleteCommentByAdminSuccess() {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(mockComment));
 
-        // Tidak perlu memberikan parameter userId, karena Admin berhak menghapus komentar siapa saja
         assertDoesNotThrow(() -> discussionService.deleteCommentByAdmin(commentId), "Admin moderation must not throw exception");
         
         verify(commentRepository, times(1)).delete(mockComment);
