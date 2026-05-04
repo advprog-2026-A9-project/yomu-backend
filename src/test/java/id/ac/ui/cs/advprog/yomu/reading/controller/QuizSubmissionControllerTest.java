@@ -1,7 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.reading.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizAnswerRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizSubmissionRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizSubmissionResponse;
@@ -12,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -30,10 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
 class QuizSubmissionControllerTest {
 
-    private static final String DUMMY_TOKEN = "dummy-token";
     private static final String USER_ID = "user-123";
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,10 +41,8 @@ class QuizSubmissionControllerTest {
     @MockBean
     private QuizSubmissionService quizSubmissionService;
 
-    @MockBean
-    private JwtUtil jwtUtil;
-
     @Test
+    @WithMockUser(username = USER_ID) // Menggunakan "user-123" pada SecurityContext
     void submitQuiz_WhenAuthorized_ShouldReturnOk() throws Exception {
         final QuizSubmissionRequest request = new QuizSubmissionRequest(
                 List.of(
@@ -61,11 +56,9 @@ class QuizSubmissionControllerTest {
         assertNotNull(request, "Request tidak boleh null");
         assertNotNull(response, "Response tidak boleh null");
 
-        when(jwtUtil.extractUserId(DUMMY_TOKEN)).thenReturn(USER_ID);
         when(quizSubmissionService.submitQuiz(eq(1L), eq(USER_ID), eq(request))).thenReturn(response);
 
         mockMvc.perform(post("/api/reading-texts/1/quiz/submit")
-                        .header(AUTHORIZATION_HEADER, BEARER_PREFIX + DUMMY_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -76,16 +69,15 @@ class QuizSubmissionControllerTest {
     }
 
     @Test
+    @WithMockUser(username = USER_ID)
     void hasCompletedQuiz_WhenAuthorized_ShouldReturnOk() throws Exception {
-        assertNotNull(DUMMY_TOKEN, "Token dummy tidak boleh null");
-        assertNotNull(USER_ID, "User ID tidak boleh null");
-
-        when(jwtUtil.extractUserId(DUMMY_TOKEN)).thenReturn(USER_ID);
         when(quizSubmissionService.hasCompletedQuiz(1L, USER_ID)).thenReturn(true);
 
-        mockMvc.perform(get("/api/reading-texts/1/quiz/completion")
-                        .header(AUTHORIZATION_HEADER, BEARER_PREFIX + DUMMY_TOKEN))
+        var result = mockMvc.perform(get("/api/reading-texts/1/quiz/completion"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("true"));
+                .andExpect(content().string("true"))
+                .andReturn();
+
+        assertNotNull(result, "Result tidak boleh null");
     }
 }
