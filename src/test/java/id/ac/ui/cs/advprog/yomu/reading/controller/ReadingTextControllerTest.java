@@ -1,7 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.reading.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.reading.dto.ReadingTextRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.ReadingTextResponse;
 import id.ac.ui.cs.advprog.yomu.reading.service.ReadingTextService;
@@ -11,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -30,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
 class ReadingTextControllerTest {
 
-    private static final String DUMMY_TOKEN = "dummy-token";
     private static final String ADMIN_ROLE = "ADMIN";
     private static final String TITLE_ONE = "Judul 1";
     private static final String TITLE_TWO = "Judul 2";
@@ -50,10 +49,8 @@ class ReadingTextControllerTest {
     @MockBean
     private ReadingTextService readingTextService;
 
-    @MockBean
-    private JwtUtil jwtUtil;
-
     @Test
+    @WithMockUser(authorities = {"ROLE_ADMIN"})
     void createText_WhenAuthorized_ShouldReturnCreated() throws Exception {
         final ReadingTextRequest request = new ReadingTextRequest(
                 NEW_TITLE,
@@ -71,11 +68,9 @@ class ReadingTextControllerTest {
         assertNotNull(request, "Request tidak boleh null");
         assertNotNull(response, "Response tidak boleh null");
 
-        when(jwtUtil.extractRole(DUMMY_TOKEN)).thenReturn(ADMIN_ROLE);
         when(readingTextService.createText(eq(request), eq(ADMIN_ROLE))).thenReturn(response);
 
         mockMvc.perform(post("/api/reading-texts")
-                        .header("Authorization", "Bearer " + DUMMY_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -84,6 +79,7 @@ class ReadingTextControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getAllTexts_ShouldReturnOk() throws Exception {
         final List<ReadingTextResponse> responses = List.of(
                 new ReadingTextResponse(1L, TITLE_ONE, CONTENT_ONE, CATEGORY_ONE),
@@ -101,6 +97,7 @@ class ReadingTextControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getTextById_WhenTextExists_ShouldReturnOk() throws Exception {
         final ReadingTextResponse response = new ReadingTextResponse(
                 1L,
@@ -120,14 +117,13 @@ class ReadingTextControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = {"ROLE_ADMIN"})
     void deleteText_WhenAuthorized_ShouldReturnNoContent() throws Exception {
-        assertNotNull(DUMMY_TOKEN, "Token dummy tidak boleh null");
-
-        when(jwtUtil.extractRole(DUMMY_TOKEN)).thenReturn(ADMIN_ROLE);
-
-        mockMvc.perform(delete("/api/reading-texts/1")
-                        .header("Authorization", "Bearer " + DUMMY_TOKEN))
+        var result = mockMvc.perform(delete("/api/reading-texts/1"))
                 .andExpect(status().isNoContent())
-                .andExpect(content().string(""));
+                .andExpect(content().string(""))
+                .andReturn();
+
+        assertNotNull(result, "Result tidak boleh null");
     }
 }
