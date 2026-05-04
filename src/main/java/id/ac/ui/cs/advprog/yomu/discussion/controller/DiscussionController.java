@@ -7,6 +7,8 @@ import id.ac.ui.cs.advprog.yomu.discussion.service.DiscussionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import id.ac.ui.cs.advprog.yomu.discussion.dto.ReactionRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +42,22 @@ public class DiscussionController {
             @PathVariable UUID commentId,
             @RequestParam UUID userId) {
         discussionService.deleteComment(commentId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{commentId}/reaction")
+    public ResponseEntity<Void> addReaction(
+            @PathVariable UUID commentId,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestBody ReactionRequest request) {
+        discussionService.addReaction(commentId, userId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{commentId}/moderate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> moderateCommentAdmin(@PathVariable UUID commentId) {
+        discussionService.deleteCommentByAdmin(commentId);
         return ResponseEntity.noContent().build();
     }
 }

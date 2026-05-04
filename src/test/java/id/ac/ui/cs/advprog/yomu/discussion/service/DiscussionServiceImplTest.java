@@ -3,8 +3,13 @@ package id.ac.ui.cs.advprog.yomu.discussion.service;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.CommentResponse;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.CreateCommentRequest;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.UpdateCommentRequest;
+import id.ac.ui.cs.advprog.yomu.discussion.dto.ReactionRequest;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import id.ac.ui.cs.advprog.yomu.discussion.model.Comment;
+import id.ac.ui.cs.advprog.yomu.discussion.model.CommentReaction;
+import id.ac.ui.cs.advprog.yomu.discussion.model.ReactionType;
 import id.ac.ui.cs.advprog.yomu.discussion.repository.CommentRepository;
+import id.ac.ui.cs.advprog.yomu.discussion.repository.CommentReactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +29,9 @@ class DiscussionServiceImplTest {
 
     @Mock
     private CommentRepository commentRepository;
+
+    @Mock
+    private CommentReactionRepository reactionRepository;
 
     @InjectMocks
     private DiscussionServiceImpl discussionService;
@@ -58,7 +66,6 @@ class DiscussionServiceImplTest {
 
         CommentResponse response = discussionService.createComment(request);
 
-        
         assertEquals(parentId, response.getParentId(), "Parent ID must match to ensure threading works"); 
     }
 
@@ -70,7 +77,6 @@ class DiscussionServiceImplTest {
 
         CommentResponse response = discussionService.updateComment(commentId, request);
 
-       
         assertEquals("Updated content", response.getContent(), "Comment content must be updated successfully");
     }
 
@@ -79,14 +85,12 @@ class DiscussionServiceImplTest {
         UpdateCommentRequest request = new UpdateCommentRequest("Hacked content", otherUserId);
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(mockComment));
 
-        
         assertThrows(IllegalStateException.class, () -> discussionService.updateComment(commentId, request), "Must throw IllegalStateException if unauthorized");
     }
 
     @Test
     void testDeleteCommentSuccess() {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(mockComment));
-        
         
         assertDoesNotThrow(() -> discussionService.deleteComment(commentId, userId), "Must not throw any exception on successful delete");
     }
@@ -95,7 +99,31 @@ class DiscussionServiceImplTest {
     void testDeleteCommentUnauthorizedThrowsException() {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(mockComment));
         
-        
         assertThrows(IllegalStateException.class, () -> discussionService.deleteComment(commentId, otherUserId), "Must throw IllegalStateException if unauthorized");
+    }
+
+    @Test
+    void testAddReactionSuccess() {
+        ReactionRequest request = new ReactionRequest();
+        request.setType(ReactionType.UPVOTE);
+
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(mockComment));
+        when(reactionRepository.findByCommentIdAndUserId(commentId, userId)).thenReturn(Optional.empty());
+
+        assertAll("Add Reaction Success",
+            () -> assertDoesNotThrow(() -> discussionService.addReaction(commentId, userId, request)),
+            () -> verify(reactionRepository, times(1)).save(any(CommentReaction.class))
+        );
+    }
+
+    @Test
+    void testDeleteCommentByAdminSuccess() {
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(mockComment));
+
+        assertAll("Admin Moderation Success",
+            () -> assertDoesNotThrow(() -> discussionService.deleteCommentByAdmin(commentId)),
+            () -> verify(reactionRepository, times(1)).deleteAllByCommentId(commentId),
+            () -> verify(commentRepository, times(1)).delete(mockComment)
+        );
     }
 }
