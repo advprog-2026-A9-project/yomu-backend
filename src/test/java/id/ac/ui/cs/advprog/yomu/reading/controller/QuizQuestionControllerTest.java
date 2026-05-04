@@ -1,7 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.reading.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizOptionRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizOptionResponse;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizQuestionRequest;
@@ -13,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -32,7 +32,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
 class QuizQuestionControllerTest {
 
-    private static final String DUMMY_TOKEN = "dummy-token";
     private static final String ADMIN_ROLE = "ADMIN";
     private static final String QUESTION_TEXT = "Apa kepanjangan OOP?";
     private static final String OPTION_ONE = "Object Oriented Programming";
@@ -47,10 +46,8 @@ class QuizQuestionControllerTest {
     @MockBean
     private QuizQuestionService quizQuestionService;
 
-    @MockBean
-    private JwtUtil jwtUtil;
-
     @Test
+    @WithMockUser(authorities = {"ROLE_ADMIN"}) // Simulasi Security Context
     void createQuestion_WhenAuthorized_ShouldReturnCreated() throws Exception {
         final QuizQuestionRequest request = new QuizQuestionRequest(
                 QUESTION_TEXT,
@@ -72,11 +69,9 @@ class QuizQuestionControllerTest {
         assertNotNull(request, "Request tidak boleh null");
         assertNotNull(response, "Response tidak boleh null");
 
-        when(jwtUtil.extractRole(DUMMY_TOKEN)).thenReturn(ADMIN_ROLE);
         when(quizQuestionService.createQuestion(eq(1L), eq(request), eq(ADMIN_ROLE))).thenReturn(response);
 
         mockMvc.perform(post("/api/reading-texts/1/questions")
-                        .header("Authorization", "Bearer " + DUMMY_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -85,6 +80,7 @@ class QuizQuestionControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getQuestionsByReadingId_ShouldReturnOk() throws Exception {
         final List<QuizQuestionResponse> responses = List.of(
                 new QuizQuestionResponse(
@@ -108,14 +104,13 @@ class QuizQuestionControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = {"ROLE_ADMIN"})
     void deleteQuestion_WhenAuthorized_ShouldReturnNoContent() throws Exception {
-        assertNotNull(DUMMY_TOKEN, "Token dummy tidak boleh null");
-
-        when(jwtUtil.extractRole(DUMMY_TOKEN)).thenReturn(ADMIN_ROLE);
-
-        mockMvc.perform(delete("/api/reading-texts/1/questions/10")
-                        .header("Authorization", "Bearer " + DUMMY_TOKEN))
+        var result = mockMvc.perform(delete("/api/reading-texts/1/questions/10"))
                 .andExpect(status().isNoContent())
-                .andExpect(content().string(""));
+                .andExpect(content().string(""))
+                .andReturn();
+
+        assertNotNull(result, "Result tidak boleh null");
     }
 }
