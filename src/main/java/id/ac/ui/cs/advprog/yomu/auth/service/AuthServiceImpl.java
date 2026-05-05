@@ -1,9 +1,11 @@
 package id.ac.ui.cs.advprog.yomu.auth.service;
 
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
+import id.ac.ui.cs.advprog.yomu.auth.dto.AccountResponse;
 import id.ac.ui.cs.advprog.yomu.auth.dto.AuthResponse;
 import id.ac.ui.cs.advprog.yomu.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
+import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import id.ac.ui.cs.advprog.yomu.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -87,5 +89,40 @@ public class AuthServiceImpl implements AuthService {
         final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
         return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), null, "OK");
+    }
+
+    @Override
+    public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Akun tidak ditemukan"));
+
+        if (request.getUsername() != null && !request.getUsername().isBlank()) {
+            if (userRepository.existsByUsername(request.getUsername())) {
+                throw new IllegalArgumentException("Username sudah dipakai");
+            }
+            user.setUsername(request.getUsername());
+        }
+
+        if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
+            user.setDisplayName(request.getDisplayName());
+        }
+
+        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+                throw new IllegalArgumentException("Password lama salah");
+            }
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        }
+
+        final User saved = userRepository.save(user);
+        return new AccountResponse(
+                saved.getId(),
+                saved.getUsername(),
+                saved.getDisplayName(),
+                saved.getEmail(),
+                saved.getPhoneNumber(),
+                saved.getRole(),
+                "Akun berhasil diperbarui"
+        );
     }
 }
