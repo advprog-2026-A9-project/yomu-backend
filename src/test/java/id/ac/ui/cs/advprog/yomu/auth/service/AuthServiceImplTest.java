@@ -1,9 +1,11 @@
 package id.ac.ui.cs.advprog.yomu.auth.service;
 
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
+import id.ac.ui.cs.advprog.yomu.auth.dto.AccountResponse;
 import id.ac.ui.cs.advprog.yomu.auth.dto.AuthResponse;
 import id.ac.ui.cs.advprog.yomu.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
+import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import id.ac.ui.cs.advprog.yomu.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -187,5 +189,72 @@ class AuthServiceImplTest {
         assertThrows(IllegalArgumentException.class,
             () -> authService.login(loginRequest),
             "Harus throw exception jika user tidak ditemukan");
+    }
+
+    @Test
+    void testUpdateAccountSuccessUsername() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+        when(userRepository.existsByUsername("newusername")).thenReturn(false);
+        when(userRepository.save(any())).thenReturn(mockUser);
+
+        UpdateAccountRequest request = new UpdateAccountRequest();
+        request.setUsername("newusername");
+
+        AccountResponse response = authService.updateAccount("uuid-123", request);
+
+        assertNotNull(response, "Response tidak boleh null");
+    }
+
+    @Test
+    void testUpdateAccountFailUserNotFound() {
+        when(userRepository.findById("invalid-id")).thenReturn(Optional.empty());
+
+        UpdateAccountRequest request = new UpdateAccountRequest();
+        request.setUsername("newusername");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.updateAccount("invalid-id", request),
+            "Harus throw exception jika user tidak ditemukan");
+    }
+
+    @Test
+    void testUpdateAccountFailUsernameAlreadyTaken() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+        when(userRepository.existsByUsername("takenusername")).thenReturn(true);
+
+        UpdateAccountRequest request = new UpdateAccountRequest();
+        request.setUsername("takenusername");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.updateAccount("uuid-123", request),
+            "Harus throw exception jika username sudah dipakai");
+    }
+
+    @Test
+    void testUpdateAccountSuccessPassword() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(TEST_PASSWORD, TEST_ENCODED_PASSWORD)).thenReturn(true);
+        when(passwordEncoder.encode("newpassword")).thenReturn("encoded_newpassword");
+        when(userRepository.save(any())).thenReturn(mockUser);
+
+        UpdateAccountRequest request = new UpdateAccountRequest();
+        request.setOldPassword(TEST_PASSWORD);
+        request.setNewPassword("newpassword");
+
+        assertDoesNotThrow(() -> authService.updateAccount("uuid-123", request));
+    }
+
+    @Test
+    void testUpdateAccountFailWrongOldPassword() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(any(), any())).thenReturn(false);
+
+        UpdateAccountRequest request = new UpdateAccountRequest();
+        request.setOldPassword("wrongpassword");
+        request.setNewPassword("newpassword");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.updateAccount("uuid-123", request),
+            "Harus throw exception jika password lama salah");
     }
 }
