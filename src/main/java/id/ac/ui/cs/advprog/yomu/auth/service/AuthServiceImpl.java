@@ -91,27 +91,31 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), null, "OK");
     }
 
-    @Override
+   @Override
     public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
         final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Akun tidak ditemukan"));
 
-        if (request.getUsername() != null && !request.getUsername().isBlank()) {
-            if (userRepository.existsByUsername(request.getUsername())) {
+        final String newUsername = normalize(request.getUsername());
+        final String newDisplayName = normalize(request.getDisplayName());
+        final String newPassword = normalize(request.getNewPassword());
+
+        if (newUsername != null) {
+            if (userRepository.existsByUsername(newUsername)) {
                 throw new IllegalArgumentException("Username sudah dipakai");
             }
-            user.setUsername(request.getUsername());
+            user.setUsername(newUsername);
         }
 
-        if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
-            user.setDisplayName(request.getDisplayName());
+        if (newDisplayName != null) {
+            user.setDisplayName(newDisplayName);
         }
 
-        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+        if (newPassword != null) {
             if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
                 throw new IllegalArgumentException("Password lama salah");
             }
-            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            user.setPassword(passwordEncoder.encode(newPassword));
         }
 
         final User saved = userRepository.save(user);
