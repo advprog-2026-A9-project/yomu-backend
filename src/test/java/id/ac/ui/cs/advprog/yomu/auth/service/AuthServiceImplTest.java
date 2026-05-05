@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.yomu.auth.service;
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.auth.dto.AccountResponse;
 import id.ac.ui.cs.advprog.yomu.auth.dto.AuthResponse;
+import id.ac.ui.cs.advprog.yomu.auth.dto.LinkLoginMethodRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
@@ -287,5 +288,66 @@ class AuthServiceImplTest {
         authService.deleteAccount("uuid-123");
 
         verify(userRepository, times(1)).delete(mockUser);
+    }
+
+    @Test
+    void testLinkLoginMethodSuccessEmail() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+        when(userRepository.existsByEmail("newemail@test.com")).thenReturn(false);
+        when(userRepository.save(any())).thenReturn(mockUser);
+
+        LinkLoginMethodRequest request = new LinkLoginMethodRequest();
+        request.setEmail("newemail@test.com");
+
+        assertDoesNotThrow(() -> authService.linkLoginMethod("uuid-123", request));
+    }
+
+    @Test
+    void testLinkLoginMethodSuccessPhoneNumber() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+        when(userRepository.existsByPhoneNumber("08123456789")).thenReturn(false);
+        when(userRepository.save(any())).thenReturn(mockUser);
+
+        LinkLoginMethodRequest request = new LinkLoginMethodRequest();
+        request.setPhoneNumber("08123456789");
+
+        assertDoesNotThrow(() -> authService.linkLoginMethod("uuid-123", request));
+    }
+
+    @Test
+    void testLinkLoginMethodFailUserNotFound() {
+        when(userRepository.findById("invalid-id")).thenReturn(Optional.empty());
+
+        LinkLoginMethodRequest request = new LinkLoginMethodRequest();
+        request.setEmail("newemail@test.com");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.linkLoginMethod("invalid-id", request),
+            "Harus throw exception jika user tidak ditemukan");
+    }
+
+    @Test
+    void testLinkLoginMethodFailEmailAlreadyTaken() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+        when(userRepository.existsByEmail("taken@test.com")).thenReturn(true);
+
+        LinkLoginMethodRequest request = new LinkLoginMethodRequest();
+        request.setEmail("taken@test.com");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.linkLoginMethod("uuid-123", request),
+            "Harus throw exception jika email sudah terdaftar");
+    }
+
+    @Test
+    void testLinkLoginMethodFailInvalidEmailFormat() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+
+        LinkLoginMethodRequest request = new LinkLoginMethodRequest();
+        request.setEmail("invalid-email");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.linkLoginMethod("uuid-123", request),
+            "Harus throw exception jika format email tidak valid");
     }
 }
