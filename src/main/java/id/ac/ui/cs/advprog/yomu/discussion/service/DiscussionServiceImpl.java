@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.yomu.discussion.service;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.*;
 import id.ac.ui.cs.advprog.yomu.discussion.model.Comment;
 import id.ac.ui.cs.advprog.yomu.discussion.model.CommentReaction;
+import id.ac.ui.cs.advprog.yomu.discussion.model.ReactionType;
 import id.ac.ui.cs.advprog.yomu.discussion.repository.CommentReactionRepository;
 import id.ac.ui.cs.advprog.yomu.discussion.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
@@ -98,6 +99,9 @@ public class DiscussionServiceImpl implements DiscussionService {
     }
 
     private CommentResponse mapToResponse(final Comment comment) {
+        final long upvotes = reactionRepository.countByCommentIdAndType(comment.getId(), ReactionType.UPVOTE);
+        final long downvotes = reactionRepository.countByCommentIdAndType(comment.getId(), ReactionType.DOWNVOTE);
+        final long fireReactions = reactionRepository.countByCommentIdAndType(comment.getId(), ReactionType.EMOJI);
         return CommentResponse.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
@@ -106,6 +110,9 @@ public class DiscussionServiceImpl implements DiscussionService {
                 .parentId(comment.getParentId())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
+                .upvotes(upvotes)
+                .downvotes(downvotes)
+                .fireReactions(fireReactions)
                 .build();
     }
 }

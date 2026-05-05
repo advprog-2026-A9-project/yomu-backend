@@ -11,7 +11,10 @@ public class CommentResponse {
     private String content;
     private UUID userId;
     private UUID readingId;
-    private UUID parentId; // Tambahkan ini
+    private UUID parentId; 
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt; // Tambahkan ini
+    private LocalDateTime updatedAt; 
+    private long upvotes;
+    private long downvotes;
+    private long fireReactions;
 }
