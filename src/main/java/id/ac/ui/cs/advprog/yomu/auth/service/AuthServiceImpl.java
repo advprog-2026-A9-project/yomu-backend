@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.yomu.auth.service;
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.auth.dto.AccountResponse;
 import id.ac.ui.cs.advprog.yomu.auth.dto.AuthResponse;
+import id.ac.ui.cs.advprog.yomu.auth.dto.LinkLoginMethodRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
@@ -143,6 +144,43 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.delete(user);
         eventPublisher.publishEvent(new UserDeletedEvent(this, userId));
-        
+
+    }
+
+    @Override
+    public AccountResponse linkLoginMethod(String userId, LinkLoginMethodRequest request) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Akun tidak ditemukan"));
+
+        final String email = normalize(request.getEmail());
+        final String phoneNumber = normalize(request.getPhoneNumber());
+
+        if (email != null) {
+            if (!EMAIL_PATTERN.matcher(email).matches()) {
+                throw new IllegalArgumentException("Format email tidak valid");
+            }
+            if (userRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("Email sudah terdaftar");
+            }
+            user.setEmail(email);
+        }
+
+        if (phoneNumber != null) {
+            if (userRepository.existsByPhoneNumber(phoneNumber)) {
+                throw new IllegalArgumentException("Nomor HP sudah terdaftar");
+            }
+            user.setPhoneNumber(phoneNumber);
+        }
+
+        final User saved = userRepository.save(user);
+        return new AccountResponse(
+                saved.getId(),
+                saved.getUsername(),
+                saved.getDisplayName(),
+                saved.getEmail(),
+                saved.getPhoneNumber(),
+                saved.getRole(),
+                "Metode login berhasil ditautkan"
+        );
     }
 }
