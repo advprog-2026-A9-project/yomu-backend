@@ -27,6 +27,8 @@ public class AuthServiceImpl implements AuthService {
         "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     );
 
+    private static final String USER_NOT_FOUND = "Akun tidak ditemukan";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil; 
@@ -80,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
         final User user = userRepository.findByUsername(request.getIdentifier())
                 .or(() -> userRepository.findByEmail(request.getIdentifier()))
                 .or(() -> userRepository.findByPhoneNumber(request.getIdentifier()))
-                .orElseThrow(() -> new IllegalArgumentException("Akun tidak ditemukan"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Password salah");
@@ -100,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
    @Override
     public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
         final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Akun tidak ditemukan"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         final String newUsername = normalize(request.getUsername());
         final String newDisplayName = normalize(request.getDisplayName());
@@ -140,7 +142,7 @@ public class AuthServiceImpl implements AuthService {
     public void deleteAccount(String userId) {
 
         final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Akun tidak ditemukan"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         userRepository.delete(user);
         eventPublisher.publishEvent(new UserDeletedEvent(this, userId));
@@ -150,7 +152,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AccountResponse linkLoginMethod(String userId, LinkLoginMethodRequest request) {
         final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Akun tidak ditemukan"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         final String email = normalize(request.getEmail());
         final String phoneNumber = normalize(request.getPhoneNumber());
