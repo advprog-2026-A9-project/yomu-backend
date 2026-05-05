@@ -1,6 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.reading.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizOptionRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizOptionResponse;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizQuestionRequest;
@@ -10,9 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -43,8 +45,11 @@ class QuizQuestionControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private QuizQuestionService quizQuestionService;
+
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
     @Test
     @WithMockUser(authorities = {"ROLE_ADMIN"}) // Simulasi Security Context
