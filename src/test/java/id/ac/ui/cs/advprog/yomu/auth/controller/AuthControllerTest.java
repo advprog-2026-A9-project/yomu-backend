@@ -29,6 +29,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 class AuthControllerTest {
 
     private static final String TEST_USER = "testuser";
+    private static final String ROLE_PELAJAR = "PELAJAR";
+    private static final String ACCOUNT_URL = "/api/auth/account";
+    private static final String RESPONSE_NOT_NULL = "Response should not be null";
 
     @Autowired
     private MockMvc mockMvc;
@@ -37,18 +40,18 @@ class AuthControllerTest {
     private AuthService authService;
 
     @Test
-    @WithMockUser(username = TEST_USER, roles = "PELAJAR")
+    @WithMockUser(username = TEST_USER, roles = ROLE_PELAJAR)
     void getMeShouldReturnUserInfo() throws Exception {
         when(authService.getMe(TEST_USER)).thenReturn(
-            new AuthResponse("123", TEST_USER, "PELAJAR", null, "OK")
+            new AuthResponse("123", TEST_USER, ROLE_PELAJAR, null, "OK")
         );
 
         final var result = mockMvc.perform(get("/api/auth/me"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.username").value(TEST_USER))
-            .andExpect(jsonPath("$.role").value("PELAJAR"))
+            .andExpect(jsonPath("$.role").value(ROLE_PELAJAR))
             .andReturn();
-        assertNotNull(result, "Response should not be null");
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 
     @Test
@@ -56,65 +59,75 @@ class AuthControllerTest {
         final var result = mockMvc.perform(get("/api/auth/me"))
             .andExpect(status().isUnauthorized())
             .andReturn();
-        assertNotNull(result, "Response should not be null");
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 
     @Test
-    @WithMockUser(username = TEST_USER, roles = "PELAJAR")
+    @WithMockUser(username = TEST_USER, roles = ROLE_PELAJAR)
     void updateAccountShouldReturn200() throws Exception {
         when(authService.updateAccount(any(), any())).thenReturn(
-            new AccountResponse("123", TEST_USER, "Mizuki", null, null, "PELAJAR", "Akun berhasil diperbarui")
+            new AccountResponse("123", TEST_USER, "Mizuki", null, null, ROLE_PELAJAR, "Akun berhasil diperbarui")
         );
 
-        mockMvc.perform(put("/api/auth/account")
+        final var result = mockMvc.perform(put(ACCOUNT_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"username\":\"newusername\"}"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("Akun berhasil diperbarui"));
+            .andExpect(jsonPath("$.message").value("Akun berhasil diperbarui"))
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 
     @Test
     void updateAccountShouldReturn401WhenNotAuthenticated() throws Exception {
-        mockMvc.perform(put("/api/auth/account")
+        final var result = mockMvc.perform(put(ACCOUNT_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"username\":\"newusername\"}"))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 
     @Test
-    @WithMockUser(username = TEST_USER, roles = "PELAJAR")
+    @WithMockUser(username = TEST_USER, roles = ROLE_PELAJAR)
     void deleteAccountShouldReturn200() throws Exception {
-        mockMvc.perform(delete("/api/auth/account"))
-            .andExpect(status().isOk());
+        final var result = mockMvc.perform(delete(ACCOUNT_URL))
+            .andExpect(status().isOk())
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
-
+    
     @Test
     void deleteAccountShouldReturn401WhenNotAuthenticated() throws Exception {
-        mockMvc.perform(delete("/api/auth/account"))
-            .andExpect(status().isUnauthorized());
+        final var result = mockMvc.perform(delete(ACCOUNT_URL))
+            .andExpect(status().isUnauthorized())
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 
-    // ====== LINK LOGIN METHOD ======
-
     @Test
-    @WithMockUser(username = TEST_USER, roles = "PELAJAR")
+    @WithMockUser(username = TEST_USER, roles = ROLE_PELAJAR)
     void linkLoginMethodShouldReturn200() throws Exception {
         when(authService.linkLoginMethod(any(), any())).thenReturn(
-            new AccountResponse("123", TEST_USER, "Mizuki", "new@test.com", null, "PELAJAR", "Metode login berhasil ditautkan")
+            new AccountResponse("123", TEST_USER, "Mizuki", "new@test.com", null, ROLE_PELAJAR, "Metode login berhasil ditautkan")
         );
 
-        mockMvc.perform(post("/api/auth/account/link")
+        final var result = mockMvc.perform(post("/api/auth/account/link")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"email\":\"new@test.com\"}"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("Metode login berhasil ditautkan"));
+            .andExpect(jsonPath("$.message").value("Metode login berhasil ditautkan"))
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 
     @Test
     void linkLoginMethodShouldReturn401WhenNotAuthenticated() throws Exception {
-        mockMvc.perform(post("/api/auth/account/link")
+        final var result = mockMvc.perform(post("/api/auth/account/link")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"email\":\"new@test.com\"}"))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
     }
 }
