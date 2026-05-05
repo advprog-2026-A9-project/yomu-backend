@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import org.springframework.context.ApplicationEventPublisher;
+
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
 
@@ -256,5 +258,31 @@ class AuthServiceImplTest {
         assertThrows(IllegalArgumentException.class,
             () -> authService.updateAccount("uuid-123", request),
             "Harus throw exception jika password lama salah");
+    }
+
+    @Test
+    void testDeleteAccountSuccess() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+
+        assertDoesNotThrow(() -> authService.deleteAccount("uuid-123"),
+            "Harus berhasil menghapus akun yang ada");
+    }
+
+    @Test
+    void testDeleteAccountFailUserNotFound() {
+        when(userRepository.findById("invalid-id")).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.deleteAccount("invalid-id"),
+            "Harus throw exception jika user tidak ditemukan");
+    }
+
+    @Test
+    void testDeleteAccountPublishesEvent() {
+        when(userRepository.findById("uuid-123")).thenReturn(Optional.of(mockUser));
+
+        authService.deleteAccount("uuid-123");
+
+        verify(userRepository, times(1)).delete(mockUser);
     }
 }
