@@ -18,15 +18,15 @@ import java.util.stream.Collectors;
 public class DiscussionServiceImpl implements DiscussionService {
 
     private final CommentRepository commentRepository;
-
     private final CommentReactionRepository reactionRepository;
 
     private static final String COMMENT_NOT_FOUND = "Comment not found";
+    private static final String UNAUTHORIZED_ACTION = "You are not authorized to %s this comment";
 
     @Override
     @Transactional
-    public CommentResponse createComment(CreateCommentRequest request) {
-        Comment comment = Comment.builder()
+    public CommentResponse createComment(final CreateCommentRequest request) {
+        final Comment comment = Comment.builder()
                 .content(request.getContent())
                 .readingId(request.getReadingId())
                 .userId(request.getUserId())
@@ -37,7 +37,7 @@ public class DiscussionServiceImpl implements DiscussionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentResponse> getCommentsByReading(UUID readingId) {
+    public List<CommentResponse> getCommentsByReading(final UUID readingId) {
         return commentRepository.findByReadingId(readingId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -45,13 +45,9 @@ public class DiscussionServiceImpl implements DiscussionService {
 
     @Override
     @Transactional
-    public CommentResponse updateComment(UUID commentId, UpdateCommentRequest request) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException(COMMENT_NOT_FOUND));
-
-        if (!comment.getUserId().equals(request.getUserId())) {
-            throw new IllegalStateException("You are not authorized to edit this comment");
-        }
+    public CommentResponse updateComment(final UUID commentId, final UpdateCommentRequest request) {
+        final Comment comment = fetchCommentOrThrow(commentId);
+        validateCommentOwnership(comment, request.getUserId(), "edit");
 
         comment.setContent(request.getContent());
         return mapToResponse(commentRepository.save(comment));
@@ -59,36 +55,19 @@ public class DiscussionServiceImpl implements DiscussionService {
 
     @Override
     @Transactional
-    public void deleteComment(UUID commentId, UUID userId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException(COMMENT_NOT_FOUND));
-
-        if (!comment.getUserId().equals(userId)) {
-            throw new IllegalStateException("You are not authorized to delete this comment");
-        }
+    public void deleteComment(final UUID commentId, final UUID userId) {
+        final Comment comment = fetchCommentOrThrow(commentId);
+        validateCommentOwnership(comment, userId, "delete");
 
         commentRepository.delete(comment);
     }
 
-    private CommentResponse mapToResponse(Comment comment) {
-        return CommentResponse.builder()
-                .id(comment.getId())
-                .content(comment.getContent())
-                .userId(comment.getUserId())
-                .readingId(comment.getReadingId())
-                .parentId(comment.getParentId())
-                .createdAt(comment.getCreatedAt())
-                .updatedAt(comment.getUpdatedAt())
-                .build();
-    }
-
     @Override
     @Transactional
-    public void addReaction(UUID commentId, UUID userId, ReactionRequest request) {
-        final Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException(COMMENT_NOT_FOUND));
+    public void addReaction(final UUID commentId, final UUID userId, final ReactionRequest request) {
+        final Comment comment = fetchCommentOrThrow(commentId);
 
-        CommentReaction reaction = reactionRepository.findByCommentIdAndUserId(commentId, userId)
+        final CommentReaction reaction = reactionRepository.findByCommentIdAndUserId(commentId, userId)
                 .orElse(new CommentReaction());
 
         reaction.setCommentId(comment.getId());
@@ -101,12 +80,32 @@ public class DiscussionServiceImpl implements DiscussionService {
 
     @Override
     @Transactional
-    public void deleteCommentByAdmin(UUID commentId) {
-        final Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException(COMMENT_NOT_FOUND));
-
+    public void deleteCommentByAdmin(final UUID commentId) {
+        final Comment comment = fetchCommentOrThrow(commentId);
         reactionRepository.deleteAllByCommentId(commentId);
         commentRepository.delete(comment);
+    }
 
+    private Comment fetchCommentOrThrow(final UUID commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException(COMMENT_NOT_FOUND));
+    }
+
+    private void validateCommentOwnership(final Comment comment, final UUID userId, final String action) {
+        if (!comment.getUserId().equals(userId)) {
+            throw new IllegalStateException(String.format(UNAUTHORIZED_ACTION, action));
+        }
+    }
+
+    private CommentResponse mapToResponse(final Comment comment) {
+        return CommentResponse.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .userId(comment.getUserId())
+                .readingId(comment.getReadingId())
+                .parentId(comment.getParentId())
+                .createdAt(comment.getCreatedAt())
+                .updatedAt(comment.getUpdatedAt())
+                .build();
     }
 }
