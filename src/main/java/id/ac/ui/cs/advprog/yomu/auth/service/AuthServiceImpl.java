@@ -9,6 +9,9 @@ import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import id.ac.ui.cs.advprog.yomu.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import id.ac.ui.cs.advprog.yomu.auth.event.UserDeletedEvent;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +20,7 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+    
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
@@ -25,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil; 
+    private final ApplicationEventPublisher eventPublisher;
     
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -128,5 +133,16 @@ public class AuthServiceImpl implements AuthService {
                 saved.getRole(),
                 "Akun berhasil diperbarui"
         );
+    }
+
+    @Override
+    public void deleteAccount(String userId) {
+
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Akun tidak ditemukan"));
+
+        userRepository.delete(user);
+        eventPublisher.publishEvent(new UserDeletedEvent(this, userId));
+        
     }
 }

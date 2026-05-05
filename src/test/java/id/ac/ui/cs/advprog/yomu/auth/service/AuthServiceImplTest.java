@@ -44,6 +44,9 @@ class AuthServiceImplTest {
     @InjectMocks
     private AuthServiceImpl authService;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private RegisterRequest registerRequest;
     private LoginRequest loginRequest;
     private User mockUser;
