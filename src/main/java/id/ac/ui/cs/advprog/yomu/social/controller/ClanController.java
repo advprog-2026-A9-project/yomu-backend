@@ -20,6 +20,7 @@ import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
+import id.ac.ui.cs.advprog.yomu.social.service.SeasonService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -28,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class ClanController {
 
     private final ClanService clanService;
+    private final SeasonService seasonService;
     private final JwtUtil jwtUtil;
 
     private String getUserIdFromHeader(String authHeader) {
@@ -60,7 +62,8 @@ public class ClanController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<MyClanResponse> getMyClan(@RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
+    public ResponseEntity<MyClanResponse> getMyClan(
+            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
         String userId = getUserIdFromHeader(authHeader);
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -82,10 +85,11 @@ public class ClanController {
 
     @PostMapping("/{id}/edit")
     public ResponseEntity<Clan> edit(@PathVariable String id,
-        @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader, @RequestBody final ClanRequest request) {
-            String userId = getUserIdFromHeader(authHeader);
-            return ResponseEntity.ok(clanService.editClan(id, userId, request));
-        }
+            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader,
+            @RequestBody final ClanRequest request) {
+        String userId = getUserIdFromHeader(authHeader);
+        return ResponseEntity.ok(clanService.editClan(id, userId, request));
+    }
 
     @PostMapping("/{id}/leave")
     public ResponseEntity<String> leave(@PathVariable String id,
@@ -110,7 +114,7 @@ public class ClanController {
 
     @PostMapping("/admin/end-season")
     public ResponseEntity<String> endSeason(@RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        clanService.endSeason();
+        seasonService.endSeason();
         return ResponseEntity.ok(SocialConstants.END_SEASON_SUCCESS_MESSAGE);
     }
 }
