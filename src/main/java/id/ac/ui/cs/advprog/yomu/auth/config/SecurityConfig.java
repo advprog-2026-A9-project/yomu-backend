@@ -56,6 +56,10 @@ public class SecurityConfig {
             )
             .headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin())
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'")
+                )
+                .xssProtection(Customizer.withDefaults())
             )
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(info -> info
