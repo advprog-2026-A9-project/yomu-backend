@@ -31,4 +31,13 @@ public final class SocialConstants {
     public static final int MIN_CLAN_SIZE = 1;
     public static final double SEASON_CHANGE_RATIO = 0.2d;
     public static final int LEADERBOARD_LIMIT = 100;
+
+    public static final String LOW_ACCURACY_PENALTY_KEY = "LOW_ACCURACY_PENALTY";
+    public static final double LOW_ACCURACY_THRESHOLD = 0.5d;
+    public static final double LOW_ACCURACY_MULTIPLIER = 0.8d;
+    public static final int LOW_ACCURACY_MIN_QUESTIONS = 10;
+    public static final long LOW_ACCURACY_PENALTY_DURATION_MINUTES = 30;
+
+    public static final double MULTIPLIER_MIN = 0.5d;
+    public static final double MULTIPLIER_MAX = 10.0d;
 }

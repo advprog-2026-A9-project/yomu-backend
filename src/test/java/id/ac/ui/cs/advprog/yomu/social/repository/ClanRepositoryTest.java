@@ -46,8 +46,7 @@ class ClanRepositoryTest {
         assertAll("Verify findByName",
                 () -> assertTrue(result.isPresent(), "Verify clan exists"),
                 () -> assertEquals(clanNameSobat, result.get().getName(), "Verify name match"),
-                () -> verify(clanRepository, times(1)).findByName(clanNameSobat)
-        );
+                () -> verify(clanRepository, times(1)).findByName(clanNameSobat));
     }
 
     @Test
@@ -59,7 +58,6 @@ class ClanRepositoryTest {
                 () -> assertTrue(clanRepository.existsByName(clanNameWibu), "verify clan exists"),
                 () -> assertFalse(clanRepository.existsByName(clanNameNew), "verify clan doesn't exists"),
                 () -> verify(clanRepository, times(1)).existsByName(clanNameWibu),
-                () -> verify(clanRepository, times(1)).existsByName(clanNameNew)
-        );
+                () -> verify(clanRepository, times(1)).existsByName(clanNameNew));
     }
 }
