@@ -12,12 +12,16 @@ import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
 import id.ac.ui.cs.advprog.yomu.social.service.SeasonService;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -96,6 +100,11 @@ class ClanControllerTest {
         dummyClan.setName(clanName);
         dummyClan.setLeaderUserId(leaderId);
         dummyClan.setDescription("Clan untuk pecinta buku");
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -236,12 +245,33 @@ class ClanControllerTest {
     }
 
     @Test
-    void testEndSeason() throws Exception {
+    void testEndSeasonAsAdmin() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "admin-user",
+                        null,
+                        List.of(new SimpleGrantedAuthority("ADMIN"))));
+
         mockMvc.perform(post("/api/clans/admin/end-season")
                 .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Season ended. Clans promoted/demoted."));
 
         verify(seasonService, times(1)).endSeason();
+    }
+
+    @Test
+    void testEndSeasonAsNonAdmin() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "pelajar-user",
+                        null,
+                        List.of(new SimpleGrantedAuthority("PELAJAR"))));
+
+        mockMvc.perform(post("/api/clans/admin/end-season")
+                .header(AUTHORIZATION_HEADER, authHeader))
+                .andExpect(status().isForbidden());
+
+        verify(seasonService, never()).endSeason();
     }
 }
