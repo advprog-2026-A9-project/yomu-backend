@@ -1,9 +1,9 @@
 package id.ac.ui.cs.advprog.yomu.social.validation;
 
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Objects;
+
+import org.springframework.stereotype.Component;
 
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
@@ -17,6 +17,9 @@ import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 @Component
 public class ClanValidation {
 
+    private static final int MAX_CLAN_NAME_LENGTH = 100;
+    private static final int MAX_DESCRIPTION_LENGTH = 1000;
+
     private void validateId(final String id, final String errorMessage) {
         if (id == null || id.isBlank()) {
             throw new IllegalStateException(errorMessage);
@@ -29,6 +32,25 @@ public class ClanValidation {
 
     public void requireUserId(final String userId) {
         validateId(userId, SocialConstants.USER_ID_NULL_MESSAGE);
+    }
+
+    public void requireValidClanName(final String clanName) {
+        if (clanName == null || clanName.isBlank()) {
+            throw new IllegalArgumentException("Clan name cannot be empty");
+        }
+        if (clanName.length() > MAX_CLAN_NAME_LENGTH) {
+            throw new IllegalArgumentException(
+                "Clan name exceeds maximum length of " + MAX_CLAN_NAME_LENGTH
+            );
+        }
+    }
+
+    public void requireValidClanDescription(final String description) {
+        if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
+            throw new IllegalArgumentException(
+                "Clan description exceeds maximum length of " + MAX_DESCRIPTION_LENGTH
+            );
+        }
     }
 
     public void requireClanNameAvailable(final boolean nameExists) {
