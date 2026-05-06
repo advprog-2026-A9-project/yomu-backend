@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +50,16 @@ public class ClanController {
         return null;
     }
 
+    private String getRoleFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getAuthorities() != null
+                && !authentication.getAuthorities().isEmpty()) {
+            String role = authentication.getAuthorities().iterator().next().getAuthority();
+            return role.startsWith("ROLE_") ? role.substring(5) : role;
+        }
+        return "PELAJAR";
+    }
+
     @PostMapping
     public ResponseEntity<Clan> create(@RequestBody final ClanRequest request,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
@@ -75,7 +87,7 @@ public class ClanController {
     }
 
     @PostMapping("/{id}/join")
-    public ResponseEntity<String> join(@PathVariable String id,
+    public ResponseEntity<String> join(@PathVariable("id") String id,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
         String userId = getUserIdFromHeader(authHeader);
         String username = getUsernameFromHeader(authHeader);
@@ -84,7 +96,7 @@ public class ClanController {
     }
 
     @PostMapping("/{id}/edit")
-    public ResponseEntity<Clan> edit(@PathVariable String id,
+    public ResponseEntity<Clan> edit(@PathVariable("id") String id,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader,
             @RequestBody final ClanRequest request) {
         String userId = getUserIdFromHeader(authHeader);
@@ -92,7 +104,7 @@ public class ClanController {
     }
 
     @PostMapping("/{id}/leave")
-    public ResponseEntity<String> leave(@PathVariable String id,
+    public ResponseEntity<String> leave(@PathVariable("id") String id,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
         String userId = getUserIdFromHeader(authHeader);
         clanService.leaveClan(id, userId);
@@ -100,7 +112,7 @@ public class ClanController {
     }
 
     @PostMapping("/{id}/delete")
-    public ResponseEntity<String> delete(@PathVariable String id,
+    public ResponseEntity<String> delete(@PathVariable("id") String id,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
         String userId = getUserIdFromHeader(authHeader);
         clanService.deleteClan(id, userId);
@@ -113,7 +125,11 @@ public class ClanController {
     }
 
     @PostMapping("/admin/end-season")
-    public ResponseEntity<String> endSeason(@RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
+    public ResponseEntity<String> endSeason() {
+        String role = getRoleFromSecurityContext();
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         seasonService.endSeason();
         return ResponseEntity.ok(SocialConstants.END_SEASON_SUCCESS_MESSAGE);
     }
