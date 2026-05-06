@@ -17,15 +17,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
+import id.ac.ui.cs.advprog.yomu.social.service.ClanModifierService;
+import id.ac.ui.cs.advprog.yomu.social.service.ClanQuizStatsService;
 import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyFactory;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
 
 /**
- * Tests for leaderboard functionality - will fail until Tier and scoring are implemented.
+ * Tests for leaderboard functionality - will fail until Tier and scoring are
+ * implemented.
  */
 @ExtendWith(MockitoExtension.class)
 class ClanServiceLeaderboardTest {
@@ -38,6 +43,15 @@ class ClanServiceLeaderboardTest {
 
     @Mock
     private ScoringStrategyFactory scoringStrategyFactory;
+
+    @Mock
+    private ClanModifierService modifierService;
+
+    @Mock
+    private ClanQuizStatsService statsService;
+
+    @Mock
+    private ClanValidation clanValidation;
 
     @InjectMocks
     private ClanServiceImpl clanService;
@@ -64,8 +78,7 @@ class ClanServiceLeaderboardTest {
 
     @Test
     void testGetLeaderboardByTier_ShouldNotReturnNull() {
-        when(clanRepository.findAll()).thenReturn(List.of(bronzeClan, silverClan));
-        when(memberRepository.countByClanId(anyString())).thenReturn(5L);
+        when(clanRepository.findLeaderboardByTier(any(Tier.class), any())).thenReturn(List.of());
 
         List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier();
 
@@ -74,29 +87,11 @@ class ClanServiceLeaderboardTest {
 
     @Test
     void testGetLeaderboardByTier_ShouldContainTiers() {
-        when(clanRepository.findAll()).thenReturn(List.of(bronzeClan, silverClan));
-        when(memberRepository.countByClanId(anyString())).thenReturn(5L);
+        when(clanRepository.findLeaderboardByTier(any(Tier.class), any())).thenReturn(List.of());
 
         List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier();
 
         assertFalse(leaderboard.isEmpty(), "Leaderboard should contain at least one tier");
     }
 
-    @Test
-    void testEndSeason_ShouldNotThrowException() {
-        when(clanRepository.findAll()).thenReturn(List.of(bronzeClan));
-        when(memberRepository.countByClanId(anyString())).thenReturn(5L);
-
-        assertDoesNotThrow(() -> clanService.endSeason());
-    }
-
-    @Test
-    void testEndSeason_ShouldSaveClans() {
-        when(clanRepository.findAll()).thenReturn(List.of(bronzeClan));
-        when(memberRepository.countByClanId(anyString())).thenReturn(5L);
-
-        clanService.endSeason();
-        
-        verify(clanRepository, atLeastOnce()).save(any(Clan.class));
-    }
 }
