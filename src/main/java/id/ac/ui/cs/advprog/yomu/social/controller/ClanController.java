@@ -5,8 +5,6 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,11 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
-import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
-import id.ac.ui.cs.advprog.yomu.social.service.SeasonService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -31,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class ClanController {
 
     private final ClanService clanService;
-    private final SeasonService seasonService;
     private final JwtUtil jwtUtil;
 
     private String getUserIdFromHeader(String authHeader) {
@@ -48,16 +43,6 @@ public class ClanController {
             return jwtUtil.extractUsername(token);
         }
         return null;
-    }
-
-    private String getRoleFromSecurityContext() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getAuthorities() != null
-                && !authentication.getAuthorities().isEmpty()) {
-            String role = authentication.getAuthorities().iterator().next().getAuthority();
-            return role.startsWith("ROLE_") ? role.substring(5) : role;
-        }
-        return "PELAJAR";
     }
 
     @PostMapping
@@ -86,15 +71,6 @@ public class ClanController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{id}/join")
-    public ResponseEntity<String> join(@PathVariable("id") String id,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String userId = getUserIdFromHeader(authHeader);
-        String username = getUsernameFromHeader(authHeader);
-        clanService.joinClan(id, userId, username, SocialConstants.ROLE_MEMBER);
-        return ResponseEntity.ok(SocialConstants.JOIN_SUCCESS_MESSAGE);
-    }
-
     @PostMapping("/{id}/edit")
     public ResponseEntity<Clan> edit(@PathVariable("id") String id,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader,
@@ -103,34 +79,11 @@ public class ClanController {
         return ResponseEntity.ok(clanService.editClan(id, userId, request));
     }
 
-    @PostMapping("/{id}/leave")
-    public ResponseEntity<String> leave(@PathVariable("id") String id,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String userId = getUserIdFromHeader(authHeader);
-        clanService.leaveClan(id, userId);
-        return ResponseEntity.ok(SocialConstants.LEAVE_SUCCESS_MESSAGE);
-    }
-
     @PostMapping("/{id}/delete")
     public ResponseEntity<String> delete(@PathVariable("id") String id,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
         String userId = getUserIdFromHeader(authHeader);
         clanService.deleteClan(id, userId);
         return ResponseEntity.ok(SocialConstants.DELETE_SUCCESS_MESSAGE);
-    }
-
-    @GetMapping("/leaderboard")
-    public ResponseEntity<List<LeaderboardResponse>> getLeaderboard() {
-        return ResponseEntity.ok(clanService.getLeaderboardByTier());
-    }
-
-    @PostMapping("/admin/end-season")
-    public ResponseEntity<String> endSeason() {
-        String role = getRoleFromSecurityContext();
-        if (!"ADMIN".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        seasonService.endSeason();
-        return ResponseEntity.ok(SocialConstants.END_SEASON_SUCCESS_MESSAGE);
     }
 }

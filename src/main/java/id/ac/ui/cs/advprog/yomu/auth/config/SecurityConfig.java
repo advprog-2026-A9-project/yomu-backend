@@ -13,7 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.http.HttpMethod;
 
 import id.ac.ui.cs.advprog.yomu.auth.filter.JwtAuthenticationFilter;
 import id.ac.ui.cs.advprog.yomu.auth.service.CustomOAuth2UserService;
@@ -43,11 +42,11 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
 
-                // Role-based access untuk reading  ← TAMBAHKAN INI
+                // Role-based access untuk reading
                 .requestMatchers(HttpMethod.POST, "/api/reading-texts/**").hasAuthority("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/clans/admin/end-season").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/reading-texts/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/reading-texts/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/seasons/end").hasAuthority("ADMIN")
                 // Protected endpoints (harus autentikasi)
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                 .requestMatchers("/api/readings/**").authenticated()
