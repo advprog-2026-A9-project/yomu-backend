@@ -17,19 +17,17 @@ import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 @Repository
 public interface ClanRepository extends JpaRepository<Clan, String> {
 
-    String TIER_PARAM = "tier";
-
     Optional<Clan> findByName(String name);
     boolean existsByName(String name);
 
-    @Query("SELECT COUNT(c) FROM Clan c WHERE c.tier = :" + TIER_PARAM)
-    long countByTier(@Param(TIER_PARAM) Tier tier);
+    @Query("SELECT COUNT(c) FROM Clan c WHERE c.tier = :tier")
+    long countByTier(@Param("tier") Tier tier);
 
-    @Query("SELECT c FROM Clan c WHERE c.tier = :" + TIER_PARAM + " ORDER BY c.score DESC, c.id ASC")
-    List<Clan> findTopClansByTier(@Param(TIER_PARAM) Tier tier, Pageable pageable);
+    @Query("SELECT c FROM Clan c WHERE c.tier = :tier ORDER BY c.score DESC, c.id ASC")
+    List<Clan> findTopClansByTier(@Param("tier") Tier tier, Pageable pageable);
 
-    @Query("SELECT c FROM Clan c WHERE c.tier = :" + TIER_PARAM + " ORDER BY c.score ASC, c.id ASC")
-    List<Clan> findBottomClansByTier(@Param(TIER_PARAM) Tier tier, Pageable pageable);
+    @Query("SELECT c FROM Clan c WHERE c.tier = :tier ORDER BY c.score ASC, c.id ASC")
+    List<Clan> findBottomClansByTier(@Param("tier") Tier tier, Pageable pageable);
 
     @Query("""
             SELECT c.id as clanId,
@@ -39,12 +37,11 @@ public interface ClanRepository extends JpaRepository<Clan, String> {
                    COUNT(m) as memberCount
             FROM Clan c
             LEFT JOIN ClanMember m ON m.clanId = c.id
-            WHERE c.tier = :""" + TIER_PARAM + """
-            
+            WHERE c.tier = :tier
             GROUP BY c.id, c.name, c.tier, c.score
             ORDER BY c.score DESC, c.id ASC
             """)
-    List<ClanLeaderboardRow> findLeaderboardByTier(@Param(TIER_PARAM) Tier tier, Pageable pageable);
+    List<ClanLeaderboardRow> findLeaderboardByTier(@Param("tier") Tier tier, Pageable pageable);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Clan c SET c.score = 0")
