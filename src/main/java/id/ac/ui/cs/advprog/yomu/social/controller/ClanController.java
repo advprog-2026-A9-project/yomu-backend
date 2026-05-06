@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
+import id.ac.ui.cs.advprog.yomu.common.util.InputSanitizer;
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -28,6 +30,8 @@ public class ClanController {
 
     private final ClanService clanService;
     private final JwtUtil jwtUtil;
+    private final InputSanitizer inputSanitizer;
+    private final ClanValidation clanValidation;
 
     private String getUserIdFromHeader(String authHeader) {
         if (authHeader != null && authHeader.startsWith(SocialConstants.BEARER_PREFIX)) {
@@ -48,6 +52,14 @@ public class ClanController {
     @PostMapping
     public ResponseEntity<Clan> create(@RequestBody final ClanRequest request,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
+        // Sanitize input to prevent XSS
+        request.setName(inputSanitizer.sanitize(request.getName()));
+        request.setDescription(inputSanitizer.sanitize(request.getDescription()));
+        
+        // Validate input length and content
+        clanValidation.requireValidClanName(request.getName());
+        clanValidation.requireValidClanDescription(request.getDescription());
+        
         request.setUserId(getUserIdFromHeader(authHeader));
         request.setUsername(getUsernameFromHeader(authHeader));
         return ResponseEntity.ok(clanService.createClan(request));
@@ -75,6 +87,14 @@ public class ClanController {
     public ResponseEntity<Clan> edit(@PathVariable("id") String id,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader,
             @RequestBody final ClanRequest request) {
+        // Sanitize input to prevent XSS
+        request.setName(inputSanitizer.sanitize(request.getName()));
+        request.setDescription(inputSanitizer.sanitize(request.getDescription()));
+        
+        // Validate input length and content
+        clanValidation.requireValidClanName(request.getName());
+        clanValidation.requireValidClanDescription(request.getDescription());
+        
         String userId = getUserIdFromHeader(authHeader);
         return ResponseEntity.ok(clanService.editClan(id, userId, request));
     }
