@@ -14,6 +14,7 @@ import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @Repository
 public interface ClanRepository extends JpaRepository<Clan, String> {
 
