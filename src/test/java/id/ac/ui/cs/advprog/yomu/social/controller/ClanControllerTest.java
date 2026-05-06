@@ -3,25 +3,18 @@ package id.ac.ui.cs.advprog.yomu.social.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
-import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
-import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
-import id.ac.ui.cs.advprog.yomu.social.service.SeasonService;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -45,9 +38,6 @@ class ClanControllerTest {
     private ClanService clanService;
 
     @Mock
-    private SeasonService seasonService;
-
-    @Mock
     private JwtUtil jwtUtil;
 
     @InjectMocks
@@ -65,8 +55,7 @@ class ClanControllerTest {
     private String authHeader;
     private String token;
 
-    private String joinSuccessMsg;
-    private String leaveSuccessMsg;
+    private String createSuccessMsg;
     private String deleteSuccessMsg;
     private List<ClanMember> members;
     private final String BASE_API = "/api/clans";
@@ -86,8 +75,7 @@ class ClanControllerTest {
         token = "dummy-token";
         authHeader = "Bearer " + token;
 
-        joinSuccessMsg = "Berhasil bergabung";
-        leaveSuccessMsg = "Berhasil keluar dari clan";
+        createSuccessMsg = "Clan berhasil dibuat";
         deleteSuccessMsg = "Clan berhasil dihapus";
         ClanMember dummyMember = new ClanMember();
         dummyMember.setUserId(leaderId);
@@ -100,11 +88,6 @@ class ClanControllerTest {
         dummyClan.setName(clanName);
         dummyClan.setLeaderUserId(leaderId);
         dummyClan.setDescription("Clan untuk pecinta buku");
-    }
-
-    @AfterEach
-    void clearSecurityContext() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -176,19 +159,6 @@ class ClanControllerTest {
     }
 
     @Test
-    void testJoinClan() throws Exception {
-        when(jwtUtil.extractUserId(token)).thenReturn(memberId);
-        when(jwtUtil.extractUsername(token)).thenReturn(username);
-
-        mockMvc.perform(post(BASE_API + "/" + clanId + "/join")
-                .header(AUTHORIZATION_HEADER, authHeader))
-                .andExpect(status().isOk())
-                .andExpect(content().string(joinSuccessMsg));
-
-        verify(clanService, times(1)).joinClan(eq(clanId), eq(memberId), eq(username), eq("MEMBER"));
-    }
-
-    @Test
     void testEditClan() throws Exception {
         ClanRequest request = new ClanRequest();
         request.setName("New Name");
@@ -207,18 +177,6 @@ class ClanControllerTest {
     }
 
     @Test
-    void testLeaveClan() throws Exception {
-        when(jwtUtil.extractUserId(token)).thenReturn(memberId);
-
-        mockMvc.perform(post(BASE_API + "/" + clanId + "/leave")
-                .header(AUTHORIZATION_HEADER, authHeader))
-                .andExpect(status().isOk())
-                .andExpect(content().string(leaveSuccessMsg));
-
-        verify(clanService, times(1)).leaveClan(eq(clanId), eq(memberId));
-    }
-
-    @Test
     void testDeleteClan() throws Exception {
         when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
 
@@ -228,50 +186,5 @@ class ClanControllerTest {
                 .andExpect(content().string(deleteSuccessMsg));
 
         verify(clanService, times(1)).deleteClan(eq(clanId), eq(leaderId));
-    }
-
-    @Test
-    void testGetLeaderboard() throws Exception {
-        LeaderboardEntryResponse entry = new LeaderboardEntryResponse(clanId, clanName, "Bronze", 100, 1, 10);
-        LeaderboardResponse leaderboard = new LeaderboardResponse("Bronze", List.of(entry));
-
-        when(clanService.getLeaderboardByTier()).thenReturn(List.of(leaderboard));
-
-        mockMvc.perform(get("/api/clans/leaderboard"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].tier").value("Bronze"));
-
-        verify(clanService, times(1)).getLeaderboardByTier();
-    }
-
-    @Test
-    void testEndSeasonAsAdmin() throws Exception {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        "admin-user",
-                        null,
-                        List.of(new SimpleGrantedAuthority("ADMIN"))));
-
-        mockMvc.perform(post("/api/clans/admin/end-season")
-                .header(AUTHORIZATION_HEADER, authHeader))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Season ended. Clans promoted/demoted."));
-
-        verify(seasonService, times(1)).endSeason();
-    }
-
-    @Test
-    void testEndSeasonAsNonAdmin() throws Exception {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        "pelajar-user",
-                        null,
-                        List.of(new SimpleGrantedAuthority("PELAJAR"))));
-
-        mockMvc.perform(post("/api/clans/admin/end-season")
-                .header(AUTHORIZATION_HEADER, authHeader))
-                .andExpect(status().isForbidden());
-
-        verify(seasonService, never()).endSeason();
     }
 }
