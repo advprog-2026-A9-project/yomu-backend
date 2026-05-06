@@ -9,6 +9,8 @@ import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
+import id.ac.ui.cs.advprog.yomu.social.service.SeasonService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +31,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class ClanControllerTest {
 
@@ -36,6 +39,9 @@ class ClanControllerTest {
 
     @Mock
     private ClanService clanService;
+
+    @Mock
+    private SeasonService seasonService;
 
     @Mock
     private JwtUtil jwtUtil;
@@ -102,9 +108,9 @@ class ClanControllerTest {
         when(clanService.createClan(any(ClanRequest.class))).thenReturn(dummyClan);
 
         mockMvc.perform(post(BASE_API)
-                        .header(AUTHORIZATION_HEADER, authHeader)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .header(AUTHORIZATION_HEADER, authHeader)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(clanName))
                 .andExpect(jsonPath("$.id").value(clanId));
@@ -133,14 +139,13 @@ class ClanControllerTest {
                 dummyClan.getDescription(),
                 dummyClan.getLeaderUserId(),
                 "KETUA",
-                members
-        );
+                members);
 
         when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
         when(clanService.getMyClanByUserId(leaderId)).thenReturn(Optional.of(response));
 
         mockMvc.perform(get("/api/clans/me")
-                        .header(AUTHORIZATION_HEADER, authHeader))
+                .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(clanId))
                 .andExpect(jsonPath("$.role").value("KETUA"))
@@ -155,7 +160,7 @@ class ClanControllerTest {
         when(clanService.getMyClanByUserId(memberId)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/clans/me")
-                        .header(AUTHORIZATION_HEADER, authHeader))
+                .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isNotFound());
 
         verify(clanService, times(1)).getMyClanByUserId(memberId);
@@ -167,7 +172,7 @@ class ClanControllerTest {
         when(jwtUtil.extractUsername(token)).thenReturn(username);
 
         mockMvc.perform(post(BASE_API + "/" + clanId + "/join")
-                        .header(AUTHORIZATION_HEADER, authHeader))
+                .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isOk())
                 .andExpect(content().string(joinSuccessMsg));
 
@@ -184,9 +189,9 @@ class ClanControllerTest {
         when(clanService.editClan(eq(clanId), eq(leaderId), any(ClanRequest.class))).thenReturn(dummyClan);
 
         mockMvc.perform(post("/api/clans/" + clanId + "/edit")
-                        .header(AUTHORIZATION_HEADER, authHeader)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .header(AUTHORIZATION_HEADER, authHeader)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
         verify(clanService, times(1)).editClan(eq(clanId), eq(leaderId), any(ClanRequest.class));
@@ -197,7 +202,7 @@ class ClanControllerTest {
         when(jwtUtil.extractUserId(token)).thenReturn(memberId);
 
         mockMvc.perform(post(BASE_API + "/" + clanId + "/leave")
-                        .header(AUTHORIZATION_HEADER, authHeader))
+                .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isOk())
                 .andExpect(content().string(leaveSuccessMsg));
 
@@ -209,7 +214,7 @@ class ClanControllerTest {
         when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
 
         mockMvc.perform(post("/api/clans/" + clanId + "/delete")
-                        .header(AUTHORIZATION_HEADER, authHeader))
+                .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isOk())
                 .andExpect(content().string(deleteSuccessMsg));
 
@@ -233,10 +238,10 @@ class ClanControllerTest {
     @Test
     void testEndSeason() throws Exception {
         mockMvc.perform(post("/api/clans/admin/end-season")
-                        .header(AUTHORIZATION_HEADER, authHeader))
+                .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Season ended. Clans promoted/demoted."));
 
-        verify(clanService, times(1)).endSeason();
+        verify(seasonService, times(1)).endSeason();
     }
 }
