@@ -2,11 +2,13 @@ package id.ac.ui.cs.advprog.yomu.social.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
+import id.ac.ui.cs.advprog.yomu.common.util.InputSanitizer;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -30,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ClanControllerTest {
 
     private MockMvc mockMvc;
@@ -39,6 +44,12 @@ class ClanControllerTest {
 
     @Mock
     private JwtUtil jwtUtil;
+
+    @Mock
+    private InputSanitizer inputSanitizer;
+
+    @Mock
+    private ClanValidation clanValidation;
 
     @InjectMocks
     private ClanController clanController;
@@ -66,6 +77,9 @@ class ClanControllerTest {
 
         // Setup MockMvc secara standalone
         mockMvc = MockMvcBuilders.standaloneSetup(clanController).build();
+
+        // Setup InputSanitizer mock - return input as-is for testing
+        when(inputSanitizer.sanitize(any(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         clanId = "clan-123";
         leaderId = "user-456";
