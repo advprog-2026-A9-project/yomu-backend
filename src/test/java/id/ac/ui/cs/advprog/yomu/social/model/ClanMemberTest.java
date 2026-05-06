@@ -43,9 +43,8 @@ class ClanMemberTest {
         clanMember.setUserId("U-1");
 
         assertAll("Verify ClanMember Fields",
-            () -> assertNotNull(clanMember.getId(), "ClanMember ID should not be null"),
-            () -> assertNotNull(clanMember.getClanId(), "Clan ID should not be null"),
-            () -> assertNotNull(clanMember.getUserId(), "User ID should not be null")
-        );
+                () -> assertNotNull(clanMember.getId(), "ClanMember ID should not be null"),
+                () -> assertNotNull(clanMember.getClanId(), "Clan ID should not be null"),
+                () -> assertNotNull(clanMember.getUserId(), "User ID should not be null"));
     }
 }
