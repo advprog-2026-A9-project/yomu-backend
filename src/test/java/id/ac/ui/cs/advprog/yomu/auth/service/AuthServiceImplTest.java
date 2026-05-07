@@ -353,4 +353,40 @@ class AuthServiceImplTest {
             () -> authService.linkLoginMethod(TEST_USER_ID, request),
             "Harus throw exception jika format email tidak valid");
     }
+
+    @Test
+    void testRegisterFailPasswordTooShort() {
+        registerRequest.setPassword("abc");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus throw exception jika password kurang dari 8 karakter");
+    }
+
+    @Test
+    void testRegisterFailUsernameTooShort() {
+        registerRequest.setUsername("ab");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus throw exception jika username kurang dari 3 karakter");
+    }
+
+    @Test
+    void testRegisterFailUsernameTooLong() {
+        registerRequest.setUsername("a".repeat(21));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus throw exception jika username lebih dari 20 karakter");
+    }
+
+    @Test
+    void testRegisterFailUsernameContainsSpecialChar() {
+        registerRequest.setUsername("mizuki@test");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus throw exception jika username mengandung karakter spesial");
+    }
 }
