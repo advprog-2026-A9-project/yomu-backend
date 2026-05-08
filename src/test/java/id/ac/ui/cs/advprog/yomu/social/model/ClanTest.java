@@ -11,49 +11,42 @@ class ClanTest {
 
     @BeforeEach
     void setUp() {
-        this.clan = new Clan();
+        clan = new Clan();
+        clan.setTier(Tier.SILVER);
+        clan.setScore(100);
     }
 
     @Test
-    void testSetAndGetId() {
-        String id = "uuid-test-123";
-        clan.setId(id);
-        assertEquals(id, clan.getId(), "The Clan ID should match the assigned UUID");
+    void testPromote_ShouldIncreaseTierAndResetScore() {
+        clan.promote();
+        assertAll("Verify promote from SILVER to GOLD",
+                () -> assertEquals(Tier.GOLD, clan.getTier(), "Tier should be promoted to GOLD"),
+                () -> assertEquals(0, clan.getScore(), "Score should be reset to 0 after promotion"));
     }
 
     @Test
-    void testSetAndGetName() {
-        String name = "Clan Harapan Bangsa";
-        clan.setName(name);
-        assertEquals(name, clan.getName(), "The Clan name should match the assigned name");
+    void testPromote_FromDiamond_ShouldStayDiamondAndResetScore() {
+        clan.setTier(Tier.DIAMOND);
+        clan.promote();
+        assertAll("Verify promote from DIAMOND stays DIAMOND",
+                () -> assertEquals(Tier.DIAMOND, clan.getTier(), "Tier should remain DIAMOND"),
+                () -> assertEquals(0, clan.getScore(), "Score should be reset to 0 even if tier doesn't change"));
     }
 
     @Test
-    void testSetAndGetDescription() {
-        String desc = "Tempat berkumpulnya para pembaca aktif.";
-        clan.setDescription(desc);
-        assertEquals(desc, clan.getDescription(), "The Clan description should match the assigned text");
+    void testDemote_ShouldDecreaseTierAndResetScore() {
+        clan.demote();
+        assertAll("Verify demote from SILVER to BRONZE",
+                () -> assertEquals(Tier.BRONZE, clan.getTier(), "Tier should be demoted to BRONZE"),
+                () -> assertEquals(0, clan.getScore(), "Score should be reset to 0 after demotion"));
     }
 
     @Test
-    void testSetAndGetLeaderUserId() {
-        String leaderId = "user-pro-99";
-        clan.setLeaderUserId(leaderId);
-        assertEquals(leaderId, clan.getLeaderUserId(), "The Leader User ID should match the assigned user ID");
-    }
-
-    @Test
-    void testClanCreationWithValues() {
-        clan.setId("1");
-        clan.setName("Test Clan");
-        clan.setDescription("Test Desc");
-        clan.setLeaderUserId("Leader1");
-
-        assertAll("Verify all Clan fields after manual setting",
-            () -> assertEquals("1", clan.getId(), "ID verification failed"),
-            () -> assertEquals("Test Clan", clan.getName(), "Name verification failed"),
-            () -> assertEquals("Test Desc", clan.getDescription(), "Description verification failed"),
-            () -> assertEquals("Leader1", clan.getLeaderUserId(), "Leader User ID verification failed")
-        );
+    void testDemote_FromBronze_ShouldStayBronzeAndResetScore() {
+        clan.setTier(Tier.BRONZE);
+        clan.demote();
+        assertAll("Verify demote from BRONZE stays BRONZE",
+                () -> assertEquals(Tier.BRONZE, clan.getTier(), "Tier should remain BRONZE"),
+                () -> assertEquals(0, clan.getScore(), "Score should be reset to 0 even if tier doesn't change"));
     }
 }

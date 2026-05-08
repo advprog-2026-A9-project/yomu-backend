@@ -10,6 +10,8 @@ import id.ac.ui.cs.advprog.yomu.reading.model.ReadingText;
 import id.ac.ui.cs.advprog.yomu.reading.repository.QuizQuestionRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingCompletionRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingTextRepository;
+import id.ac.ui.cs.advprog.yomu.reading.event.QuizCompletedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,8 @@ public class QuizSubmissionServiceImpl implements QuizSubmissionService {
     private final ReadingTextRepository readingTextRepository;
     private final QuizQuestionRepository quizQuestionRepository;
     private final ReadingCompletionRepository readingCompletionRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public QuizSubmissionResponse submitQuiz(Long readingTextId, String userId, QuizSubmissionRequest request) {
@@ -68,6 +72,14 @@ public class QuizSubmissionServiceImpl implements QuizSubmissionService {
 
         readingCompletionRepository.save(completion);
 
+        final QuizCompletedEvent event = new QuizCompletedEvent(
+                userId,
+                readingTextId,
+                score, // Pastikan nama variabel ini sesuai dengan milikmu
+                correctAnswers, // Pastikan nama variabel ini sesuai dengan milikmu
+                totalQuestions // Pastikan nama variabel ini sesuai dengan milikmu
+        );
+        eventPublisher.publishEvent(event);
         return new QuizSubmissionResponse(
                 totalQuestions,
                 correctAnswers,

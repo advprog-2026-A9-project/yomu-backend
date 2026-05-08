@@ -1,12 +1,13 @@
 package id.ac.ui.cs.advprog.yomu.reading.controller;
 
-import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizSubmissionRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizSubmissionResponse;
 import id.ac.ui.cs.advprog.yomu.reading.service.QuizSubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,37 +16,36 @@ import org.springframework.web.bind.annotation.*;
 public class QuizSubmissionController {
 
     private final QuizSubmissionService quizSubmissionService;
-    private final JwtUtil jwtUtil;
 
-    private String getUserIdFromHeader(String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            final String token = authHeader.substring(7);
-            return jwtUtil.extractUserId(token);
+    /**
+     * Clean Code: Mengambil User ID (Subject) langsung dari konteks autentikasi.
+     * Mengurangi coupling dengan utility eksternal.
+     */
+    private String getUserIdFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            // Dalam konfigurasi Spring Security berbasis JWT, "name" biasanya diisi dengan User ID (subject)
+            return authentication.getName();
         }
-        throw new RuntimeException("Token tidak valid");
+        throw new RuntimeException("Pengguna tidak terautentikasi atau token tidak valid");
     }
 
     @PostMapping("/submit")
     public ResponseEntity<QuizSubmissionResponse> submitQuiz(
             @PathVariable Long readingTextId,
-            @RequestBody QuizSubmissionRequest request,
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestBody QuizSubmissionRequest request) { // Parameter header Authorization dihapus
 
-        final String userId = getUserIdFromHeader(authHeader);
-        final QuizSubmissionResponse response =
-                quizSubmissionService.submitQuiz(readingTextId, userId, request);
-
+        final String userId = getUserIdFromSecurityContext();
+        final QuizSubmissionResponse response = quizSubmissionService.submitQuiz(readingTextId, userId, request);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/completion")
     public ResponseEntity<Boolean> hasCompletedQuiz(
-            @PathVariable Long readingTextId,
-            @RequestHeader("Authorization") String authHeader) {
+            @PathVariable Long readingTextId) { // Parameter header Authorization dihapus
 
-        final String userId = getUserIdFromHeader(authHeader);
+        final String userId = getUserIdFromSecurityContext();
         final boolean completed = quizSubmissionService.hasCompletedQuiz(readingTextId, userId);
-
         return ResponseEntity.ok(completed);
     }
 }

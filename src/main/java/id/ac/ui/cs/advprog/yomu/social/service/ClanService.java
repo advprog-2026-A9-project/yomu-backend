@@ -22,5 +22,4 @@ public interface ClanService {
     // Leaderboard methods
     List<LeaderboardResponse> getLeaderboardByTier();
     void updateClanScore(String clanId, int basePoints);
-    void endSeason(); // Admin: promote/demote clans
 }

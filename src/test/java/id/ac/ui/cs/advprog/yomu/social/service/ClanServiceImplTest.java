@@ -16,10 +16,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
@@ -27,7 +31,9 @@ import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
 
+@SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class ClanServiceImplTest {
 
@@ -36,6 +42,9 @@ class ClanServiceImplTest {
 
     @Mock
     private ClanMemberRepository memberRepository;
+
+    @Mock
+    private ClanValidation clanValidation;
 
     @InjectMocks
     private ClanServiceImpl clanService;
@@ -83,13 +92,14 @@ class ClanServiceImplTest {
         when(clanRepository.existsByName(anyString())).thenReturn(false);
         when(clanRepository.save(any(Clan.class))).thenReturn(dummyClan);
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
+        when(memberRepository.findByClanIdAndUserId(anyString(), anyString())).thenReturn(Optional.empty());
+        when(memberRepository.findByUserId(anyString())).thenReturn(Optional.empty());
 
         Clan created = clanService.createClan(clanRequest);
 
         assertAll("Verify created clan state",
                 () -> assertNotNull(created, "Clan successfull created"),
-                () -> assertEquals(clanName, created.getName(), "Match clan name")
-        );
+                () -> assertEquals(clanName, created.getName(), "Match clan name"));
     }
 
     @Test
@@ -97,16 +107,25 @@ class ClanServiceImplTest {
         when(clanRepository.existsByName(anyString())).thenReturn(false);
         when(clanRepository.save(any(Clan.class))).thenReturn(dummyClan);
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
+        when(memberRepository.findByClanIdAndUserId(anyString(), anyString())).thenReturn(Optional.empty());
+        when(memberRepository.findByUserId(anyString())).thenReturn(Optional.empty());
 
         clanService.createClan(clanRequest);
 
-        verify(clanRepository, times(1)).save(any(Clan.class));
+        assertAll("Verify repository save calls",
+                () -> verify(clanRepository, times(1)).save(any(Clan.class)),
+                () -> verify(memberRepository, times(1)).save(any(ClanMember.class)));
     }
 
     @Test
     void testJoinClan_AlreadyInClan_ShouldThrowException() {
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
+        when(memberRepository.findByClanIdAndUserId(anyString(), anyString())).thenReturn(Optional.empty());
         when(memberRepository.findByUserId(memberId)).thenReturn(Optional.of(new ClanMember()));
+
+        // Mocking the validation failure
+        doThrow(new IllegalStateException(SocialConstants.ALREADY_IN_OTHER_CLAN_MESSAGE))
+                .when(clanValidation).requireNotMemberOfOtherClan(true);
 
         assertThrows(IllegalStateException.class,
                 () -> clanService.joinClan(clanId, memberId, username, "MEMBER"));
@@ -131,10 +150,14 @@ class ClanServiceImplTest {
 
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
         when(memberRepository.findByClanId(clanId)).thenReturn(Arrays.asList(leader, other));
+        when(clanValidation.resolveReplacementLeader(any(), eq(leaderId))).thenReturn(memberId);
 
         clanService.leaveClan(clanId, leaderId);
 
-        assertEquals(memberId, dummyClan.getLeaderUserId(), "Verify member promoted to leader");
+        assertAll("Verify leader succession",
+                () -> assertEquals(memberId, dummyClan.getLeaderUserId(), "Verify member promoted to leader"),
+                () -> verify(clanRepository).save(dummyClan),
+                () -> verify(memberRepository).deleteByClanIdAndUserId(clanId, leaderId));
     }
 
     @Test
@@ -147,7 +170,9 @@ class ClanServiceImplTest {
 
         clanService.leaveClan(clanId, leaderId);
 
-        verify(clanRepository).delete(dummyClan);
+        assertAll("Verify clan deletion",
+                () -> verify(memberRepository).deleteByClanIdAndUserId(clanId, leaderId),
+                () -> verify(clanRepository).delete(dummyClan));
     }
 
     @Test
@@ -164,9 +189,8 @@ class ClanServiceImplTest {
 
         assertAll("Verify response for leader",
                 () -> assertTrue(result.isPresent(), "Verify clan exists"),
-                () -> assertEquals("KETUA", result.get().role(), "Verify role is leader"),
-                () -> assertEquals(2, result.get().members().size(), "Verify member amount")
-        );
+                () -> assertEquals(SocialConstants.MY_CLAN_ROLE_LEADER, result.get().role(), "Verify role is leader"),
+                () -> assertEquals(2, result.get().members().size(), "Verify member amount"));
     }
 
     @Test
@@ -183,9 +207,8 @@ class ClanServiceImplTest {
 
         assertAll("Verify response for member",
                 () -> assertTrue(result.isPresent(), "Verify clan exists"),
-                () -> assertEquals("ANGGOTA", result.get().role(), "Verify role is member"),
-                () -> assertEquals(1, result.get().members().size(), "Verify member amount")
-        );
+                () -> assertEquals(SocialConstants.MY_CLAN_ROLE_MEMBER, result.get().role(), "Verify role is member"),
+                () -> assertEquals(1, result.get().members().size(), "Verify member amount"));
     }
 
     @Test
