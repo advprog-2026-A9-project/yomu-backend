@@ -33,4 +33,18 @@ public class Clan {
 
     @Column(nullable = false)
     private int score = 0;
+
+    public void promote() {
+        if (this.tier != Tier.DIAMOND) {
+            this.tier = this.tier.promote();
+        }
+        this.score = 0;
+    }
+
+    public void demote() {
+        if (this.tier != Tier.BRONZE) {
+            this.tier = this.tier.demote();
+        }
+        this.score = 0;
+    }
 }

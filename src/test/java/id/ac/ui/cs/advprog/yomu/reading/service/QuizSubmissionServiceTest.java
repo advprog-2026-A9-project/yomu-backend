@@ -11,6 +11,8 @@ import id.ac.ui.cs.advprog.yomu.reading.model.ReadingText;
 import id.ac.ui.cs.advprog.yomu.reading.repository.QuizQuestionRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingCompletionRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingTextRepository;
+import id.ac.ui.cs.advprog.yomu.reading.event.QuizCompletedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,6 +54,9 @@ class QuizSubmissionServiceTest {
 
     @InjectMocks
     private QuizSubmissionServiceImpl quizSubmissionService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @Test
     void submitQuiz_WhenAnswersAreValid_ShouldReturnScoreAndSaveCompletion() {
@@ -111,6 +120,8 @@ class QuizSubmissionServiceTest {
         assertEquals(1, response.correctAnswers(), "Jumlah jawaban benar harus 1");
         assertEquals(50, response.score(), "Skor harus 50");
         assertEquals(true, response.completed(), "Completion harus true");
+
+        verify(eventPublisher, times(1)).publishEvent(any(QuizCompletedEvent.class));
     }
 
     @Test

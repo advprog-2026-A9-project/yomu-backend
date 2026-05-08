@@ -55,8 +55,7 @@ class ClanMemberRepositoryTest {
         assertAll("Verify findByClanId results and interaction",
                 () -> assertEquals(1, result.size(), "Find One Clan"),
                 () -> assertEquals(userId456, result.get(0).getUserId(), "Verify member Id"),
-                () -> verify(clanMemberRepository, times(1)).findByClanId(clanId123)
-        );
+                () -> verify(clanMemberRepository, times(1)).findByClanId(clanId123));
     }
 
     @Test
@@ -69,8 +68,7 @@ class ClanMemberRepositoryTest {
         assertAll("Verify findByClanIdAndUserId results",
                 () -> assertTrue(result.isPresent(), "Verify member exists"),
                 () -> assertEquals(clanId1, result.get().getClanId(), "Verify Clan Match"),
-                () -> verify(clanMemberRepository, times(1)).findByClanIdAndUserId(clanId1, userId1)
-        );
+                () -> verify(clanMemberRepository, times(1)).findByClanIdAndUserId(clanId1, userId1));
     }
 
     @Test
