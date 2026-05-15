@@ -4,11 +4,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonEndResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonStatusResponse;
 import id.ac.ui.cs.advprog.yomu.social.service.SeasonService;
 import lombok.RequiredArgsConstructor;
 
@@ -29,13 +31,17 @@ public class SeasonController {
         return "PELAJAR";
     }
 
+    @GetMapping("/current")
+    public ResponseEntity<SeasonStatusResponse> currentSeason() {
+        return ResponseEntity.ok(seasonService.getCurrentSeason());
+    }
+
     @PostMapping("/end")
-    public ResponseEntity<String> endSeason() {
+    public ResponseEntity<SeasonEndResponse> endSeason() {
         String role = getRoleFromSecurityContext();
         if (!"ADMIN".equals(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        seasonService.endSeason();
-        return ResponseEntity.ok(SocialConstants.END_SEASON_SUCCESS_MESSAGE);
+        return ResponseEntity.ok(seasonService.endSeason());
     }
 }
