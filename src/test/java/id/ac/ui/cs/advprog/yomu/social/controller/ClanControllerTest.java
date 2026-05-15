@@ -22,7 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,7 +65,6 @@ class ClanControllerTest {
     private String authHeader;
     private String token;
 
-    private String createSuccessMsg;
     private String deleteSuccessMsg;
     private List<ClanMember> members;
     private final String BASE_API = "/api/clans";
@@ -89,7 +87,6 @@ class ClanControllerTest {
         token = "dummy-token";
         authHeader = "Bearer " + token;
 
-        createSuccessMsg = "Clan berhasil dibuat";
         deleteSuccessMsg = "Clan berhasil dihapus";
         ClanMember dummyMember = new ClanMember();
         dummyMember.setUserId(leaderId);
@@ -126,8 +123,9 @@ class ClanControllerTest {
 
     @Test
     void testGetAllClans() throws Exception {
-        List<Clan> clans = Arrays.asList(dummyClan);
-        when(clanService.findAll()).thenReturn(clans);
+        id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse summary = new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
+                clanId, clanName, "Description", leaderId, "Bronze", 0, 1);
+        when(clanService.findAll()).thenReturn(List.of(summary));
 
         mockMvc.perform(get(BASE_API))
                 .andExpect(status().isOk())
@@ -145,6 +143,9 @@ class ClanControllerTest {
                 dummyClan.getDescription(),
                 dummyClan.getLeaderUserId(),
                 "KETUA",
+                "Bronze",
+                100,
+                1,
                 members);
 
         when(jwtUtil.extractUserId(token)).thenReturn(leaderId);

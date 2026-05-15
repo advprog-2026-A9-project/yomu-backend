@@ -55,18 +55,18 @@ public class ClanController {
         // Sanitize input to prevent XSS
         request.setName(inputSanitizer.sanitize(request.getName()));
         request.setDescription(inputSanitizer.sanitize(request.getDescription()));
-        
+
         // Validate input length and content
         clanValidation.requireValidClanName(request.getName());
         clanValidation.requireValidClanDescription(request.getDescription());
-        
+
         request.setUserId(getUserIdFromHeader(authHeader));
         request.setUsername(getUsernameFromHeader(authHeader));
         return ResponseEntity.ok(clanService.createClan(request));
     }
 
     @GetMapping
-    public ResponseEntity<List<Clan>> getAll() {
+    public ResponseEntity<List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse>> getAll() {
         return ResponseEntity.ok(clanService.findAll());
     }
 
@@ -83,6 +83,12 @@ public class ClanController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse> getClanDetail(
+            @PathVariable("id") String id) {
+        return ResponseEntity.ok(clanService.getClanDetail(id));
+    }
+
     @PostMapping("/{id}/edit")
     public ResponseEntity<Clan> edit(@PathVariable("id") String id,
             @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader,
@@ -90,11 +96,11 @@ public class ClanController {
         // Sanitize input to prevent XSS
         request.setName(inputSanitizer.sanitize(request.getName()));
         request.setDescription(inputSanitizer.sanitize(request.getDescription()));
-        
+
         // Validate input length and content
         clanValidation.requireValidClanName(request.getName());
         clanValidation.requireValidClanDescription(request.getDescription());
-        
+
         String userId = getUserIdFromHeader(authHeader);
         return ResponseEntity.ok(clanService.editClan(id, userId, request));
     }
@@ -105,5 +111,14 @@ public class ClanController {
         String userId = getUserIdFromHeader(authHeader);
         clanService.deleteClan(id, userId);
         return ResponseEntity.ok(SocialConstants.DELETE_SUCCESS_MESSAGE);
+    }
+
+    @PostMapping("/{id}/kick/{memberId}")
+    public ResponseEntity<String> kick(@PathVariable("id") String id,
+            @PathVariable("memberId") String memberId,
+            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
+        String userId = getUserIdFromHeader(authHeader);
+        clanService.kickMember(id, userId, memberId);
+        return ResponseEntity.ok(SocialConstants.KICK_SUCCESS_MESSAGE);
     }
 }
