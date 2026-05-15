@@ -78,6 +78,12 @@ public class ClanValidation {
         }
     }
 
+    public void requireClanNotFull(final long currentMemberCount) {
+        if (currentMemberCount >= SocialConstants.MAX_CLAN_SIZE) {
+            throw new IllegalStateException(SocialConstants.CLAN_FULL_MESSAGE);
+        }
+    }
+
     public String resolveReplacementLeader(final List<ClanMember> allMembers, final String currentLeaderId) {
         return allMembers.stream()
                 .map(ClanMember::getUserId)

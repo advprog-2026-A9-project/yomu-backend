@@ -14,6 +14,7 @@ public final class SocialConstants {
     public static final String ALREADY_IN_OTHER_CLAN_MESSAGE = "Kamu sudah tergabung di Clan lain";
     public static final String ONLY_LEADER_CAN_DELETE_MESSAGE = "Hanya Leader yang bisa menghapus Clan";
     public static final String FAILED_FIND_REPLACEMENT_LEADER_MESSAGE = "Gagal menemukan pengganti Leader";
+    public static final String CLAN_FULL_MESSAGE = "Clan sudah penuh (maksimum 50 anggota)";
 
     public static final String ROLE_LEADER = "LEADER";
     public static final String ROLE_MEMBER = "MEMBER";
@@ -26,9 +27,11 @@ public final class SocialConstants {
     public static final String JOIN_SUCCESS_MESSAGE = "Berhasil bergabung";
     public static final String LEAVE_SUCCESS_MESSAGE = "Berhasil keluar dari clan";
     public static final String DELETE_SUCCESS_MESSAGE = "Clan berhasil dihapus";
+    public static final String KICK_SUCCESS_MESSAGE = "Berhasil mengeluarkan anggota";
     public static final String END_SEASON_SUCCESS_MESSAGE = "Season ended. Clans promoted/demoted.";
 
     public static final int MIN_CLAN_SIZE = 1;
+    public static final int MAX_CLAN_SIZE = 50;
     public static final double SEASON_CHANGE_RATIO = 0.2d;
     public static final int LEADERBOARD_LIMIT = 100;
 
