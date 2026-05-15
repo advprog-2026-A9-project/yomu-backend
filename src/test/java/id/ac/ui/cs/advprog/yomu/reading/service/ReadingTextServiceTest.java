@@ -6,6 +6,7 @@ import id.ac.ui.cs.advprog.yomu.reading.model.Category;
 import id.ac.ui.cs.advprog.yomu.reading.model.ReadingText;
 import id.ac.ui.cs.advprog.yomu.reading.repository.CategoryRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingTextRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,30 +16,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
 class ReadingTextServiceTest {
 
     private static final String TITLE_JAVA = "Belajar Java";
-    private static final String CONTENT_DUMMY = "Isi teks...";
+    private static final String CONTENT_DUMMY = "Isi teks tentang Java...";
     private static final String CATEGORY_EDUKASI = "Edukasi";
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROLE_PELAJAR = "PELAJAR";
-    private static final String TITLE_ONE = "Judul 1";
-    private static final String TITLE_TWO = "Judul 2";
-    private static final String CONTENT_ONE = "Isi 1";
-    private static final String CONTENT_TWO = "Isi 2";
 
     @Mock
     private ReadingTextRepository readingTextRepository;
@@ -49,67 +40,91 @@ class ReadingTextServiceTest {
     @InjectMocks
     private ReadingTextServiceImpl readingTextService;
 
-    @Test
-    void createText_WhenRoleIsAdmin_ShouldReturnSavedText() {
-        final ReadingTextRequest request = new ReadingTextRequest(TITLE_JAVA, CONTENT_DUMMY, 1L);
-        final Category category = new Category(1L, CATEGORY_EDUKASI);
-        final ReadingText savedText = new ReadingText(1L, TITLE_JAVA, CONTENT_DUMMY, category);
+    private ReadingTextRequest validRequest;
+    private Category validCategory;
+    private ReadingText savedText;
 
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+    @BeforeEach
+    void setUp() {
+        // Setup objek standar agar tidak mengulang kode di setiap blok Test
+        validRequest = new ReadingTextRequest(TITLE_JAVA, CONTENT_DUMMY, 1L);
+        validCategory = new Category(1L, CATEGORY_EDUKASI);
+        savedText = new ReadingText(1L, TITLE_JAVA, CONTENT_DUMMY, validCategory);
+    }
+
+    // ==========================================
+    // TEST CREATE TEXT (TDD: Relasi Category)
+    // ==========================================
+
+    @Test
+    void createText_WhenRoleIsAdminAndCategoryExists_ShouldReturnSavedText() {
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(validCategory));
         when(readingTextRepository.save(any(ReadingText.class))).thenReturn(savedText);
 
-        final ReadingTextResponse response = readingTextService.createText(request, ROLE_ADMIN);
+        ReadingTextResponse response = readingTextService.createText(validRequest, ROLE_ADMIN);
 
         assertNotNull(response, "Response tidak boleh null");
         assertEquals(TITLE_JAVA, response.title(), "Title harus sesuai dengan request");
-        assertEquals(CATEGORY_EDUKASI, response.categoryName(), "Kategori harus sesuai dengan request");
+        assertEquals(CATEGORY_EDUKASI, response.categoryName(), "Kategori harus diambil dari Category DB");
+
+        verify(categoryRepository, times(1)).findById(1L);
         verify(readingTextRepository, times(1)).save(any(ReadingText.class));
     }
 
     @Test
-    void createText_WhenRoleIsPelajar_ShouldThrowException() {
-        final ReadingTextRequest request = new ReadingTextRequest(TITLE_JAVA, CONTENT_DUMMY, 1L);
+    void createText_WhenRoleIsAdminButCategoryNotFound_ShouldThrowException() {
+        // Skenario penting: Admin kirim request tapi categoryId-nya ngawur
+        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(
+        Exception exception = assertThrows(
                 RuntimeException.class,
-                () -> readingTextService.createText(request, ROLE_PELAJAR),
-                "Harus melempar RuntimeException jika role bukan ADMIN"
+                () -> readingTextService.createText(validRequest, ROLE_ADMIN),
+                "Harus melempar RuntimeException jika kategori tidak ditemukan"
         );
 
+        assertTrue(exception.getMessage().toLowerCase().contains("category"), "Pesan error harus menyebutkan isu kategory");
         verify(readingTextRepository, never()).save(any(ReadingText.class));
     }
 
     @Test
+    void createText_WhenRoleIsPelajar_ShouldThrowException() {
+        assertThrows(
+                RuntimeException.class,
+                () -> readingTextService.createText(validRequest, ROLE_PELAJAR),
+                "Harus melempar RuntimeException jika role bukan ADMIN"
+        );
+
+        verify(categoryRepository, never()).findById(anyLong());
+        verify(readingTextRepository, never()).save(any(ReadingText.class));
+    }
+
+    // ==========================================
+    // TEST GET ALL & GET BY ID
+    // ==========================================
+
+    @Test
     void getAllTexts_ShouldReturnListOfResponses() {
-        final Category category = new Category(1L, CATEGORY_EDUKASI);
-        final ReadingText text1 = new ReadingText(1L, TITLE_ONE, CONTENT_ONE, category);
-        final ReadingText text2 = new ReadingText(2L, TITLE_TWO, CONTENT_TWO, category);
+        when(readingTextRepository.findAll()).thenReturn(List.of(savedText));
 
-        when(readingTextRepository.findAll()).thenReturn(List.of(text1, text2));
+        List<ReadingTextResponse> responses = readingTextService.getAllTexts();
 
-        final List<ReadingTextResponse> responses = readingTextService.getAllTexts();
-
-        assertNotNull(responses, "Daftar response tidak boleh null");
-        assertEquals(2, responses.size(), "Jumlah item harus 2");
-        assertEquals(TITLE_ONE, responses.get(0).title(), "Judul item pertama harus sesuai");
-        assertEquals(CATEGORY_EDUKASI, responses.get(0).categoryName(), "Kategori item pertama harus sesuai");
+        assertNotNull(responses);
+        assertEquals(1, responses.size());
+        assertEquals(TITLE_JAVA, responses.get(0).title());
+        assertEquals(CATEGORY_EDUKASI, responses.get(0).categoryName());
         verify(readingTextRepository, times(1)).findAll();
     }
 
     @Test
     void getTextById_WhenTextExists_ShouldReturnResponse() {
-        final Category category = new Category(1L, CATEGORY_EDUKASI);
-        final ReadingText text = new ReadingText(1L, TITLE_ONE, CONTENT_ONE, category);
+        when(readingTextRepository.findById(1L)).thenReturn(Optional.of(savedText));
 
-        when(readingTextRepository.findById(1L)).thenReturn(Optional.of(text));
+        ReadingTextResponse response = readingTextService.getTextById(1L);
 
-        final ReadingTextResponse response = readingTextService.getTextById(1L);
-
-        assertNotNull(response, "Response tidak boleh null");
-        assertEquals(1L, response.id(), "ID harus sesuai");
-        assertEquals(TITLE_ONE, response.title(), "Judul harus sesuai");
-        assertEquals(CONTENT_ONE, response.content(), "Konten harus sesuai");
-        assertEquals(CATEGORY_EDUKASI, response.categoryName(), "Kategori harus sesuai");
+        assertNotNull(response);
+        assertEquals(1L, response.id());
+        assertEquals(TITLE_JAVA, response.title());
+        verify(readingTextRepository, times(1)).findById(1L);
     }
 
     @Test
@@ -123,26 +138,40 @@ class ReadingTextServiceTest {
         );
     }
 
+    // ==========================================
+    // TEST DELETE TEXT
+    // ==========================================
+
     @Test
-    void deleteText_WhenRoleIsAdmin_ShouldDeleteSuccessfully() {
-        final Long textId = 1L;
-        when(readingTextRepository.existsById(textId)).thenReturn(true);
+    void deleteText_WhenRoleIsAdminAndTextExists_ShouldDeleteSuccessfully() {
+        when(readingTextRepository.existsById(1L)).thenReturn(true);
 
         assertDoesNotThrow(
-                () -> readingTextService.deleteText(textId, ROLE_ADMIN),
+                () -> readingTextService.deleteText(1L, ROLE_ADMIN),
                 "Tidak boleh melempar exception saat dihapus oleh ADMIN"
         );
 
-        verify(readingTextRepository, times(1)).deleteById(textId);
+        verify(readingTextRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void deleteText_WhenRoleIsAdminButTextDoesNotExist_ShouldThrowException() {
+        when(readingTextRepository.existsById(99L)).thenReturn(false);
+
+        assertThrows(
+                RuntimeException.class,
+                () -> readingTextService.deleteText(99L, ROLE_ADMIN),
+                "Harus melempar exception jika text yang mau dihapus tidak ada"
+        );
+
+        verify(readingTextRepository, never()).deleteById(anyLong());
     }
 
     @Test
     void deleteText_WhenRoleIsPelajar_ShouldThrowException() {
-        final Long textId = 1L;
-
         assertThrows(
                 RuntimeException.class,
-                () -> readingTextService.deleteText(textId, ROLE_PELAJAR),
+                () -> readingTextService.deleteText(1L, ROLE_PELAJAR),
                 "Harus melempar RuntimeException jika role bukan ADMIN saat menghapus"
         );
 
