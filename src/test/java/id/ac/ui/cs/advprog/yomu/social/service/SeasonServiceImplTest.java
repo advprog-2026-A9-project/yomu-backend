@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.social.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,7 +19,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
+import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
+import id.ac.ui.cs.advprog.yomu.social.repository.SeasonStateRepository;
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +32,12 @@ class SeasonServiceImplTest {
 
     @Mock
     private ClanQuizStatsService statsService;
+
+    @Mock
+    private ClanMemberRepository memberRepository;
+
+    @Mock
+    private SeasonStateRepository seasonStateRepository;
 
     @Mock
     private ClanModifierService modifierService;
@@ -56,6 +65,8 @@ class SeasonServiceImplTest {
         for (Tier t : Tier.values()) {
             when(clanRepository.countByTier(t)).thenReturn(0L);
         }
+
+        when(seasonStateRepository.findTopByOrderByIdDesc()).thenReturn(Optional.empty());
     }
 
     @Test

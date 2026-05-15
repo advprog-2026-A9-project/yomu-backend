@@ -124,7 +124,7 @@ class ClanControllerTest {
     @Test
     void testGetAllClans() throws Exception {
         id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse summary = new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
-                clanId, clanName, "Description", leaderId, "Bronze", 0, 1);
+                clanId, clanName, "Description", leaderId, "Bronze", 0, 1, 0L, List.of(), List.of());
         when(clanService.findAll()).thenReturn(List.of(summary));
 
         mockMvc.perform(get(BASE_API))
