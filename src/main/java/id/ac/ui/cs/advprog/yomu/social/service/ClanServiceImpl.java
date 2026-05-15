@@ -60,12 +60,14 @@ public class ClanServiceImpl implements ClanService {
         final String validClanId = Objects.requireNonNull(clanId);
         final String validUserId = Objects.requireNonNull(userId);
 
-        clanValidation.requireClanNameAvailable(clanRepository.existsByName(request.getName()));
-
         Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
         clanValidation.requireLeaderPrivilege(clan, validUserId, "Permission to edit clan information denied");
+
+        clanRepository.findByName(request.getName())
+                .filter(existingClan -> !existingClan.getId().equals(validClanId))
+                .ifPresent(existingClan -> clanValidation.requireClanNameAvailable(true));
 
         clan.setName(request.getName());
         clan.setDescription(request.getDescription());
@@ -85,6 +87,7 @@ public class ClanServiceImpl implements ClanService {
 
         clanValidation.requireNotAlreadyMember(memberRepository.findByClanIdAndUserId(clanId, userId).isPresent());
         clanValidation.requireNotMemberOfOtherClan(memberRepository.findByUserId(userId).isPresent());
+        clanValidation.requireClanNotFull(memberRepository.countByClanId(validClanId));
 
         final ClanMember member = new ClanMember();
         member.setUsername(username);
@@ -102,8 +105,54 @@ public class ClanServiceImpl implements ClanService {
     }
 
     @Override
-    public List<Clan> findAll() {
-        return clanRepository.findAll();
+    public List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse> findAll() {
+        return clanRepository.findAllClanSummaries().stream()
+                .map(row -> new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
+                        row.getClanId(),
+                        row.getClanName(),
+                        row.getDescription(),
+                        row.getLeaderUserId(),
+                        row.getTier().name(),
+                        row.getScore(),
+                        row.getMemberCount()))
+                .toList();
+    }
+
+    @Override
+    public id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse getClanDetail(String clanId) {
+        clanValidation.requireClanId(clanId);
+        final String validClanId = Objects.requireNonNull(clanId);
+        Clan clan = clanRepository.findById(validClanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+
+        List<ClanMember> members = memberRepository.getClanMembersByClanId(validClanId).stream().toList();
+        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanMemberDTO> memberDTOs = members.stream()
+                .map(m -> new id.ac.ui.cs.advprog.yomu.social.dto.ClanMemberDTO(
+                        m.getUserId(), m.getUsername(), m.getRole(), 0, 0, true))
+                .toList();
+
+        double avgAccuracy = 0.0;
+        int rank = (int) clanRepository.findRankByTierAndScore(clan.getTier(), clan.getScore(), clan.getId());
+
+        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO> activeBuffs = new ArrayList<>();
+        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO> debuffs = new ArrayList<>();
+
+        int maxMembers = SocialConstants.MAX_CLAN_SIZE;
+
+        return new id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse(
+                clan.getId(),
+                clan.getName(),
+                clan.getDescription() == null ? "" : clan.getDescription(),
+                clan.getLeaderUserId(),
+                clan.getTier().name(),
+                rank,
+                clan.getScore(),
+                members.size(),
+                maxMembers,
+                avgAccuracy,
+                memberDTOs,
+                activeBuffs,
+                debuffs);
     }
 
     @Override
@@ -180,17 +229,30 @@ public class ClanServiceImpl implements ClanService {
                 : SocialConstants.MY_CLAN_ROLE_MEMBER;
         List<ClanMember> members = memberRepository.getClanMembersByClanId(clan.getId()).stream().toList();
 
+        int rank = (int) clanRepository.findRankByTierAndScore(clan.getTier(), clan.getScore(), clan.getId());
+
         return new MyClanResponse(
                 clan.getId(),
                 clan.getName(),
                 clan.getDescription(),
                 clan.getLeaderUserId(),
                 role,
+                clan.getTier().getDisplayName(),
+                clan.getScore(),
+                rank,
                 members);
     }
 
     @Override
-    public List<LeaderboardResponse> getLeaderboardByTier() {
+    public List<LeaderboardResponse> getLeaderboardByTier(String userId) {
+        final Optional<ClanMember> userMember = userId != null
+                ? memberRepository.findByUserId(userId)
+                : Optional.empty();
+
+        final Optional<Clan> userClan = userMember
+                .map(ClanMember::getClanId)
+                .flatMap(clanRepository::findById);
+
         return Stream.of(Tier.values())
                 .map(tier -> {
                     List<ClanLeaderboardRow> rows = clanRepository.findLeaderboardByTier(
@@ -209,7 +271,20 @@ public class ClanServiceImpl implements ClanService {
                                 Math.toIntExact(row.getMemberCount())));
                     }
 
-                    return new LeaderboardResponse(tier.getDisplayName(), rankedEntries);
+                    LeaderboardEntryResponse userEntry = null;
+                    if (userClan.isPresent() && userClan.get().getTier() == tier) {
+                        Clan uc = userClan.get();
+                        int userRank = (int) clanRepository.findRankByTierAndScore(tier, uc.getScore(), uc.getId());
+                        userEntry = new LeaderboardEntryResponse(
+                                uc.getId(),
+                                uc.getName(),
+                                tier.getDisplayName(),
+                                uc.getScore(),
+                                userRank,
+                                (int) memberRepository.countByClanId(uc.getId()));
+                    }
+
+                    return new LeaderboardResponse(tier.getDisplayName(), rankedEntries, userEntry);
                 })
                 .toList();
     }
@@ -232,4 +307,24 @@ public class ClanServiceImpl implements ClanService {
         clanRepository.save(clan);
     }
 
+    @Override
+    @Transactional
+    public void kickMember(String clanId, String leaderId, String memberId) {
+        clanValidation.requireClanId(clanId);
+        clanValidation.requireUserId(leaderId);
+        clanValidation.requireUserId(memberId);
+
+        final String validClanId = Objects.requireNonNull(clanId);
+
+        Clan clan = clanRepository.findById(validClanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+
+        clanValidation.requireLeaderPrivilege(clan, leaderId, "Hanya Leader yang bisa mengeluarkan anggota");
+
+        if (leaderId.equals(memberId)) {
+            throw new IllegalArgumentException("Leader tidak bisa mengeluarkan diri sendiri");
+        }
+
+        memberRepository.deleteByClanIdAndUserId(clanId, memberId);
+    }
 }

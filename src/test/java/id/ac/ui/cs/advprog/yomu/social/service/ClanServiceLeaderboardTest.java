@@ -2,29 +2,22 @@ package id.ac.ui.cs.advprog.yomu.social.service;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanModifierService;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanQuizStatsService;
 import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyFactory;
 import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
 
@@ -80,7 +73,7 @@ class ClanServiceLeaderboardTest {
     void testGetLeaderboardByTier_ShouldNotReturnNull() {
         when(clanRepository.findLeaderboardByTier(any(Tier.class), any())).thenReturn(List.of());
 
-        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier();
+        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier("user-1");
 
         assertNotNull(leaderboard, "Leaderboard should not be null");
     }
@@ -89,7 +82,7 @@ class ClanServiceLeaderboardTest {
     void testGetLeaderboardByTier_ShouldContainTiers() {
         when(clanRepository.findLeaderboardByTier(any(Tier.class), any())).thenReturn(List.of());
 
-        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier();
+        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier("user-1");
 
         assertFalse(leaderboard.isEmpty(), "Leaderboard should contain at least one tier");
     }

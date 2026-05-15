@@ -44,6 +44,24 @@ public interface ClanRepository extends JpaRepository<Clan, String> {
             """)
     List<ClanLeaderboardRow> findLeaderboardByTier(@Param("tier") Tier tier, Pageable pageable);
 
+    @Query("""
+            SELECT c.id as clanId,
+                   c.name as clanName,
+                   c.description as description,
+                   c.leaderUserId as leaderUserId,
+                   c.tier as tier,
+                   c.score as score,
+                   COUNT(m) as memberCount
+            FROM Clan c
+            LEFT JOIN ClanMember m ON m.clanId = c.id
+            GROUP BY c.id, c.name, c.description, c.leaderUserId, c.tier, c.score
+            ORDER BY c.score DESC, c.id ASC
+            """)
+    List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow> findAllClanSummaries();
+
+    @Query("SELECT COUNT(c) + 1 FROM Clan c WHERE c.tier = :tier AND (c.score > :score OR (c.score = :score AND c.id < :id))")
+    long findRankByTierAndScore(@Param("tier") Tier tier, @Param("score") int score, @Param("id") String id);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Clan c SET c.score = 0")
     int resetAllScores();

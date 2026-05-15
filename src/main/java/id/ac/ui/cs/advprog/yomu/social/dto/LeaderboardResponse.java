@@ -7,5 +7,6 @@ import java.util.List;
  */
 public record LeaderboardResponse(
         String tier,
-        List<LeaderboardEntryResponse> entries
+        List<LeaderboardEntryResponse> entries,
+        LeaderboardEntryResponse userEntry
 ) {}
