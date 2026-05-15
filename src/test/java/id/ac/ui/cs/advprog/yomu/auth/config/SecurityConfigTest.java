@@ -41,9 +41,9 @@ class SecurityConfigTest {
     }
 
     @Test
-    void protectedEndpointShouldReturn3xxWhenNotAuthenticated() throws Exception {
+    void protectedEndpointShouldReturn401WhenNotAuthenticated() throws Exception {
         final var result = mockMvc.perform(get("/api/readings"))
-            .andExpect(status().is3xxRedirection())
+            .andExpect(status().isUnauthorized())
             .andReturn();
         assertNotNull(result, RESPONSE_NOT_NULL);
     }

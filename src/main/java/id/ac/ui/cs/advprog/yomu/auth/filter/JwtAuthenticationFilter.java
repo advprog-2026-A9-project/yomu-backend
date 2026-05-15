@@ -18,7 +18,6 @@ import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnBean(JwtUtil.class)
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
