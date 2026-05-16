@@ -19,7 +19,7 @@ import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats;
 import id.ac.ui.cs.advprog.yomu.social.model.ModifierType;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
-import id.ac.ui.cs.advprog.yomu.social.service.modifier.ModifierEvaluatorRegistry;
+import id.ac.ui.cs.advprog.yomu.social.service.modifier.ModifierEvaluatorRegistryPort;
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
@@ -31,7 +31,7 @@ class ClanModifierServiceImplTest {
     private ClanModifierRepository modifierRepository;
 
     @Mock
-    private ModifierEvaluatorRegistry evaluatorRegistry;
+    private ModifierEvaluatorRegistryPort evaluatorRegistry;
 
     @InjectMocks
     private ClanModifierServiceImpl modifierService;
