@@ -8,7 +8,7 @@ import id.ac.ui.cs.advprog.yomu.social.model.Tier;
  * Factory for retrieving the appropriate scoring strategy based on tier.
  */
 @Component
-public class ScoringStrategyFactory {
+public class ScoringStrategyFactory implements ScoringStrategyResolver {
 
     private final BronzeScoringStrategy bronzeStrategy;
     private final SilverScoringStrategy silverStrategy;
@@ -26,6 +26,7 @@ public class ScoringStrategyFactory {
         this.diamondStrategy = diamondStrategy;
     }
 
+    @Override
     public ScoringStrategy getStrategy(Tier tier) {
         return switch (tier) {
             case BRONZE -> bronzeStrategy;
