@@ -11,21 +11,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanMemberDTO;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
-import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
-import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
+import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
-import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyFactory;
-import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
+import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyResolver;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
+import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -35,14 +39,15 @@ public class ClanServiceImpl implements ClanService {
     private final ClanRepository clanRepository;
     private final ClanMemberRepository memberRepository;
     private final ClanModifierRepository modifierRepository;
-    private final ScoringStrategyFactory scoringStrategyFactory;
+    private final ScoringStrategyResolver scoringStrategyFactory;
     private final ClanModifierService modifierService;
-    private final ClanValidation clanValidation;
+    private final ClanValidator clanValidator;
+    private final SocialMapper socialMapper;
 
     @Override
     @Transactional
     public Clan createClan(final ClanRequest request) {
-        clanValidation.requireClanNameAvailable(clanRepository.existsByName(request.getName()));
+        clanValidator.requireClanNameAvailable(clanRepository.existsByName(request.getName()));
 
         final Clan clan = new Clan();
         clan.setName(request.getName());
@@ -59,19 +64,19 @@ public class ClanServiceImpl implements ClanService {
     @Override
     @Transactional
     public Clan editClan(final String clanId, final String userId, final ClanRequest request) {
-        clanValidation.requireClanId(clanId);
-        clanValidation.requireUserId(userId);
+        clanValidator.requireClanId(clanId);
+        clanValidator.requireUserId(userId);
         final String validClanId = Objects.requireNonNull(clanId);
         final String validUserId = Objects.requireNonNull(userId);
 
         Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        clanValidation.requireLeaderPrivilege(clan, validUserId, "Permission to edit clan information denied");
+        clanValidator.requireLeaderPrivilege(clan, validUserId, "Permission to edit clan information denied");
 
         clanRepository.findByName(request.getName())
                 .filter(existingClan -> !existingClan.getId().equals(validClanId))
-                .ifPresent(existingClan -> clanValidation.requireClanNameAvailable(true));
+                .ifPresent(existingClan -> clanValidator.requireClanNameAvailable(true));
 
         clan.setName(request.getName());
         clan.setDescription(request.getDescription());
@@ -82,16 +87,16 @@ public class ClanServiceImpl implements ClanService {
     @Override
     @Transactional
     public void joinClan(final String clanId, final String userId, final String username, final String role) {
-        clanValidation.requireClanId(clanId);
+        clanValidator.requireClanId(clanId);
         final String validClanId = Objects.requireNonNull(clanId);
         final String validUserId = Objects.requireNonNull(userId);
 
         clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        clanValidation.requireNotAlreadyMember(memberRepository.findByClanIdAndUserId(clanId, userId).isPresent());
-        clanValidation.requireNotMemberOfOtherClan(memberRepository.findByUserId(userId).isPresent());
-        clanValidation.requireClanNotFull(memberRepository.countByClanId(validClanId));
+        clanValidator.requireNotAlreadyMember(memberRepository.findByClanIdAndUserId(clanId, userId).isPresent());
+        clanValidator.requireNotMemberOfOtherClan(memberRepository.findByUserId(userId).isPresent());
+        clanValidator.requireClanNotFull(memberRepository.countByClanId(validClanId));
 
         final ClanMember member = new ClanMember();
         member.setUsername(username);
@@ -103,94 +108,58 @@ public class ClanServiceImpl implements ClanService {
 
     @Override
     public List<ClanMember> getMembersByClanId(final String clanId) {
-        clanValidation.requireClanId(clanId);
+        clanValidator.requireClanId(clanId);
 
         return memberRepository.getClanMembersByClanId(clanId).stream().toList();
     }
 
     @Override
-    public List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse> findAll() {
+    public List<ClanSummaryResponse> findAll() {
         return clanRepository.findAllClanSummaries().stream()
-            .map(row -> {
-                List<ClanModifier> activeModifiers = modifierRepository.findByClanIdAndActiveTrue(row.getClanId());
-                List<ClanModifierDTO> activeBuffs = activeModifiers.stream()
-                    .filter(modifier -> modifier.getMultiplier() >= 1.0d)
-                    .map(this::toModifierDTO)
-                    .toList();
-                List<ClanModifierDTO> debuffs = activeModifiers.stream()
-                    .filter(modifier -> modifier.getMultiplier() < 1.0d)
-                    .map(this::toModifierDTO)
-                    .toList();
+                .map(row -> {
+                    List<ClanModifier> activeModifiers = modifierRepository.findByClanIdAndActiveTrue(row.getClanId());
+                    List<ClanModifierDTO> activeBuffs = activeModifiers.stream()
+                            .filter(modifier -> modifier.getMultiplier() >= 1.0d)
+                            .map(socialMapper::toClanModifierDTO)
+                            .toList();
+                    List<ClanModifierDTO> debuffs = activeModifiers.stream()
+                            .filter(modifier -> modifier.getMultiplier() < 1.0d)
+                            .map(socialMapper::toClanModifierDTO)
+                            .toList();
 
-                int effectiveScore = (int) Math.round(row.getScore() * modifierService.getActiveMultiplier(row.getClanId()));
+                    int effectiveScore = (int) Math
+                            .round(row.getScore() * modifierService.getActiveMultiplier(row.getClanId()));
 
-                return new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
-                row.getClanId(),
-                row.getClanName(),
-                row.getDescription(),
-                row.getLeaderUserId(),
-                row.getTier().name(),
-                row.getScore(),
-                effectiveScore,
-                row.getMemberCount(),
-                activeBuffs,
-                debuffs);
-            })
+                    return socialMapper.toClanSummaryResponse(row, activeBuffs, debuffs, effectiveScore);
+                })
                 .toList();
     }
 
     @Override
-    public id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse getClanDetail(String clanId) {
-        clanValidation.requireClanId(clanId);
+    public ClanDetailResponse getClanDetail(String clanId) {
+        clanValidator.requireClanId(clanId);
         final String validClanId = Objects.requireNonNull(clanId);
         Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
         List<ClanMember> members = memberRepository.getClanMembersByClanId(validClanId).stream().toList();
-        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanMemberDTO> memberDTOs = members.stream()
-                .map(m -> new id.ac.ui.cs.advprog.yomu.social.dto.ClanMemberDTO(
-                        m.getUserId(), m.getUsername(), m.getRole(), 0, 0, true))
+        List<ClanMemberDTO> memberDTOs = members.stream()
+                .map(socialMapper::toClanMemberDTO)
                 .toList();
 
-        double avgAccuracy = 0.0;
         int rank = (int) clanRepository.findRankByTierAndScore(clan.getTier(), clan.getScore(), clan.getId());
 
         List<ClanModifier> activeModifiers = modifierRepository.findByClanIdAndActiveTrue(validClanId);
         List<id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO> activeBuffs = activeModifiers.stream()
-            .filter(modifier -> modifier.getMultiplier() >= 1.0d)
-            .map(this::toModifierDTO)
-            .toList();
+                .filter(modifier -> modifier.getMultiplier() >= 1.0d)
+                .map(socialMapper::toClanModifierDTO)
+                .toList();
         List<id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO> debuffs = activeModifiers.stream()
-            .filter(modifier -> modifier.getMultiplier() < 1.0d)
-            .map(this::toModifierDTO)
-            .toList();
+                .filter(modifier -> modifier.getMultiplier() < 1.0d)
+                .map(socialMapper::toClanModifierDTO)
+                .toList();
 
-        int maxMembers = SocialConstants.MAX_CLAN_SIZE;
-
-        return new id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse(
-                clan.getId(),
-                clan.getName(),
-                clan.getDescription() == null ? "" : clan.getDescription(),
-                clan.getLeaderUserId(),
-                clan.getTier().name(),
-                rank,
-                clan.getScore(),
-                members.size(),
-                maxMembers,
-                avgAccuracy,
-                memberDTOs,
-                activeBuffs,
-                debuffs);
-    }
-
-    private ClanModifierDTO toModifierDTO(ClanModifier modifier) {
-        return new ClanModifierDTO(
-                modifier.getKey(),
-                "x" + String.format("%.2f", modifier.getMultiplier()),
-                modifier.getType().name(),
-                modifier.getEndAt() == null ? "Active" : "Until " + modifier.getEndAt().toString(),
-                modifier.getType().name() + " modifier"
-        );
+        return socialMapper.toClanDetailResponse(clan, rank, members.size(), memberDTOs, activeBuffs, debuffs);
     }
 
     @Override
@@ -203,22 +172,32 @@ public class ClanServiceImpl implements ClanService {
                     }
 
                     return clanRepository.findById(clanId)
-                            .map(clan -> toMyClanResponse(clan, userId));
+                            .map(clan -> {
+                                String role = clan.getLeaderUserId().equals(userId)
+                                        ? SocialConstants.MY_CLAN_ROLE_LEADER
+                                        : SocialConstants.MY_CLAN_ROLE_MEMBER;
+                                List<ClanMember> members = memberRepository.getClanMembersByClanId(clan.getId())
+                                        .stream().toList();
+                                int rank = (int) clanRepository.findRankByTierAndScore(clan.getTier(), clan.getScore(),
+                                        clan.getId());
+
+                                return socialMapper.toMyClanResponse(clan, role, rank, members);
+                            });
                 });
     }
 
     @Override
     @Transactional
     public void deleteClan(final String clanId, final String leaderId) {
-        clanValidation.requireClanId(clanId);
-        clanValidation.requireUserId(leaderId);
+        clanValidator.requireClanId(clanId);
+        clanValidator.requireUserId(leaderId);
         final String validClanId = Objects.requireNonNull(clanId);
         final String validLeaderId = Objects.requireNonNull(leaderId);
 
         final Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        clanValidation.requireLeaderPrivilege(clan, validLeaderId, "You have no permission to delete this clan.");
+        clanValidator.requireLeaderPrivilege(clan, validLeaderId, "You have no permission to delete this clan.");
 
         memberRepository.deleteByClanId(validClanId);
 
@@ -228,8 +207,8 @@ public class ClanServiceImpl implements ClanService {
     @Override
     @Transactional
     public void leaveClan(final String clanId, final String userId) {
-        clanValidation.requireClanId(clanId);
-        clanValidation.requireUserId(userId);
+        clanValidator.requireClanId(clanId);
+        clanValidator.requireUserId(userId);
         final String validClanId = Objects.requireNonNull(clanId);
         final String validUserId = Objects.requireNonNull(userId);
 
@@ -253,32 +232,12 @@ public class ClanServiceImpl implements ClanService {
         }
 
         else {
-            final String newLeaderId = clanValidation.resolveReplacementLeader(allMembers, leaderId);
+            final String newLeaderId = clanValidator.resolveReplacementLeader(allMembers, leaderId);
 
             clan.setLeaderUserId(newLeaderId);
             clanRepository.save(clan);
             memberRepository.deleteByClanIdAndUserId(clan.getId(), leaderId);
         }
-    }
-
-    private MyClanResponse toMyClanResponse(final Clan clan, final String currentUserId) {
-        String role = clan.getLeaderUserId().equals(currentUserId)
-                ? SocialConstants.MY_CLAN_ROLE_LEADER
-                : SocialConstants.MY_CLAN_ROLE_MEMBER;
-        List<ClanMember> members = memberRepository.getClanMembersByClanId(clan.getId()).stream().toList();
-
-        int rank = (int) clanRepository.findRankByTierAndScore(clan.getTier(), clan.getScore(), clan.getId());
-
-        return new MyClanResponse(
-                clan.getId(),
-                clan.getName(),
-                clan.getDescription(),
-                clan.getLeaderUserId(),
-                role,
-                clan.getTier().getDisplayName(),
-                clan.getScore(),
-                rank,
-                members);
     }
 
     @Override
@@ -299,26 +258,14 @@ public class ClanServiceImpl implements ClanService {
 
                     List<LeaderboardEntryResponse> rankedEntries = new ArrayList<>();
                     for (int i = 0; i < rows.size(); i++) {
-                        ClanLeaderboardRow row = rows.get(i);
-                        rankedEntries.add(new LeaderboardEntryResponse(
-                                row.getClanId(),
-                                row.getClanName(),
-                                row.getTier().getDisplayName(),
-                                row.getScore(),
-                                i + 1,
-                                Math.toIntExact(row.getMemberCount())));
+                        rankedEntries.add(socialMapper.toLeaderboardEntryResponse(rows.get(i), i + 1));
                     }
 
                     LeaderboardEntryResponse userEntry = null;
                     if (userClan.isPresent() && userClan.get().getTier() == tier) {
                         Clan uc = userClan.get();
                         int userRank = (int) clanRepository.findRankByTierAndScore(tier, uc.getScore(), uc.getId());
-                        userEntry = new LeaderboardEntryResponse(
-                                uc.getId(),
-                                uc.getName(),
-                                tier.getDisplayName(),
-                                uc.getScore(),
-                                userRank,
+                        userEntry = socialMapper.toLeaderboardEntryResponse(uc, userRank,
                                 (int) memberRepository.countByClanId(uc.getId()));
                     }
 
@@ -330,7 +277,7 @@ public class ClanServiceImpl implements ClanService {
     @Override
     @Transactional
     public void updateClanScore(String clanId, int basePoints) {
-        clanValidation.requireClanId(clanId);
+        clanValidator.requireClanId(clanId);
         final String validClanId = Objects.requireNonNull(clanId);
 
         Clan clan = clanRepository.findById(validClanId)
@@ -348,16 +295,16 @@ public class ClanServiceImpl implements ClanService {
     @Override
     @Transactional
     public void kickMember(String clanId, String leaderId, String memberId) {
-        clanValidation.requireClanId(clanId);
-        clanValidation.requireUserId(leaderId);
-        clanValidation.requireUserId(memberId);
+        clanValidator.requireClanId(clanId);
+        clanValidator.requireUserId(leaderId);
+        clanValidator.requireUserId(memberId);
 
         final String validClanId = Objects.requireNonNull(clanId);
 
         Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        clanValidation.requireLeaderPrivilege(clan, leaderId, "Hanya Leader yang bisa mengeluarkan anggota");
+        clanValidator.requireLeaderPrivilege(clan, leaderId, "Hanya Leader yang bisa mengeluarkan anggota");
 
         if (leaderId.equals(memberId)) {
             throw new IllegalArgumentException("Leader tidak bisa mengeluarkan diri sendiri");
