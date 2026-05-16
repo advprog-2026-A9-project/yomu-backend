@@ -10,7 +10,7 @@ import id.ac.ui.cs.advprog.yomu.gamification.model.DailyMission;
 
 public interface DailyMissionRepository extends JpaRepository<DailyMission, String> {
     Optional<DailyMission> findByNameIgnoreCase(String name);
-
+    boolean existsByName(String name);
     long countByActiveTrue();
 
     List<DailyMission> findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(LocalDate from, LocalDate until);
