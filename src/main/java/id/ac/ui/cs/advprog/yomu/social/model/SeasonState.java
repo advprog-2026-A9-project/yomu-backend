@@ -1,45 +1,42 @@
 package id.ac.ui.cs.advprog.yomu.social.model;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "clan_modifiers")
+@Table(name = "season_state")
 @Getter
 @Setter
-public class ClanModifier {
+@NoArgsConstructor
+public class SeasonState {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String clanId;
-
-    @Column(name = "modifier_key", nullable = false)
-    private String key;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ModifierType type;
-
-    @Column(nullable = false)
-    private double multiplier;
+    private int seasonNumber;
 
     @Column(nullable = false)
     private boolean active = true;
 
-    @Column(nullable = false)
-    private Instant startAt;
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    private Instant endAt;
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 }

@@ -62,6 +62,9 @@ public interface ClanRepository extends JpaRepository<Clan, String> {
     @Query("SELECT COUNT(c) + 1 FROM Clan c WHERE c.tier = :tier AND (c.score > :score OR (c.score = :score AND c.id < :id))")
     long findRankByTierAndScore(@Param("tier") Tier tier, @Param("score") int score, @Param("id") String id);
 
+        @Query("SELECT COUNT(c) FROM Clan c WHERE c.tier = :tier AND c.leaderUserId = :leaderUserId")
+        long countByTierAndLeaderUserId(@Param("tier") Tier tier, @Param("leaderUserId") String leaderUserId);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Clan c SET c.score = 0")
     int resetAllScores();

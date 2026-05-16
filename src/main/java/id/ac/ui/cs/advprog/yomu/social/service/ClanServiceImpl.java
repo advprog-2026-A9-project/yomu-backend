@@ -12,13 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
+import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
 import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyFactory;
@@ -31,6 +34,7 @@ public class ClanServiceImpl implements ClanService {
 
     private final ClanRepository clanRepository;
     private final ClanMemberRepository memberRepository;
+    private final ClanModifierRepository modifierRepository;
     private final ScoringStrategyFactory scoringStrategyFactory;
     private final ClanModifierService modifierService;
     private final ClanValidation clanValidation;
@@ -107,14 +111,31 @@ public class ClanServiceImpl implements ClanService {
     @Override
     public List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse> findAll() {
         return clanRepository.findAllClanSummaries().stream()
-                .map(row -> new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
-                        row.getClanId(),
-                        row.getClanName(),
-                        row.getDescription(),
-                        row.getLeaderUserId(),
-                        row.getTier().name(),
-                        row.getScore(),
-                        row.getMemberCount()))
+            .map(row -> {
+                List<ClanModifier> activeModifiers = modifierRepository.findByClanIdAndActiveTrue(row.getClanId());
+                List<ClanModifierDTO> activeBuffs = activeModifiers.stream()
+                    .filter(modifier -> modifier.getMultiplier() >= 1.0d)
+                    .map(this::toModifierDTO)
+                    .toList();
+                List<ClanModifierDTO> debuffs = activeModifiers.stream()
+                    .filter(modifier -> modifier.getMultiplier() < 1.0d)
+                    .map(this::toModifierDTO)
+                    .toList();
+
+                int effectiveScore = (int) Math.round(row.getScore() * modifierService.getActiveMultiplier(row.getClanId()));
+
+                return new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
+                row.getClanId(),
+                row.getClanName(),
+                row.getDescription(),
+                row.getLeaderUserId(),
+                row.getTier().name(),
+                row.getScore(),
+                effectiveScore,
+                row.getMemberCount(),
+                activeBuffs,
+                debuffs);
+            })
                 .toList();
     }
 
@@ -134,8 +155,15 @@ public class ClanServiceImpl implements ClanService {
         double avgAccuracy = 0.0;
         int rank = (int) clanRepository.findRankByTierAndScore(clan.getTier(), clan.getScore(), clan.getId());
 
-        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO> activeBuffs = new ArrayList<>();
-        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO> debuffs = new ArrayList<>();
+        List<ClanModifier> activeModifiers = modifierRepository.findByClanIdAndActiveTrue(validClanId);
+        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO> activeBuffs = activeModifiers.stream()
+            .filter(modifier -> modifier.getMultiplier() >= 1.0d)
+            .map(this::toModifierDTO)
+            .toList();
+        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO> debuffs = activeModifiers.stream()
+            .filter(modifier -> modifier.getMultiplier() < 1.0d)
+            .map(this::toModifierDTO)
+            .toList();
 
         int maxMembers = SocialConstants.MAX_CLAN_SIZE;
 
@@ -153,6 +181,16 @@ public class ClanServiceImpl implements ClanService {
                 memberDTOs,
                 activeBuffs,
                 debuffs);
+    }
+
+    private ClanModifierDTO toModifierDTO(ClanModifier modifier) {
+        return new ClanModifierDTO(
+                modifier.getKey(),
+                "x" + String.format("%.2f", modifier.getMultiplier()),
+                modifier.getType().name(),
+                modifier.getEndAt() == null ? "Active" : "Until " + modifier.getEndAt().toString(),
+                modifier.getType().name() + " modifier"
+        );
     }
 
     @Override

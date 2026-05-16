@@ -1,5 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.social.dto;
 
+import java.util.List;
+
 public record ClanSummaryResponse(
         String id,
         String name,
@@ -7,5 +9,8 @@ public record ClanSummaryResponse(
         String leaderUserId,
         String tier,
         int score,
-        long memberCount
+        int effectiveScore,
+        long memberCount,
+        List<ClanModifierDTO> activeBuffs,
+        List<ClanModifierDTO> debuffs
 ) {}
