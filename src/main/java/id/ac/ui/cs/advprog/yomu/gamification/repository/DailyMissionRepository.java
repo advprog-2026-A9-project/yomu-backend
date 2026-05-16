@@ -1,5 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.gamification.repository;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,4 +12,6 @@ public interface DailyMissionRepository extends JpaRepository<DailyMission, Stri
     Optional<DailyMission> findByNameIgnoreCase(String name);
 
     long countByActiveTrue();
+
+    List<DailyMission> findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(LocalDate from, LocalDate until);
 }

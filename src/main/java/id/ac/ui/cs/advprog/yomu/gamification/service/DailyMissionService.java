@@ -13,4 +13,8 @@ public interface DailyMissionService {
     void delete(String missionId);
 
     List<DailyMissionResponse> findAll();
+    List<DailyMissionResponse> getTodayMissions();
+    void rotateMissions();
+    void forceRotateMissions();
+    void setTodayMissions(List<String> missionIds);
 }
