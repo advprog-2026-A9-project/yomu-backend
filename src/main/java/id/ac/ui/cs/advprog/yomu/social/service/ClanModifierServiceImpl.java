@@ -10,7 +10,7 @@ import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
-import id.ac.ui.cs.advprog.yomu.social.service.modifier.ModifierEvaluatorRegistry;
+import id.ac.ui.cs.advprog.yomu.social.service.modifier.ModifierEvaluatorRegistryPort;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class ClanModifierServiceImpl implements ClanModifierService {
 
     private final ClanModifierRepository modifierRepository;
-    private final ModifierEvaluatorRegistry evaluatorRegistry;
+    private final ModifierEvaluatorRegistryPort evaluatorRegistry;
 
     @Override
     @Transactional

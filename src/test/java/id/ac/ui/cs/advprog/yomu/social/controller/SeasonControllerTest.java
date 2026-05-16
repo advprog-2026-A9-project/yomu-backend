@@ -22,9 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.dto.SeasonEndResponse;
-import id.ac.ui.cs.advprog.yomu.social.dto.SeasonStatusResponse;
 import id.ac.ui.cs.advprog.yomu.social.service.SeasonService;
 
 @SuppressWarnings("null")

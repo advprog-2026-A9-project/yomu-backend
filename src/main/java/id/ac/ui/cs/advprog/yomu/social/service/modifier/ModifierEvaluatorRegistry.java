@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ModifierEvaluatorRegistry {
+public class ModifierEvaluatorRegistry implements ModifierEvaluatorRegistryPort {
 
     private final List<ModifierEvaluator> evaluators;
 
@@ -31,6 +31,7 @@ public class ModifierEvaluatorRegistry {
         getEvaluator(key).ifPresent(evaluator -> evaluator.evaluate(clanId, stats));
     }
 
+    @Override
     public void evaluateAll(String clanId, id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats stats) {
         for (ModifierEvaluator evaluator : evaluators) {
             evaluator.evaluate(clanId, stats);
