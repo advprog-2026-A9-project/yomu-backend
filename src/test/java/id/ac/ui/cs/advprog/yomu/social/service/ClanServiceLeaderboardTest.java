@@ -18,8 +18,12 @@ import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
-import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyFactory;
-import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
+import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyResolver;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
+import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
+import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.ArgumentMatchers.anyInt;
 
 /**
  * Tests for leaderboard functionality - will fail until Tier and scoring are
@@ -35,7 +39,7 @@ class ClanServiceLeaderboardTest {
     private ClanMemberRepository memberRepository;
 
     @Mock
-    private ScoringStrategyFactory scoringStrategyFactory;
+    private ScoringStrategyResolver scoringStrategyFactory;
 
     @Mock
     private ClanModifierService modifierService;
@@ -44,7 +48,10 @@ class ClanServiceLeaderboardTest {
     private ClanQuizStatsService statsService;
 
     @Mock
-    private ClanValidation clanValidation;
+    private ClanValidator clanValidation;
+
+    @Mock
+    private SocialMapper socialMapper;
 
     @InjectMocks
     private ClanServiceImpl clanService;
@@ -67,6 +74,9 @@ class ClanServiceLeaderboardTest {
         silverClan.setLeaderUserId("user-2");
         silverClan.setTier(Tier.SILVER);
         silverClan.setScore(200);
+
+        lenient().when(socialMapper.toLeaderboardEntryResponse(any(), anyInt())).thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
+        lenient().when(socialMapper.toLeaderboardEntryResponse(any(Clan.class), anyInt(), anyInt())).thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
     }
 
     @Test

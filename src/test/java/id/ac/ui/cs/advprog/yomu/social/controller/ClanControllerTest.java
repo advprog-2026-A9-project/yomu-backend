@@ -34,7 +34,7 @@ import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
-import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
@@ -53,7 +53,7 @@ class ClanControllerTest {
     private InputSanitizer inputSanitizer;
 
     @Mock
-    private ClanValidation clanValidation;
+    private ClanValidator clanValidation;
 
     @InjectMocks
     private ClanController clanController;
