@@ -90,6 +90,13 @@ class QuizQuestionServiceTest {
         when(readingTextRepository.findById(TEXT_ID)).thenReturn(Optional.of(readingText));
         when(quizQuestionRepository.save(any(QuizQuestion.class))).thenReturn(savedQuestion);
 
+        // TAMBAHAN: Kita harus memberitahu Mockito agar tidak me-return null saat opsi disimpan
+        when(quizOptionRepository.save(any(QuizOption.class))).thenAnswer(invocation -> {
+            QuizOption option = invocation.getArgument(0);
+            option.setId(100L); // Berikan ID tiruan agar savedOpt.getId() tidak NullPointerException
+            return option;
+        });
+
         QuizQuestionResponse response = quizQuestionService.createQuestion(TEXT_ID, validRequest, ROLE_ADMIN);
 
         assertNotNull(response, "Response tidak boleh null");

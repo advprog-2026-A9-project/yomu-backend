@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.yomu.reading.service;
 
-import id.ac.ui.cs.advprog.yomu.reading.dto.QuizOptionRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizOptionResponse;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizQuestionRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.QuizQuestionResponse;
@@ -14,12 +13,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class QuizQuestionServiceImpl implements QuizQuestionService {
-
-    private static final String ADMIN_ROLE = "ADMIN";
 
     private final QuizQuestionRepository quizQuestionRepository;
     private final QuizOptionRepository quizOptionRepository;
@@ -27,72 +25,49 @@ public class QuizQuestionServiceImpl implements QuizQuestionService {
 
     @Override
     public QuizQuestionResponse createQuestion(Long readingTextId, QuizQuestionRequest request, String role) {
-        validateAdmin(role);
+        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
+            throw new RuntimeException("Pelajar tidak boleh membuat question");
+        }
 
-        final ReadingText readingText = readingTextRepository.findById(readingTextId)
-                .orElseThrow(() -> new RuntimeException("Teks bacaan tidak ditemukan"));
+        ReadingText text = readingTextRepository.findById(readingTextId)
+                .orElseThrow(() -> new RuntimeException("Harus melempar exception jika text bacaan induk tidak ditemukan"));
 
-        final QuizQuestion question = new QuizQuestion();
+        QuizQuestion question = new QuizQuestion();
         question.setQuestionText(request.questionText());
-        question.setReadingText(readingText);
+        question.setReadingText(text);
 
-        final QuizQuestion savedQuestion = quizQuestionRepository.save(question);
+        QuizQuestion savedQuestion = quizQuestionRepository.save(question);
 
-        final List<QuizOption> savedOptions = request.options().stream()
-                .map(optionRequest -> saveOption(savedQuestion, optionRequest))
-                .toList();
+        List<QuizOptionResponse> optionResponses = request.options().stream().map(optReq -> {
+            QuizOption option = new QuizOption();
+            option.setOptionText(optReq.optionText());
+            option.setCorrect(optReq.isCorrect());
+            option.setQuizQuestion(savedQuestion);
+            QuizOption savedOpt = quizOptionRepository.save(option);
+            return new QuizOptionResponse(savedOpt.getId(), savedOpt.getOptionText());
+        }).collect(Collectors.toList());
 
-        savedQuestion.setOptions(savedOptions);
-
-        return toResponse(savedQuestion);
+        return new QuizQuestionResponse(savedQuestion.getId(), savedQuestion.getQuestionText(), optionResponses);
     }
 
     @Override
     public List<QuizQuestionResponse> getQuestionsByReadingId(Long readingTextId) {
-        return quizQuestionRepository.findByReadingTextId(readingTextId).stream()
-                .map(this::toResponse)
-                .toList();
+        return quizQuestionRepository.findByReadingTextId(readingTextId).stream().map(q -> {
+            List<QuizOptionResponse> opts = q.getOptions().stream()
+                    .map(o -> new QuizOptionResponse(o.getId(), o.getOptionText()))
+                    .collect(Collectors.toList());
+            return new QuizQuestionResponse(q.getId(), q.getQuestionText(), opts);
+        }).collect(Collectors.toList());
     }
 
     @Override
     public void deleteQuestion(Long questionId, String role) {
-        validateAdmin(role);
-
+        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
+            throw new RuntimeException("Pelajar tidak memiliki akses untuk menghapus soal");
+        }
         if (!quizQuestionRepository.existsById(questionId)) {
-            throw new RuntimeException("Pertanyaan kuis tidak ditemukan");
+            throw new RuntimeException("Harus melempar exception jika pertanyaan yang ingin dihapus tidak ada");
         }
-
         quizQuestionRepository.deleteById(questionId);
-    }
-
-    private void validateAdmin(String role) {
-        if (!ADMIN_ROLE.equalsIgnoreCase(role)) {
-            throw new RuntimeException("Hanya Admin yang dapat melakukan aksi ini.");
-        }
-    }
-
-    private QuizOption saveOption(QuizQuestion question, QuizOptionRequest request) {
-        final QuizOption option = new QuizOption();
-        option.setOptionText(request.optionText());
-        option.setCorrect(request.isCorrect());
-        option.setQuizQuestion(question);
-
-        final QuizOption savedOption = quizOptionRepository.save(option);
-        return savedOption != null ? savedOption : option;
-    }
-
-    private QuizQuestionResponse toResponse(QuizQuestion question) {
-        final List<QuizOptionResponse> options = question.getOptions().stream()
-                .map(option -> new QuizOptionResponse(
-                        option.getId(),
-                        option.getOptionText()
-                ))
-                .toList();
-
-        return new QuizQuestionResponse(
-                question.getId(),
-                question.getQuestionText(),
-                options
-        );
     }
 }
