@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,77 +26,56 @@ public class QuizSubmissionServiceImpl implements QuizSubmissionService {
     private final ReadingTextRepository readingTextRepository;
     private final QuizQuestionRepository quizQuestionRepository;
     private final ReadingCompletionRepository readingCompletionRepository;
-
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public QuizSubmissionResponse submitQuiz(Long readingTextId, String userId, QuizSubmissionRequest request) {
-        if (readingCompletionRepository.existsByUserIdAndReadingTextId(userId, readingTextId)) {
-            throw new RuntimeException("Kuis untuk bacaan ini sudah diselesaikan");
+        if (hasCompletedQuiz(readingTextId, userId)) {
+            throw new RuntimeException("User yang sudah selesai tidak boleh submit lagi");
         }
 
-        final ReadingText readingText = readingTextRepository.findById(readingTextId)
-                .orElseThrow(() -> new RuntimeException("Teks bacaan tidak ditemukan"));
+        ReadingText text = readingTextRepository.findById(readingTextId)
+                .orElseThrow(() -> new RuntimeException("Harus exception jika reading text tidak ada"));
 
-        final List<QuizQuestion> questions = quizQuestionRepository.findByReadingTextId(readingTextId);
+        List<QuizQuestion> questions = quizQuestionRepository.findByReadingTextId(readingTextId);
+        int totalQuestions = questions.size();
+        int correctAnswers = 0;
 
-        if (questions.isEmpty()) {
-            throw new RuntimeException("Belum ada pertanyaan kuis untuk bacaan ini");
-        }
-
-        final Map<Long, Long> answersByQuestionId = request.answers().stream()
+        Map<Long, Long> correctOptionMap = questions.stream()
                 .collect(Collectors.toMap(
-                        QuizAnswerRequest::questionId,
-                        QuizAnswerRequest::selectedOptionId
+                        QuizQuestion::getId,
+                        q -> q.getOptions().stream()
+                                .filter(QuizOption::isCorrect)
+                                .findFirst()
+                                .map(QuizOption::getId)
+                                .orElse(-1L)
                 ));
 
-        int correctAnswers = 0;
-        final int totalQuestions = questions.size();
-
-        for (final QuizQuestion question : questions) {
-            final Long selectedOptionId = answersByQuestionId.get(question.getId());
-            if (selectedOptionId != null && isCorrectAnswer(question, selectedOptionId)) {
+        for (QuizAnswerRequest ans : request.answers()) {
+            Long correctOptionId = correctOptionMap.get(ans.questionId());
+            if (correctOptionId != null && correctOptionId.equals(ans.selectedOptionId())) {
                 correctAnswers++;
             }
         }
 
-        final int score = (correctAnswers * 100) / totalQuestions;
+        int score = totalQuestions > 0 ? (correctAnswers * 100) / totalQuestions : 0;
 
-        final ReadingCompletion completion = new ReadingCompletion();
+        ReadingCompletion completion = new ReadingCompletion();
         completion.setUserId(userId);
-        completion.setReadingText(readingText);
+        completion.setReadingText(text);
         completion.setScore(score);
         completion.setCorrectAnswers(correctAnswers);
         completion.setTotalQuestions(totalQuestions);
 
         readingCompletionRepository.save(completion);
 
-        final QuizCompletedEvent event = new QuizCompletedEvent(
-                userId,
-                readingTextId,
-                score, // Pastikan nama variabel ini sesuai dengan milikmu
-                correctAnswers, // Pastikan nama variabel ini sesuai dengan milikmu
-                totalQuestions // Pastikan nama variabel ini sesuai dengan milikmu
-        );
-        eventPublisher.publishEvent(event);
-        return new QuizSubmissionResponse(
-                totalQuestions,
-                correctAnswers,
-                score,
-                true
-        );
+        eventPublisher.publishEvent(new QuizCompletedEvent(userId, readingTextId, score, correctAnswers, totalQuestions));
+
+        return new QuizSubmissionResponse(totalQuestions, correctAnswers, score, true);
     }
 
     @Override
     public boolean hasCompletedQuiz(Long readingTextId, String userId) {
         return readingCompletionRepository.existsByUserIdAndReadingTextId(userId, readingTextId);
-    }
-
-    private boolean isCorrectAnswer(QuizQuestion question, Long selectedOptionId) {
-        final Map<Long, QuizOption> optionById = question.getOptions().stream()
-                .collect(Collectors.toMap(QuizOption::getId, Function.identity()));
-
-        final QuizOption selectedOption = optionById.get(selectedOptionId);
-        return selectedOption != null && selectedOption.isCorrect();
     }
 }
