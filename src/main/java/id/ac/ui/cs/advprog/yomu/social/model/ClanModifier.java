@@ -25,7 +25,7 @@ public class ClanModifier {
     @Column(nullable = false)
     private String clanId;
 
-    @Column(nullable = false)
+    @Column(name = "modifier_key", nullable = false)
     private String key;
 
     @Enumerated(EnumType.STRING)

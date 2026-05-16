@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,7 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -46,6 +46,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
 
+                        // Public clan read access for dashboard/discover pages
+                        .requestMatchers(HttpMethod.GET, "/api/clans", "/api/clans/*", "/api/clans/leaderboard", "/api/clans/leaderboard/**").permitAll()
+                        .requestMatchers("/api/clans/me").authenticated()
+
                         // Gamification Admin Access
                         .requestMatchers("/api/gamification/admin/**").hasRole(ROLE_ADMIN)
                         .requestMatchers("/api/gamification/progress/**").authenticated()
@@ -58,7 +62,10 @@ public class SecurityConfig {
                         // Protected endpoints (harus autentikasi)
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/api/readings/**").authenticated()
-                        .requestMatchers("/api/clans/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/clans").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/clans/*/edit").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/clans/*/delete").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/clans/*/kick/**").authenticated()
                         .requestMatchers("/api/discussion/**").authenticated()
                         .anyRequest().authenticated())
                 .headers(headers -> headers
