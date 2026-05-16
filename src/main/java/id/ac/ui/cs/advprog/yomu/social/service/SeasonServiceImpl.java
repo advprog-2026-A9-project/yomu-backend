@@ -1,7 +1,9 @@
 package id.ac.ui.cs.advprog.yomu.social.service;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,6 +45,7 @@ public class SeasonServiceImpl implements SeasonService {
     @Transactional
     public SeasonEndResponse endSeason() {
         int currentSeasonNumber = getCurrentSeason().seasonNumber();
+        Map<Tier, List<Clan>> clansByTier = snapshotClansByTier();
         List<Clan> toSave = new ArrayList<>();
         List<SeasonClanSummary> promotedClans = new ArrayList<>();
         List<SeasonClanSummary> relegatedClans = new ArrayList<>();
@@ -50,7 +53,8 @@ public class SeasonServiceImpl implements SeasonService {
         List<SeasonTierSummary> tierSummaries = new ArrayList<>();
 
         for (Tier tier : Tier.values()) {
-            long totalClans = clanRepository.countByTier(tier);
+            List<Clan> clans = clansByTier.getOrDefault(tier, List.of());
+            long totalClans = clans.size();
             if (totalClans <= 0) {
                 continue;
             }
@@ -59,12 +63,12 @@ public class SeasonServiceImpl implements SeasonService {
             int promoteCount = Math.max(1, changeCount);
             int demoteCount = Math.max(1, changeCount);
 
-            List<Clan> topClans = clanRepository.findTopClansByTier(
-                    tier,
-                    PageRequest.of(0, promoteCount));
-            List<Clan> bottomClans = clanRepository.findBottomClansByTier(
-                    tier,
-                    PageRequest.of(0, demoteCount));
+            List<Clan> topClans = clans.stream()
+                .limit(promoteCount)
+                .toList();
+            List<Clan> bottomClans = clans.stream()
+                .skip(Math.max(0, totalClans - demoteCount))
+                .toList();
 
             List<SeasonClanSummary> topSummaries = topClans.stream().map(this::toSummary).toList();
             List<SeasonClanSummary> bottomSummaries = bottomClans.stream().map(this::toSummary).toList();
@@ -96,10 +100,14 @@ public class SeasonServiceImpl implements SeasonService {
                 .filter(summary -> topClanIds.stream().noneMatch(summary.clanId()::equals))
                 .toList());
 
-            for (Clan clan : clanRepository.findTopClansByTier(tier, PageRequest.of(0, Math.toIntExact(totalClans)))) {
-                if (!topClanIds.contains(clan.getId()) && bottomClans.stream().noneMatch(bottom -> bottom.getId().equals(clan.getId()))) {
-                    unchangedClans.add(toSummary(clan));
+            for (Clan clan : clans) {
+                if (topClanIds.contains(clan.getId())) {
+                    continue;
                 }
+                if (bottomClans.stream().anyMatch(bottom -> bottom.getId().equals(clan.getId()))) {
+                    continue;
+                }
+                unchangedClans.add(toSummary(clan));
             }
         }
 
@@ -135,5 +143,23 @@ public class SeasonServiceImpl implements SeasonService {
             clan.getScore(),
             memberRepository.countByClanId(clan.getId())
         );
+    }
+
+    private Map<Tier, List<Clan>> snapshotClansByTier() {
+        Map<Tier, List<Clan>> clansByTier = new EnumMap<>(Tier.class);
+
+        for (Tier tier : Tier.values()) {
+            long totalClans = clanRepository.countByTier(tier);
+            if (totalClans <= 0) {
+                continue;
+            }
+
+            List<Clan> clans = clanRepository.findTopClansByTier(
+                tier,
+                PageRequest.of(0, Math.toIntExact(totalClans)));
+            clansByTier.put(tier, clans);
+        }
+
+        return clansByTier;
     }
 }
