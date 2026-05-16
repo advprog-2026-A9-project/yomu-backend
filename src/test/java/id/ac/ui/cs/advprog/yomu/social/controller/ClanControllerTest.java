@@ -1,6 +1,32 @@
 package id.ac.ui.cs.advprog.yomu.social.controller;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.common.util.InputSanitizer;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
@@ -9,27 +35,6 @@ import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
 import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
@@ -124,7 +129,7 @@ class ClanControllerTest {
     @Test
     void testGetAllClans() throws Exception {
         id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse summary = new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
-                clanId, clanName, "Description", leaderId, "Bronze", 0, 1);
+                clanId, clanName, "Description", leaderId, "Bronze", 0, 1, 0L, List.of(), List.of());
         when(clanService.findAll()).thenReturn(List.of(summary));
 
         mockMvc.perform(get(BASE_API))
@@ -168,7 +173,7 @@ class ClanControllerTest {
 
         mockMvc.perform(get("/api/clans/me")
                 .header(AUTHORIZATION_HEADER, authHeader))
-                .andExpect(status().isNotFound());
+                .andExpect(status().is(200));
 
         verify(clanService, times(1)).getMyClanByUserId(memberId);
     }

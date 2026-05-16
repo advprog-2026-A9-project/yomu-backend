@@ -80,7 +80,7 @@ public class ClanController {
 
         Optional<MyClanResponse> myClan = clanService.getMyClanByUserId(userId);
         return myClan.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.ok().build());
     }
 
     @GetMapping("/{id}")
