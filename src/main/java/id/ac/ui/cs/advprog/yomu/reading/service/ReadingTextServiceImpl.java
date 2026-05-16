@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,64 +21,45 @@ public class ReadingTextServiceImpl implements ReadingTextService {
 
     @Override
     public ReadingTextResponse createText(ReadingTextRequest request, String role) {
-        if (!"ADMIN".equalsIgnoreCase(role)) {
-            throw new RuntimeException("Hanya Admin yang dapat melakukan aksi ini.");
+        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
+            throw new RuntimeException("Hanya ADMIN yang dapat membuat bacaan");
         }
 
+        // Ini yang akan membuat test 'CategoryNotFound' menjadi Hijau
         Category category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new RuntimeException("Kategori tidak ditemukan"));
+                .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        ReadingText text = ReadingText.builder()
-                .title(request.title())
-                .content(request.content())
-                .category(category)
-                .build();
+        ReadingText readingText = new ReadingText();
+        readingText.setTitle(request.title());
+        readingText.setContent(request.content());
+        readingText.setCategory(category);
 
-        ReadingText savedText = readingTextRepository.save(text);
-
-        return new ReadingTextResponse(
-                savedText.getId(),
-                savedText.getTitle(),
-                savedText.getContent(),
-                category.getName()
-        );
+        ReadingText saved = readingTextRepository.save(readingText);
+        return new ReadingTextResponse(saved.getId(), saved.getTitle(), saved.getContent(), saved.getCategory().getName());
     }
 
     @Override
     public List<ReadingTextResponse> getAllTexts() {
         return readingTextRepository.findAll().stream()
-                .map(text -> new ReadingTextResponse(
-                        text.getId(),
-                        text.getTitle(),
-                        text.getContent(),
-                        text.getCategory().getName()
-                ))
-                .toList();
-    }
-
-    @Override
-    public void deleteText(Long id, String role) {
-        if (!"ADMIN".equalsIgnoreCase(role)) {
-            throw new RuntimeException("Hanya Admin yang dapat melakukan aksi ini.");
-        }
-
-        if (!readingTextRepository.existsById(id)) {
-            throw new RuntimeException("Teks bacaan tidak ditemukan.");
-        }
-
-        readingTextRepository.deleteById(id);
+                .map(t -> new ReadingTextResponse(t.getId(), t.getTitle(), t.getContent(), t.getCategory().getName()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public ReadingTextResponse getTextById(Long id) {
-        final ReadingText text = readingTextRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Teks bacaan tidak ditemukan."));
+        ReadingText text = readingTextRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reading text not found"));
+        return new ReadingTextResponse(text.getId(), text.getTitle(), text.getContent(), text.getCategory().getName());
+    }
 
-        return new ReadingTextResponse(
-                text.getId(),
-                text.getTitle(),
-                text.getContent(),
-                text.getCategory().getName()
-        );
+    @Override
+    public void deleteText(Long id, String role) {
+        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
+            throw new RuntimeException("Hanya ADMIN yang dapat menghapus bacaan");
+        }
+        if (!readingTextRepository.existsById(id)) {
+            throw new RuntimeException("Reading text not found");
+        }
+        readingTextRepository.deleteById(id);
     }
 }
