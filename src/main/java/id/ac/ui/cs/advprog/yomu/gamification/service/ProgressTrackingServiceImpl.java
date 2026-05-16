@@ -54,19 +54,18 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
         String safeUserId = Objects.requireNonNull(request.getUserId());
 
         Achievement achievement = achievementRepository.findById(safeMasterId)
-            .orElseThrow(() -> new GamificationException(
-                "Achievement not found",
-                "NOT_FOUND"
-            ));
+                .orElseThrow(() -> new GamificationException(
+                        "Achievement not found",
+                        "NOT_FOUND"));
 
         UserAchievementProgress progress = userAchievementProgressRepository
-            .findByUserIdAndAchievement(safeUserId, achievement)
-            .orElseGet(() -> {
-                UserAchievementProgress created = new UserAchievementProgress();
-                created.setUserId(safeUserId);
-                created.setAchievement(achievement);
-                return created;
-            });
+                .findByUserIdAndAchievement(safeUserId, achievement)
+                .orElseGet(() -> {
+                    UserAchievementProgress created = new UserAchievementProgress();
+                    created.setUserId(safeUserId);
+                    created.setAchievement(achievement);
+                    return created;
+                });
 
         progress.setProgressValue(request.getProgressValue());
 
@@ -89,23 +88,22 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
         String safeUserId = Objects.requireNonNull(request.getUserId());
 
         DailyMission mission = dailyMissionRepository.findById(safeMasterId)
-            .orElseThrow(() -> new GamificationException(
-                "Daily mission not found",
-                "NOT_FOUND"
-            ));
+                .orElseThrow(() -> new GamificationException(
+                        "Daily mission not found",
+                        "NOT_FOUND"));
 
         LocalDate today = LocalDate.now();
         boolean completedThisCall = false;
 
         UserDailyMissionProgress progress = userDailyMissionProgressRepository
-            .findByUserIdAndDailyMissionAndProgressDate(safeUserId, mission, today)
-            .orElseGet(() -> {
-                UserDailyMissionProgress created = new UserDailyMissionProgress();
-                created.setUserId(safeUserId);
-                created.setDailyMission(mission);
-                created.setProgressDate(today);
-                return created;
-            });
+                .findByUserIdAndDailyMissionAndProgressDate(safeUserId, mission, today)
+                .orElseGet(() -> {
+                    UserDailyMissionProgress created = new UserDailyMissionProgress();
+                    created.setUserId(safeUserId);
+                    created.setDailyMission(mission);
+                    created.setProgressDate(today);
+                    return created;
+                });
 
         boolean wasCompleted = progress.isCompleted();
         progress.setProgressValue(request.getProgressValue());
@@ -122,13 +120,25 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<AchievementProgressResponse> getAchievementProgressByUserId(String userId) {
         validator.validateUserId(userId);
 
-        return userAchievementProgressRepository.findByUserId(userId).stream()
-            .map(mapper::toAchievementProgressResponse)
-            .toList();
+        List<Achievement> activeAchievements = achievementRepository.findByActiveTrue();
+
+        return activeAchievements.stream().map(achievement -> {
+            UserAchievementProgress progress = userAchievementProgressRepository
+                    .findByUserIdAndAchievement(userId, achievement)
+                    .orElseGet(() -> {
+                        UserAchievementProgress empty = new UserAchievementProgress();
+                        empty.setUserId(userId);
+                        empty.setAchievement(achievement);
+                        empty.setProgressValue(0);
+                        empty.setUnlocked(false);
+                        return empty;
+                    });
+            return mapper.toAchievementProgressResponse(progress);
+        }).toList();
     }
 
     @Override
@@ -138,8 +148,8 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
 
         LocalDate today = LocalDate.now();
         return userDailyMissionProgressRepository.findByUserIdAndProgressDate(userId, today).stream()
-            .map(mapper::toDailyMissionProgressResponse)
-            .toList();
+                .map(mapper::toDailyMissionProgressResponse)
+                .toList();
     }
 
     @Override
@@ -149,19 +159,19 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
         LocalDate today = LocalDate.now();
 
         List<DailyMission> activeMissions = dailyMissionRepository
-            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
+                .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
 
         return activeMissions.stream().map(mission -> {
             UserDailyMissionProgress progress = userDailyMissionProgressRepository
-                .findByUserIdAndDailyMissionAndProgressDate(userId, mission, today)
-                .orElseGet(() -> {
-                    UserDailyMissionProgress empty = new UserDailyMissionProgress();
-                    empty.setUserId(userId);
-                    empty.setDailyMission(mission);
-                    empty.setProgressDate(today);
-                    empty.setProgressValue(0);
-                    return empty;
-                });
+                    .findByUserIdAndDailyMissionAndProgressDate(userId, mission, today)
+                    .orElseGet(() -> {
+                        UserDailyMissionProgress empty = new UserDailyMissionProgress();
+                        empty.setUserId(userId);
+                        empty.setDailyMission(mission);
+                        empty.setProgressDate(today);
+                        empty.setProgressValue(0);
+                        return empty;
+                    });
             return mapper.toDailyMissionProgressResponse(progress);
         }).toList();
     }
@@ -175,7 +185,7 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
 
         // 1. Update Daily Missions
         List<DailyMission> activeMissions = dailyMissionRepository
-            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
+                .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
 
         for (DailyMission mission : activeMissions) {
             boolean shouldUpdate = false;
@@ -193,14 +203,14 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
 
             if (shouldUpdate) {
                 UserDailyMissionProgress progress = userDailyMissionProgressRepository
-                    .findByUserIdAndDailyMissionAndProgressDate(userId, mission, today)
-                    .orElseGet(() -> {
-                        UserDailyMissionProgress created = new UserDailyMissionProgress();
-                        created.setUserId(userId);
-                        created.setDailyMission(mission);
-                        created.setProgressDate(today);
-                        return created;
-                    });
+                        .findByUserIdAndDailyMissionAndProgressDate(userId, mission, today)
+                        .orElseGet(() -> {
+                            UserDailyMissionProgress created = new UserDailyMissionProgress();
+                            created.setUserId(userId);
+                            created.setDailyMission(mission);
+                            created.setProgressDate(today);
+                            return created;
+                        });
 
                 if (!progress.isCompleted()) {
                     progress.setProgressValue(progress.getProgressValue() + increment);
@@ -216,8 +226,8 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
 
         // 2. Update Achievements
         List<Achievement> achievements = achievementRepository.findAll().stream()
-            .filter(Achievement::isActive)
-            .toList();
+                .filter(Achievement::isActive)
+                .toList();
 
         for (Achievement achievement : achievements) {
             boolean shouldUpdate = false;
@@ -235,13 +245,13 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
 
             if (shouldUpdate) {
                 UserAchievementProgress progress = userAchievementProgressRepository
-                    .findByUserIdAndAchievement(userId, achievement)
-                    .orElseGet(() -> {
-                        UserAchievementProgress created = new UserAchievementProgress();
-                        created.setUserId(userId);
-                        created.setAchievement(achievement);
-                        return created;
-                    });
+                        .findByUserIdAndAchievement(userId, achievement)
+                        .orElseGet(() -> {
+                            UserAchievementProgress created = new UserAchievementProgress();
+                            created.setUserId(userId);
+                            created.setAchievement(achievement);
+                            return created;
+                        });
 
                 if (!progress.isUnlocked()) {
                     progress.setProgressValue(progress.getProgressValue() + increment);
@@ -263,27 +273,28 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
 
     private boolean isCountBasedAchievement(String milestoneType) {
         return ACHIEVEMENT_TYPE_READINGS_COMPLETED.equals(milestoneType)
-            || ACHIEVEMENT_TYPE_QUIZZES_PASSED.equals(milestoneType);
+                || ACHIEVEMENT_TYPE_QUIZZES_PASSED.equals(milestoneType);
     }
 
-    private void publishAllDailyMissionsCompletedEventIfNeeded(String userId, LocalDate progressDate, boolean completedThisCall) {
+    private void publishAllDailyMissionsCompletedEventIfNeeded(String userId, LocalDate progressDate,
+            boolean completedThisCall) {
         if (!completedThisCall) {
             return;
         }
 
         List<DailyMission> activeMissions = dailyMissionRepository
-            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(progressDate, progressDate);
+                .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(progressDate, progressDate);
 
         if (!activeMissions.isEmpty() && areAllActiveDailyMissionsCompleted(userId, progressDate, activeMissions)) {
             allDailyMissionsCompletedEventPublisher.publish(userId, progressDate);
         }
     }
 
-    private boolean areAllActiveDailyMissionsCompleted(String userId, LocalDate progressDate, List<DailyMission> activeMissions) {
+    private boolean areAllActiveDailyMissionsCompleted(String userId, LocalDate progressDate,
+            List<DailyMission> activeMissions) {
         return activeMissions.stream().allMatch(mission -> userDailyMissionProgressRepository
-            .findByUserIdAndDailyMissionAndProgressDate(userId, mission, progressDate)
-            .map(UserDailyMissionProgress::isCompleted)
-            .orElse(false));
+                .findByUserIdAndDailyMissionAndProgressDate(userId, mission, progressDate)
+                .map(UserDailyMissionProgress::isCompleted)
+                .orElse(false));
     }
 }
-
