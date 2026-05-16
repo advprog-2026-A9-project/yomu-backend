@@ -5,6 +5,9 @@ public record AchievementProgressResponse(
     String achievementName,
     String userId,
     int progressValue,
-    boolean unlocked
+    boolean unlocked,
+    String milestone,
+    String milestoneType,
+    int milestoneThreshold
 ) {
 }

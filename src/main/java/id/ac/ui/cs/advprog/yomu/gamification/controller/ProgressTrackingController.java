@@ -42,4 +42,9 @@ public class ProgressTrackingController {
     public List<DailyMissionProgressResponse> getTodayDailyMissionProgress(@RequestParam String userId) {
         return progressTrackingService.getTodayDailyMissionProgressByUserId(userId);
     }
+
+    @GetMapping("/daily-missions/today")
+    public List<DailyMissionProgressResponse> getTodayDailyMissionDashboard(@RequestParam String userId) {
+        return progressTrackingService.getTodayDailyMissionDashboard(userId);
+    }
 }

@@ -53,7 +53,10 @@ public class GamificationMapperImpl implements GamificationMapper {
             progress.getAchievement().getName(),
             progress.getUserId(),
             progress.getProgressValue(),
-            progress.isUnlocked()
+            progress.isUnlocked(),
+            progress.getAchievement().getMilestone(),
+            progress.getAchievement().getMilestoneType(),
+            progress.getAchievement().getMilestoneThreshold()
         );
     }
 
@@ -65,7 +68,11 @@ public class GamificationMapperImpl implements GamificationMapper {
             progress.getUserId(),
             progress.getProgressDate(),
             progress.getProgressValue(),
-            progress.isCompleted()
+            progress.isCompleted(),
+            progress.getDailyMission().getMilestone(),
+            progress.getDailyMission().getTargetCount(),
+            progress.getDailyMission().getRewardDescription(),
+            progress.getDailyMission().getMissionType()
         );
     }
 }
