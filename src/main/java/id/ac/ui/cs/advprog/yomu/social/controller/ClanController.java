@@ -20,7 +20,7 @@ import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
-import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -31,7 +31,7 @@ public class ClanController {
     private final ClanService clanService;
     private final JwtUtil jwtUtil;
     private final InputSanitizer inputSanitizer;
-    private final ClanValidation clanValidation;
+    private final ClanValidator clanValidator;
 
     private String getUserIdFromHeader(String authHeader) {
         if (authHeader != null && authHeader.startsWith(SocialConstants.BEARER_PREFIX)) {
@@ -57,8 +57,8 @@ public class ClanController {
         request.setDescription(inputSanitizer.sanitize(request.getDescription()));
 
         // Validate input length and content
-        clanValidation.requireValidClanName(request.getName());
-        clanValidation.requireValidClanDescription(request.getDescription());
+        clanValidator.requireValidClanName(request.getName());
+        clanValidator.requireValidClanDescription(request.getDescription());
 
         request.setUserId(getUserIdFromHeader(authHeader));
         request.setUsername(getUsernameFromHeader(authHeader));
@@ -98,8 +98,8 @@ public class ClanController {
         request.setDescription(inputSanitizer.sanitize(request.getDescription()));
 
         // Validate input length and content
-        clanValidation.requireValidClanName(request.getName());
-        clanValidation.requireValidClanDescription(request.getDescription());
+        clanValidator.requireValidClanName(request.getName());
+        clanValidator.requireValidClanDescription(request.getDescription());
 
         String userId = getUserIdFromHeader(authHeader);
         return ResponseEntity.ok(clanService.editClan(id, userId, request));
