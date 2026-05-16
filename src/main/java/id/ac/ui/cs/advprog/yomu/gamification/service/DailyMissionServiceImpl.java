@@ -1,8 +1,10 @@
 package id.ac.ui.cs.advprog.yomu.gamification.service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,5 +113,89 @@ public class DailyMissionServiceImpl implements DailyMissionService {
             .stream()
             .map(mapper::toDailyMissionResponse)
             .toList();
+    }
+
+    @Override
+    @Transactional
+    public List<DailyMissionResponse> getTodayMissions() {
+        rotateMissions();
+        LocalDate today = LocalDate.now();
+        return dailyMissionRepository
+            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today)
+            .stream()
+            .map(mapper::toDailyMissionResponse)
+            .toList();
+    }
+
+    @Override
+    @Transactional
+    public void rotateMissions() {
+        LocalDate today = LocalDate.now();
+        List<DailyMission> existing = dailyMissionRepository
+            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
+
+        if (!existing.isEmpty()) {
+            return;
+        }
+
+        List<DailyMission> pool = dailyMissionRepository.findAll().stream()
+            .filter(DailyMission::isActive)
+            .collect(Collectors.toList());
+
+        if (pool.isEmpty()) {
+            return;
+        }
+
+        Collections.shuffle(pool);
+        List<DailyMission> selected = pool.stream().limit(3).toList();
+
+        for (DailyMission mission : selected) {
+            mission.setActiveFrom(today);
+            mission.setActiveUntil(today);
+            dailyMissionRepository.save(mission);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void forceRotateMissions() {
+        LocalDate today = LocalDate.now();
+        List<DailyMission> existing = dailyMissionRepository
+            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
+
+        for (DailyMission m : existing) {
+            m.setActiveUntil(today.minusDays(1));
+            dailyMissionRepository.save(m);
+        }
+
+        rotateMissions();
+    }
+
+    @Override
+    @Transactional
+    public void setTodayMissions(List<String> missionIds) {
+        if (missionIds == null || missionIds.size() != 3) {
+            throw new GamificationException("Exactly 3 daily missions must be selected", "INVALID_REQUEST");
+        }
+
+        LocalDate today = LocalDate.now();
+
+        // Deactivate current missions for today
+        List<DailyMission> existing = dailyMissionRepository
+            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
+        for (DailyMission m : existing) {
+            m.setActiveUntil(today.minusDays(1));
+            dailyMissionRepository.save(m);
+        }
+
+        // Activate new selected missions
+        for (String id : missionIds) {
+            validator.validateMasterId(id);
+            DailyMission mission = dailyMissionRepository.findById(Objects.requireNonNull(id))
+                .orElseThrow(() -> new GamificationException("Daily mission not found: " + id, "NOT_FOUND"));
+            mission.setActiveFrom(today);
+            mission.setActiveUntil(today);
+            dailyMissionRepository.save(mission);
+        }
     }
 }

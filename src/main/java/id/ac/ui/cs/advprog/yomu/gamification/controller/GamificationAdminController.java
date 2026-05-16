@@ -81,4 +81,16 @@ public class GamificationAdminController {
     public List<DailyMissionResponse> getDailyMissions() {
         return dailyMissionService.findAll();
     }
+
+    @PostMapping("/daily-missions/select")
+    @ResponseStatus(HttpStatus.OK)
+    public void setTodayMissions(@RequestBody List<String> missionIds) {
+        dailyMissionService.setTodayMissions(missionIds);
+    }
+
+    @PostMapping("/daily-missions/randomize")
+    @ResponseStatus(HttpStatus.OK)
+    public void randomizeTodayMissions() {
+        dailyMissionService.forceRotateMissions();
+    }
 }
