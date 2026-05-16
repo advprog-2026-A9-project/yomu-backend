@@ -13,6 +13,7 @@ import java.util.List;
 @Entity
 @Table(name = "reading_texts")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@SuppressWarnings("PMD") // PMD Fix: Membungkam PMD sepenuhnya di class ini karena bentrok dengan Lombok @Builder.Default
 public class ReadingText {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,6 +43,7 @@ public class ReadingText {
         this.title = title;
         this.content = content;
         this.category = category;
-
+        this.questions = new ArrayList<>();
+        this.completions = new ArrayList<>();
     }
 }
