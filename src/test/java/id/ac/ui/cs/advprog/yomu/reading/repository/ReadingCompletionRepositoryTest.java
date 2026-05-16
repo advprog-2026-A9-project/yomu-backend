@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts") // PMD Fix: Mengizinkan lebih dari 1 assert dalam 1 test
 class ReadingCompletionRepositoryTest {
 
     @Autowired
@@ -44,7 +45,8 @@ class ReadingCompletionRepositoryTest {
         boolean exists = completionRepository.existsByUserIdAndReadingTextId("user-123", text.getId());
         boolean notExists = completionRepository.existsByUserIdAndReadingTextId("user-999", text.getId());
 
-        assertTrue(exists);
-        assertFalse(notExists);
+        // PMD Fix: Menambahkan pesan pada semua assert
+        assertTrue(exists, "Reading completion seharusnya ditemukan untuk user yang sudah menyelesaikan");
+        assertFalse(notExists, "Reading completion tidak boleh ditemukan untuk user yang belum mengerjakan");
     }
 }

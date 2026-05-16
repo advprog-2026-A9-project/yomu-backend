@@ -46,6 +46,6 @@ class QuizQuestionRepositoryTest {
         // Test custom method kita
         List<QuizQuestion> questions = quizQuestionRepository.findByReadingTextId(text.getId());
 
-        assertEquals(2, questions.size());
+        assertEquals(2, questions.size(), "Hidup Jo..");
     }
 }

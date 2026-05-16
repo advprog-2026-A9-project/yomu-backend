@@ -33,6 +33,9 @@ class QuizQuestionServiceTest {
     private static final Long TEXT_ID = 1L;
     private static final Long QUESTION_ID = 10L;
 
+    // PMD Fix: Menggunakan konstan untuk String yang berulang
+    private static final String QUESTION_TEXT_OOP = "Apa kepanjangan OOP?";
+
     @Mock
     private QuizQuestionRepository quizQuestionRepository;
 
@@ -58,12 +61,12 @@ class QuizQuestionServiceTest {
         // Setup Request dari Frontend
         QuizOptionRequest optionRequest1 = new QuizOptionRequest("Object Oriented Programming", true);
         QuizOptionRequest optionRequest2 = new QuizOptionRequest("Open Operational Protocol", false);
-        validRequest = new QuizQuestionRequest("Apa kepanjangan OOP?", List.of(optionRequest1, optionRequest2));
+        validRequest = new QuizQuestionRequest(QUESTION_TEXT_OOP, List.of(optionRequest1, optionRequest2));
 
         // Setup Hasil Save ke Database
         savedQuestion = new QuizQuestion();
         savedQuestion.setId(QUESTION_ID);
-        savedQuestion.setQuestionText("Apa kepanjangan OOP?");
+        savedQuestion.setQuestionText(QUESTION_TEXT_OOP);
         savedQuestion.setReadingText(readingText);
 
         QuizOption savedOption1 = new QuizOption();
@@ -101,7 +104,7 @@ class QuizQuestionServiceTest {
 
         assertNotNull(response, "Response tidak boleh null");
         assertEquals(QUESTION_ID, response.id(), "ID question harus sesuai");
-        assertEquals("Apa kepanjangan OOP?", response.questionText(), "Question text harus sesuai");
+        assertEquals(QUESTION_TEXT_OOP, response.questionText(), "Question text harus sesuai");
         assertEquals(2, response.options().size(), "Jumlah option harus 2");
 
         verify(readingTextRepository, times(1)).findById(TEXT_ID);
@@ -145,10 +148,11 @@ class QuizQuestionServiceTest {
 
         List<QuizQuestionResponse> responses = quizQuestionService.getQuestionsByReadingId(TEXT_ID);
 
-        assertNotNull(responses);
-        assertEquals(1, responses.size());
-        assertEquals("Apa kepanjangan OOP?", responses.get(0).questionText());
-        assertEquals(2, responses.get(0).options().size());
+        // PMD Fix: Menambahkan parameter String message pada asserts
+        assertNotNull(responses, "Daftar respons soal tidak boleh null");
+        assertEquals(1, responses.size(), "Ukuran daftar soal harus 1");
+        assertEquals(QUESTION_TEXT_OOP, responses.get(0).questionText(), "Teks soal harus cocok dengan DB");
+        assertEquals(2, responses.get(0).options().size(), "Jumlah opsi jawaban harus 2");
         verify(quizQuestionRepository, times(1)).findByReadingTextId(TEXT_ID);
     }
 
@@ -160,8 +164,10 @@ class QuizQuestionServiceTest {
     void deleteQuestion_WhenRoleIsAdminAndQuestionExists_ShouldDeleteQuestion() {
         when(quizQuestionRepository.existsById(QUESTION_ID)).thenReturn(true);
 
+        // PMD Fix: Menambahkan parameter String message pada assertDoesNotThrow
         assertDoesNotThrow(
-                () -> quizQuestionService.deleteQuestion(QUESTION_ID, ROLE_ADMIN)
+                () -> quizQuestionService.deleteQuestion(QUESTION_ID, ROLE_ADMIN),
+                "Operasi penghapusan oleh ADMIN tidak boleh melempar exception"
         );
 
         verify(quizQuestionRepository, times(1)).deleteById(QUESTION_ID);

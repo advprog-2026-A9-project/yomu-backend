@@ -42,7 +42,6 @@ public class ReadingText {
         this.title = title;
         this.content = content;
         this.category = category;
-        this.questions = new ArrayList<>();
-        this.completions = new ArrayList<>();
+
     }
 }
