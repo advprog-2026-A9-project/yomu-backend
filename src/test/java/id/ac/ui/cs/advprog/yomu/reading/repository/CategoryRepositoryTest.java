@@ -10,6 +10,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts") // PMD Fix: Mengizinkan lebih dari 1 assert
 class CategoryRepositoryTest {
 
     @Autowired
@@ -21,10 +22,12 @@ class CategoryRepositoryTest {
         category.setName("Sejarah");
 
         Category savedCategory = categoryRepository.save(category);
-        assertNotNull(savedCategory.getId());
+        // PMD Fix: Menambahkan pesan penjelasan pada assert
+        assertNotNull(savedCategory.getId(), "ID kategori yang baru disimpan tidak boleh null");
 
         Optional<Category> found = categoryRepository.findById(savedCategory.getId());
-        assertTrue(found.isPresent());
-        assertEquals("Sejarah", found.get().getName());
+        // PMD Fix: Menambahkan pesan penjelasan pada assert
+        assertTrue(found.isPresent(), "Kategori seharusnya dapat ditemukan di database");
+        assertEquals("Sejarah", found.get().getName(), "Nama kategori yang ditemukan harus sesuai");
     }
 }

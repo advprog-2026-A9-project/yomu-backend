@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,7 +83,8 @@ class ReadingTextServiceTest {
                 "Harus melempar RuntimeException jika kategori tidak ditemukan"
         );
 
-        assertTrue(exception.getMessage().toLowerCase().contains("category"), "Pesan error harus menyebutkan isu kategory");
+        // PMD Fix: Menambahkan Locale.ROOT pada toLowerCase()
+        assertTrue(exception.getMessage().toLowerCase(Locale.ROOT).contains("category"), "Pesan error harus menyebutkan isu kategory");
         verify(readingTextRepository, never()).save(any(ReadingText.class));
     }
 
@@ -108,10 +110,11 @@ class ReadingTextServiceTest {
 
         List<ReadingTextResponse> responses = readingTextService.getAllTexts();
 
-        assertNotNull(responses);
-        assertEquals(1, responses.size());
-        assertEquals(TITLE_JAVA, responses.get(0).title());
-        assertEquals(CATEGORY_EDUKASI, responses.get(0).categoryName());
+        // PMD Fix: Menambahkan parameter String message di semua asserts
+        assertNotNull(responses, "Daftar respons tidak boleh null");
+        assertEquals(1, responses.size(), "Ukuran daftar respons harus 1");
+        assertEquals(TITLE_JAVA, responses.get(0).title(), "Judul respons pertama harus sama");
+        assertEquals(CATEGORY_EDUKASI, responses.get(0).categoryName(), "Kategori respons pertama harus sama");
         verify(readingTextRepository, times(1)).findAll();
     }
 
@@ -121,9 +124,10 @@ class ReadingTextServiceTest {
 
         ReadingTextResponse response = readingTextService.getTextById(1L);
 
-        assertNotNull(response);
-        assertEquals(1L, response.id());
-        assertEquals(TITLE_JAVA, response.title());
+        // PMD Fix: Menambahkan parameter String message di semua asserts
+        assertNotNull(response, "Respons tidak boleh null jika text ditemukan");
+        assertEquals(1L, response.id(), "ID respons harus sama dengan ID yang diminta");
+        assertEquals(TITLE_JAVA, response.title(), "Judul respons harus sama dengan judul DB");
         verify(readingTextRepository, times(1)).findById(1L);
     }
 

@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts") // PMD Fix: Mengizinkan lebih dari 1 assert
 class QuizOptionRepositoryTest {
 
     @Autowired
@@ -44,7 +45,8 @@ class QuizOptionRepositoryTest {
 
         QuizOption savedOption = quizOptionRepository.save(option);
 
-        assertNotNull(savedOption.getId());
-        assertTrue(savedOption.isCorrect());
+        // PMD Fix: Menambahkan pesan pada setiap assert
+        assertNotNull(savedOption.getId(), "ID opsi kuis yang disimpan tidak boleh null");
+        assertTrue(savedOption.isCorrect(), "Opsi kuis harus tersimpan dengan status kebenaran yang sesuai");
     }
 }

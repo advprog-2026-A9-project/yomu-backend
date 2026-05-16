@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts") // PMD Fix: Mengizinkan lebih dari 1 assert
 class ReadingTextRepositoryTest {
 
     @Autowired
@@ -32,8 +33,9 @@ class ReadingTextRepositoryTest {
 
         ReadingText savedText = readingTextRepository.save(text);
 
-        assertNotNull(savedText.getId());
-        assertEquals("Fisika Quantum", savedText.getTitle());
-        assertEquals("Sains", savedText.getCategory().getName());
+        // PMD Fix: Menambahkan pesan penjelasan pada semua assert
+        assertNotNull(savedText.getId(), "ID teks bacaan yang disimpan tidak boleh null");
+        assertEquals("Fisika Quantum", savedText.getTitle(), "Judul teks bacaan harus sesuai dengan yang di-set");
+        assertEquals("Sains", savedText.getCategory().getName(), "Nama kategori teks bacaan harus sesuai");
     }
 }
