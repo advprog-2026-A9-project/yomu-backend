@@ -53,6 +53,7 @@ public class SecurityConfig {
                         // Gamification Admin Access
                         .requestMatchers("/api/gamification/admin/**").hasRole(ROLE_ADMIN)
                         .requestMatchers("/api/gamification/progress/**").authenticated()
+                        .requestMatchers("/api/gamification/showcase/**").authenticated()
 
                         // Role-based access untuk reading
                         .requestMatchers(HttpMethod.POST, "/api/reading-texts/**").hasRole(ROLE_ADMIN)
