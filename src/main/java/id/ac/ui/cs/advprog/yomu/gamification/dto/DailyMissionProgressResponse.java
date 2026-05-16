@@ -6,8 +6,12 @@ public record DailyMissionProgressResponse(
     String dailyMissionId,
     String dailyMissionName,
     String userId,
-    LocalDate progressDate,
+    java.time.LocalDate progressDate,
     int progressValue,
-    boolean completed
+    boolean completed,
+    String milestone,
+    int targetCount,
+    String rewardDescription,
+    String missionType
 ) {
 }
