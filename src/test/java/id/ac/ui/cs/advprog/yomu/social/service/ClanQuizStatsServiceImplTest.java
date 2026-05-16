@@ -47,6 +47,7 @@ class ClanQuizStatsServiceImplTest {
                 () -> verify(statsRepository).save(existing));
     }
 
+    @SuppressWarnings("null")
     @Test
     void recordQuizResult_WhenNoStats_ShouldCreateNewEntry() {
         when(statsRepository.findById("clan-2")).thenReturn(Optional.empty());

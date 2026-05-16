@@ -31,7 +31,9 @@ import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
-import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
+import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
+import static org.mockito.Mockito.lenient;
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +46,10 @@ class ClanServiceImplTest {
     private ClanMemberRepository memberRepository;
 
     @Mock
-    private ClanValidation clanValidation;
+    private ClanValidator clanValidation;
+
+    @Mock
+    private SocialMapper socialMapper;
 
     @InjectMocks
     private ClanServiceImpl clanService;
@@ -85,6 +90,15 @@ class ClanServiceImplTest {
         ClanMember m2 = new ClanMember();
         m2.setUserId(memberId);
         dummyMemberList = Arrays.asList(m1, m2);
+
+        lenient().when(socialMapper.toMyClanResponse(any(), anyString(), any(Integer.class), any()))
+                .thenAnswer(invocation -> {
+                    Clan c = invocation.getArgument(0);
+                    String role = invocation.getArgument(1);
+                    int rank = invocation.getArgument(2);
+                    List<ClanMember> members = invocation.getArgument(3);
+                    return new MyClanResponse(c.getId(), c.getName(), c.getDescription(), c.getLeaderUserId(), role, "Bronze", 0, rank, members);
+                });
     }
 
     @Test
