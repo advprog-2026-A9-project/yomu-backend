@@ -1,0 +1,25 @@
+package id.ac.ui.cs.advprog.yomu.social.event;
+
+import org.springframework.context.ApplicationEvent;
+
+public class UserLeaveClanEvent extends ApplicationEvent {
+
+    private static final long serialVersionUID = 1L;
+
+    private final String userId;
+    private final String clanId;
+
+    public UserLeaveClanEvent(Object source, String userId, String clanId) {
+        super(source);
+        this.userId = userId;
+        this.clanId = clanId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getClanId() {
+        return clanId;
+    }
+}
