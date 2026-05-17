@@ -22,8 +22,7 @@ public class ReadingTextServiceImpl implements ReadingTextService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ReadingTextResponse createText(ReadingTextRequest request, String role) {
-        // Otomatis dicek oleh Spring Security, blok manual dihapus
+    public ReadingTextResponse createText(ReadingTextRequest request) {
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
@@ -52,8 +51,7 @@ public class ReadingTextServiceImpl implements ReadingTextService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteText(Long id, String role) {
-        // Otomatis dicek oleh Spring Security
+    public void deleteText(Long id) {
         if (!readingTextRepository.existsById(id)) {
             throw new RuntimeException("Reading text not found");
         }

@@ -69,7 +69,6 @@ public class QuizSubmissionServiceImpl implements QuizSubmissionService {
 
         readingCompletionRepository.save(completion);
 
-        // Broadcasting event ke modul Achievement/Social
         eventPublisher.publishEvent(new QuizCompletedEvent(userId, readingTextId, score, correctAnswers, totalQuestions));
 
         return new QuizSubmissionResponse(totalQuestions, correctAnswers, score, true);

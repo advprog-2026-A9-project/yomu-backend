@@ -20,8 +20,6 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
 class CategoryServiceTest {
 
-    private static final String ROLE_ADMIN = "ADMIN";
-    private static final String ROLE_PELAJAR = "PELAJAR";
     private static final String CAT_NAME = "Teknologi";
 
     @Mock
@@ -47,7 +45,6 @@ class CategoryServiceTest {
 
         List<Category> result = categoryService.getAllCategories();
 
-        // PMD Fix: Tambahkan pesan pada setiap assert
         assertNotNull(result, "Daftar kategori tidak boleh null");
         assertEquals(1, result.size(), "Jumlah kategori harus 1");
         assertEquals(CAT_NAME, result.get(0).getName(), "Nama kategori harus sesuai");
@@ -59,26 +56,16 @@ class CategoryServiceTest {
     // ==========================================
 
     @Test
-    void createCategory_WhenRoleIsAdmin_ShouldSave() {
+    void createCategory_ShouldSave() {
         when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
-        Category result = categoryService.createCategory(CAT_NAME, ROLE_ADMIN);
+        Category result = categoryService.createCategory(CAT_NAME);
 
-        // PMD Fix: Tambahkan pesan pada setiap assert
         assertNotNull(result, "Kategori yang dibuat tidak boleh null");
         assertEquals(CAT_NAME, result.getName(), "Nama kategori yang dibuat harus sesuai");
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 
-    @Test
-    void createCategory_WhenRoleIsPelajar_ShouldThrowException() {
-        assertThrows(
-                RuntimeException.class,
-                () -> categoryService.createCategory(CAT_NAME, ROLE_PELAJAR),
-                "Harus melempar exception jika Pelajar mencoba membuat kategori"
-        );
-        verify(categoryRepository, never()).save(any(Category.class));
-    }
 
     // ==========================================
     // TEST GET BY ID
@@ -90,7 +77,6 @@ class CategoryServiceTest {
 
         Category result = categoryService.getCategoryById(1L);
 
-        // PMD Fix: Tambahkan pesan pada setiap assert
         assertNotNull(result, "Kategori tidak boleh null jika ditemukan");
         assertEquals(1L, result.getId(), "ID kategori harus cocok dengan yang dicari");
         verify(categoryRepository, times(1)).findById(1L);
@@ -100,7 +86,6 @@ class CategoryServiceTest {
     void getCategoryById_WhenDoesNotExist_ShouldThrowException() {
         when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
 
-        // PMD Fix: Tambahkan pesan pada assertThrows
         assertThrows(
                 RuntimeException.class,
                 () -> categoryService.getCategoryById(99L),
@@ -113,38 +98,25 @@ class CategoryServiceTest {
     // ==========================================
 
     @Test
-    void deleteCategory_WhenRoleIsAdminAndExists_ShouldDelete() {
+    void deleteCategory_WhenExists_ShouldDelete() {
         when(categoryRepository.existsById(1L)).thenReturn(true);
 
-        // PMD Fix: Tambahkan pesan pada assertDoesNotThrow
         assertDoesNotThrow(
-                () -> categoryService.deleteCategory(1L, ROLE_ADMIN),
-                "Admin seharusnya bisa menghapus kategori tanpa exception"
+                () -> categoryService.deleteCategory(1L),
+                "Penghapusan kategori tanpa exception"
         );
 
         verify(categoryRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    void deleteCategory_WhenRoleIsAdminButNotFound_ShouldThrowException() {
+    void deleteCategory_WhenNotFound_ShouldThrowException() {
         when(categoryRepository.existsById(99L)).thenReturn(false);
 
-        // PMD Fix: Tambahkan pesan pada assertThrows
         assertThrows(
                 RuntimeException.class,
-                () -> categoryService.deleteCategory(99L, ROLE_ADMIN),
+                () -> categoryService.deleteCategory(99L),
                 "Harus melempar exception jika kategori yang mau dihapus tidak ada"
-        );
-        verify(categoryRepository, never()).deleteById(anyLong());
-    }
-
-    @Test
-    void deleteCategory_WhenRoleIsPelajar_ShouldThrowException() {
-        // PMD Fix: Tambahkan pesan pada assertThrows
-        assertThrows(
-                RuntimeException.class,
-                () -> categoryService.deleteCategory(1L, ROLE_PELAJAR),
-                "Pelajar tidak boleh menghapus kategori"
         );
         verify(categoryRepository, never()).deleteById(anyLong());
     }

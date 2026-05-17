@@ -19,8 +19,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,7 +57,6 @@ class ReadingTextControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Setup standar agar kode rapi dan tidak berulang
         validRequest = new ReadingTextRequest(TITLE_JAVA, CONTENT_JAVA, CATEGORY_ID);
         validResponse = new ReadingTextResponse(TEXT_ID, TITLE_JAVA, CONTENT_JAVA, CATEGORY_NAME);
     }
@@ -71,8 +68,7 @@ class ReadingTextControllerTest {
     @Test
     @WithMockUser(authorities = {"ROLE_ADMIN"})
     void createText_WhenAuthorized_ShouldReturnCreated() throws Exception {
-        // Asumsi Controller mengekstrak role dari SecurityContext dan melemparnya ke Service
-        when(readingTextService.createText(any(ReadingTextRequest.class), anyString())).thenReturn(validResponse);
+        when(readingTextService.createText(any(ReadingTextRequest.class))).thenReturn(validResponse);
 
         mockMvc.perform(post("/api/reading-texts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -81,9 +77,9 @@ class ReadingTextControllerTest {
                 .andExpect(jsonPath("$.id").value(TEXT_ID))
                 .andExpect(jsonPath("$.title").value(TITLE_JAVA))
                 .andExpect(jsonPath("$.content").value(CONTENT_JAVA))
-                .andExpect(jsonPath("$.categoryName").value(CATEGORY_NAME)); // Pastikan field dari tabel kategori terekspos
+                .andExpect(jsonPath("$.categoryName").value(CATEGORY_NAME));
 
-        verify(readingTextService, times(1)).createText(any(ReadingTextRequest.class), anyString());
+        verify(readingTextService, times(1)).createText(any(ReadingTextRequest.class));
     }
 
     // ==========================================
@@ -131,11 +127,10 @@ class ReadingTextControllerTest {
     @Test
     @WithMockUser(authorities = {"ROLE_ADMIN"})
     void deleteText_WhenAuthorized_ShouldReturnNoContent() throws Exception {
-        // Simulasi controller memanggil void method tanpa melempar exception
         mockMvc.perform(delete("/api/reading-texts/" + TEXT_ID))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        verify(readingTextService, times(1)).deleteText(eq(TEXT_ID), anyString());
+        verify(readingTextService, times(1)).deleteText(TEXT_ID);
     }
 }

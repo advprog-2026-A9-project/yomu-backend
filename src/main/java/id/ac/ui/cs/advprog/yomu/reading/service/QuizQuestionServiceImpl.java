@@ -26,7 +26,7 @@ public class QuizQuestionServiceImpl implements QuizQuestionService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public QuizQuestionResponse createQuestion(Long readingTextId, QuizQuestionRequest request, String role) {
+    public QuizQuestionResponse createQuestion(Long readingTextId, QuizQuestionRequest request) {
         ReadingText text = readingTextRepository.findById(readingTextId)
                 .orElseThrow(() -> new RuntimeException("Harus melempar exception jika text bacaan induk tidak ditemukan"));
 
@@ -60,7 +60,7 @@ public class QuizQuestionServiceImpl implements QuizQuestionService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteQuestion(Long questionId, String role) {
+    public void deleteQuestion(Long questionId) {
         if (!quizQuestionRepository.existsById(questionId)) {
             throw new RuntimeException("Harus melempar exception jika pertanyaan yang ingin dihapus tidak ada");
         }
