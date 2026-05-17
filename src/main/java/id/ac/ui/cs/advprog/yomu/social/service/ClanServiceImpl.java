@@ -6,6 +6,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ import id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanJoinRequestResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
@@ -34,6 +37,11 @@ import lombok.RequiredArgsConstructor;
 
 import id.ac.ui.cs.advprog.yomu.social.model.ClanJoinRequest;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanJoinRequestRepository;
+import id.ac.ui.cs.advprog.yomu.social.event.UserJoinClanEvent;
+import id.ac.ui.cs.advprog.yomu.social.event.UserLeaveClanEvent;
+import id.ac.ui.cs.advprog.yomu.social.event.UserDeleteClanEvent;
+import id.ac.ui.cs.advprog.yomu.social.event.ClanNameChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +55,7 @@ public class ClanServiceImpl implements ClanService {
     private final ClanModifierService modifierService;
     private final ClanValidator clanValidator;
     private final SocialMapper socialMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Override
@@ -83,10 +92,19 @@ public class ClanServiceImpl implements ClanService {
                 .filter(existingClan -> !existingClan.getId().equals(validClanId))
                 .ifPresent(existingClan -> clanValidator.requireClanNameAvailable(true));
 
-        clan.setName(request.getName());
+        final String oldName = clan.getName();
+        final String newName = request.getName();
+
+        clan.setName(newName);
         clan.setDescription(request.getDescription());
 
-        return clanRepository.save(clan);
+        final Clan savedClan = clanRepository.save(clan);
+
+        if (!oldName.equals(newName)) {
+            eventPublisher.publishEvent(new ClanNameChangedEvent(this, validClanId, newName));
+        }
+
+        return savedClan;
     }
 
     @Override
@@ -96,7 +114,7 @@ public class ClanServiceImpl implements ClanService {
         final String validClanId = Objects.requireNonNull(clanId);
         final String validUserId = Objects.requireNonNull(userId);
 
-        clanRepository.findById(validClanId)
+        final Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
         clanValidator.requireNotAlreadyMember(memberRepository.findByClanIdAndUserId(clanId, userId).isPresent());
@@ -109,6 +127,8 @@ public class ClanServiceImpl implements ClanService {
         member.setUserId(validUserId);
         member.setRole(role);
         memberRepository.save(member);
+
+        eventPublisher.publishEvent(new UserJoinClanEvent(this, validUserId, validClanId, clan.getName()));
     }
 
     @Override
@@ -137,15 +157,16 @@ public class ClanServiceImpl implements ClanService {
     }
 
     @Override
-    public org.springframework.data.domain.Page<id.ac.ui.cs.advprog.yomu.social.dto.ClanJoinRequestResponse> getJoinRequests(String clanId, String leaderId, int page, int size) {
+    public Page<ClanJoinRequestResponse> getJoinRequests(String clanId, String leaderId, int page, int size) {
         clanValidator.requireClanId(clanId);
-        Clan clan = clanRepository.findById(clanId)
+        final String validClanId = Objects.requireNonNull(clanId);
+        Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
         clanValidator.requireLeaderPrivilege(clan, leaderId, "Hanya ketua yang dapat melihat request.");
 
-        org.springframework.data.domain.Pageable pageable = PageRequest.of(page, size);
-        return joinRequestRepository.findByClanIdAndStatus(clanId, SocialConstants.REQUEST_STATUS_PENDING, pageable)
-                .map(r -> new id.ac.ui.cs.advprog.yomu.social.dto.ClanJoinRequestResponse(
+        Pageable pageable = PageRequest.of(page, size);
+        return joinRequestRepository.findByClanIdAndStatus(validClanId, SocialConstants.REQUEST_STATUS_PENDING, pageable)
+                .map(r -> new ClanJoinRequestResponse(
                         r.getId(), r.getClanId(), r.getUserId(), r.getUsername(), r.getStatus(), r.getCreatedAt()));
     }
 
@@ -153,7 +174,8 @@ public class ClanServiceImpl implements ClanService {
     @Transactional
     public void acceptJoinRequest(String clanId, Long requestId, String leaderId) {
         clanValidator.requireClanId(clanId);
-        Clan clan = clanRepository.findById(clanId)
+        final String validClanId = Objects.requireNonNull(clanId);
+        Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
         clanValidator.requireLeaderPrivilege(clan, leaderId, "Hanya ketua yang dapat menerima request.");
 
@@ -161,30 +183,33 @@ public class ClanServiceImpl implements ClanService {
         ClanJoinRequest req = joinRequestRepository.findById(validRequestId)
                 .orElseThrow(() -> new IllegalArgumentException("Request tidak ditemukan."));
 
-        if (!req.getClanId().equals(clanId) || !SocialConstants.REQUEST_STATUS_PENDING.equals(req.getStatus())) {
+        if (!req.getClanId().equals(validClanId) || !SocialConstants.REQUEST_STATUS_PENDING.equals(req.getStatus())) {
             throw new IllegalArgumentException("Request tidak valid.");
         }
 
-        clanValidator.requireNotAlreadyMember(memberRepository.findByClanIdAndUserId(clanId, req.getUserId()).isPresent());
+        clanValidator.requireNotAlreadyMember(memberRepository.findByClanIdAndUserId(validClanId, req.getUserId()).isPresent());
         clanValidator.requireNotMemberOfOtherClan(memberRepository.findByUserId(req.getUserId()).isPresent());
-        clanValidator.requireClanNotFull(memberRepository.countByClanId(clanId));
+        clanValidator.requireClanNotFull(memberRepository.countByClanId(validClanId));
 
         req.setStatus(SocialConstants.REQUEST_STATUS_ACCEPTED);
         joinRequestRepository.save(req);
 
         final ClanMember member = new ClanMember();
         member.setUsername(req.getUsername());
-        member.setClanId(clanId);
+        member.setClanId(validClanId);
         member.setUserId(req.getUserId());
         member.setRole(SocialConstants.ROLE_MEMBER);
         memberRepository.save(member);
+
+        eventPublisher.publishEvent(new UserJoinClanEvent(this, req.getUserId(), validClanId, clan.getName()));
     }
 
     @Override
     @Transactional
     public void rejectJoinRequest(String clanId, Long requestId, String leaderId) {
         clanValidator.requireClanId(clanId);
-        Clan clan = clanRepository.findById(clanId)
+        final String validClanId = Objects.requireNonNull(clanId);
+        Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
         clanValidator.requireLeaderPrivilege(clan, leaderId, "Hanya ketua yang dapat menolak request.");
 
@@ -192,7 +217,7 @@ public class ClanServiceImpl implements ClanService {
         ClanJoinRequest req = joinRequestRepository.findById(validRequestId)
                 .orElseThrow(() -> new IllegalArgumentException("Request tidak ditemukan."));
 
-        if (!req.getClanId().equals(clanId) || !SocialConstants.REQUEST_STATUS_PENDING.equals(req.getStatus())) {
+        if (!req.getClanId().equals(validClanId) || !SocialConstants.REQUEST_STATUS_PENDING.equals(req.getStatus())) {
             throw new IllegalArgumentException("Request tidak valid.");
         }
 
@@ -204,11 +229,12 @@ public class ClanServiceImpl implements ClanService {
     @Transactional
     public void rejectAllJoinRequests(String clanId, String leaderId) {
         clanValidator.requireClanId(clanId);
-        Clan clan = clanRepository.findById(clanId)
+        final String validClanId = Objects.requireNonNull(clanId);
+        Clan clan = clanRepository.findById(validClanId)
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
         clanValidator.requireLeaderPrivilege(clan, leaderId, "Hanya ketua yang dapat menolak request.");
 
-        joinRequestRepository.updateStatusByClanIdAndStatus(clanId, SocialConstants.REQUEST_STATUS_PENDING, SocialConstants.REQUEST_STATUS_REJECTED);
+        joinRequestRepository.updateStatusByClanIdAndStatus(validClanId, SocialConstants.REQUEST_STATUS_PENDING, SocialConstants.REQUEST_STATUS_REJECTED);
     }
 
     @Override
@@ -335,6 +361,8 @@ public class ClanServiceImpl implements ClanService {
         memberRepository.deleteByClanId(validClanId);
 
         clanRepository.delete(Objects.requireNonNull(clan));
+
+        eventPublisher.publishEvent(new UserDeleteClanEvent(this, validClanId));
     }
 
     @Override
@@ -352,6 +380,7 @@ public class ClanServiceImpl implements ClanService {
             handleLeaderLeave(clan, validUserId);
         } else {
             memberRepository.deleteByClanIdAndUserId(validClanId, validUserId);
+            eventPublisher.publishEvent(new UserLeaveClanEvent(this, validUserId, validClanId));
         }
     }
 
@@ -362,6 +391,8 @@ public class ClanServiceImpl implements ClanService {
         if (allMembers.size() <= minClanSize) {
             memberRepository.deleteByClanIdAndUserId(clan.getId(), leaderId);
             clanRepository.delete(Objects.requireNonNull(clan));
+            eventPublisher.publishEvent(new UserLeaveClanEvent(this, leaderId, clan.getId()));
+            eventPublisher.publishEvent(new UserDeleteClanEvent(this, clan.getId()));
         }
 
         else {
@@ -370,6 +401,7 @@ public class ClanServiceImpl implements ClanService {
             clan.setLeaderUserId(newLeaderId);
             clanRepository.save(clan);
             memberRepository.deleteByClanIdAndUserId(clan.getId(), leaderId);
+            eventPublisher.publishEvent(new UserLeaveClanEvent(this, leaderId, clan.getId()));
         }
     }
 
@@ -449,5 +481,6 @@ public class ClanServiceImpl implements ClanService {
         }
 
         memberRepository.deleteByClanIdAndUserId(clanId, memberId);
+        eventPublisher.publishEvent(new UserLeaveClanEvent(this, memberId, clanId));
     }
 }
