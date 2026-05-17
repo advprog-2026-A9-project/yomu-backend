@@ -14,10 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.context.ApplicationEvent;
 
 import java.util.Optional;
 
@@ -37,6 +35,7 @@ class AuthServiceImplTest {
     private static final String TEST_ENCODED_PASSWORD = "encoded_password";
     private static final String TEST_TOKEN = "mock-jwt-token";
     private static final String TEST_USER_ID = "uuid-123";
+    private static final String TEST_NEW_USERNAME = "newusername";
     private static final String INVALID_ID = "invalid-id";
     private static final String USER_NOT_FOUND_MSG = "Harus throw exception jika user tidak ditemukan";
 
@@ -105,11 +104,9 @@ class AuthServiceImplTest {
 
         authService.register(registerRequest);
 
-        final ArgumentCaptor<ApplicationEvent> eventCaptor = ArgumentCaptor.forClass(ApplicationEvent.class);
-        verify(eventPublisher).publishEvent(eventCaptor.capture());
-
-        assertTrue(eventCaptor.getValue() instanceof UserCreatedEvent);
-        assertEquals(TEST_USER_ID, ((UserCreatedEvent) eventCaptor.getValue()).getUserId());
+        verify(eventPublisher).publishEvent(argThat(event ->
+            event instanceof UserCreatedEvent
+                && TEST_USER_ID.equals(((UserCreatedEvent) event).getUserId())));
     }
 
     @Test
@@ -224,11 +221,11 @@ class AuthServiceImplTest {
     @Test
     void testUpdateAccountSuccessUsername() {
         when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
-        when(userRepository.existsByUsername("newusername")).thenReturn(false);
+        when(userRepository.existsByUsername(TEST_NEW_USERNAME)).thenReturn(false);
         when(userRepository.save(any())).thenReturn(mockUser);
 
         UpdateAccountRequest request = new UpdateAccountRequest();
-        request.setUsername("newusername");
+        request.setUsername(TEST_NEW_USERNAME);
 
         AccountResponse response = authService.updateAccount(TEST_USER_ID, request);
 
@@ -238,19 +235,17 @@ class AuthServiceImplTest {
     @Test
     void testUpdateAccountPublishesUpdatedEvent() {
         when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
-        when(userRepository.existsByUsername("newusername")).thenReturn(false);
+        when(userRepository.existsByUsername(TEST_NEW_USERNAME)).thenReturn(false);
         when(userRepository.save(any())).thenReturn(mockUser);
 
         UpdateAccountRequest request = new UpdateAccountRequest();
-        request.setUsername("newusername");
+        request.setUsername(TEST_NEW_USERNAME);
 
         authService.updateAccount(TEST_USER_ID, request);
 
-        final ArgumentCaptor<ApplicationEvent> eventCaptor = ArgumentCaptor.forClass(ApplicationEvent.class);
-        verify(eventPublisher).publishEvent(eventCaptor.capture());
-
-        assertTrue(eventCaptor.getValue() instanceof UserUpdatedEvent);
-        assertEquals(TEST_USER_ID, ((UserUpdatedEvent) eventCaptor.getValue()).getUserId());
+        verify(eventPublisher).publishEvent(argThat(event ->
+                event instanceof UserUpdatedEvent
+                        && TEST_USER_ID.equals(((UserUpdatedEvent) event).getUserId())));
     }
 
     @Test
