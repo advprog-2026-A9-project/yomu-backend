@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import id.ac.ui.cs.advprog.yomu.auth.event.UserCreatedEvent;
+import id.ac.ui.cs.advprog.yomu.auth.event.UserUpdatedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +35,7 @@ class AuthServiceImplTest {
     private static final String TEST_ENCODED_PASSWORD = "encoded_password";
     private static final String TEST_TOKEN = "mock-jwt-token";
     private static final String TEST_USER_ID = "uuid-123";
+    private static final String TEST_NEW_USERNAME = "newusername";
     private static final String INVALID_ID = "invalid-id";
     private static final String USER_NOT_FOUND_MSG = "Harus throw exception jika user tidak ditemukan";
 
@@ -89,6 +92,21 @@ class AuthServiceImplTest {
         final AuthResponse response = authService.register(registerRequest);
 
         assertEquals(TEST_USERNAME, response.getUsername(), "Username harus sesuai");
+    }
+
+    @Test
+    void testRegisterPublishesCreatedEvent() {
+        when(userRepository.existsByUsername(any())).thenReturn(false);
+        when(userRepository.existsByEmail(any())).thenReturn(false);
+        when(passwordEncoder.encode(any())).thenReturn(TEST_ENCODED_PASSWORD);
+        when(userRepository.save(any())).thenReturn(mockUser);
+        when(jwtUtil.generateToken(any(), any(), any())).thenReturn(TEST_TOKEN);
+
+        authService.register(registerRequest);
+
+        verify(eventPublisher).publishEvent(argThat(event ->
+            event instanceof UserCreatedEvent
+                && TEST_USER_ID.equals(((UserCreatedEvent) event).getUserId())));
     }
 
     @Test
@@ -203,15 +221,31 @@ class AuthServiceImplTest {
     @Test
     void testUpdateAccountSuccessUsername() {
         when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
-        when(userRepository.existsByUsername("newusername")).thenReturn(false);
+        when(userRepository.existsByUsername(TEST_NEW_USERNAME)).thenReturn(false);
         when(userRepository.save(any())).thenReturn(mockUser);
 
         UpdateAccountRequest request = new UpdateAccountRequest();
-        request.setUsername("newusername");
+        request.setUsername(TEST_NEW_USERNAME);
 
         AccountResponse response = authService.updateAccount(TEST_USER_ID, request);
 
         assertNotNull(response, "Response tidak boleh null");
+    }
+
+    @Test
+    void testUpdateAccountPublishesUpdatedEvent() {
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.existsByUsername(TEST_NEW_USERNAME)).thenReturn(false);
+        when(userRepository.save(any())).thenReturn(mockUser);
+
+        UpdateAccountRequest request = new UpdateAccountRequest();
+        request.setUsername(TEST_NEW_USERNAME);
+
+        authService.updateAccount(TEST_USER_ID, request);
+
+        verify(eventPublisher).publishEvent(argThat(event ->
+                event instanceof UserUpdatedEvent
+                        && TEST_USER_ID.equals(((UserUpdatedEvent) event).getUserId())));
     }
 
     @Test
@@ -352,5 +386,41 @@ class AuthServiceImplTest {
         assertThrows(IllegalArgumentException.class,
             () -> authService.linkLoginMethod(TEST_USER_ID, request),
             "Harus throw exception jika format email tidak valid");
+    }
+
+    @Test
+    void testRegisterFailPasswordTooShort() {
+        registerRequest.setPassword("abc");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus throw exception jika password kurang dari 8 karakter");
+    }
+
+    @Test
+    void testRegisterFailUsernameTooShort() {
+        registerRequest.setUsername("ab");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus throw exception jika username kurang dari 3 karakter");
+    }
+
+    @Test
+    void testRegisterFailUsernameTooLong() {
+        registerRequest.setUsername("a".repeat(21));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus throw exception jika username lebih dari 20 karakter");
+    }
+
+    @Test
+    void testRegisterFailUsernameContainsSpecialChar() {
+        registerRequest.setUsername("mizuki@test");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.register(registerRequest),
+            "Harus throw exception jika username mengandung karakter spesial");
     }
 }

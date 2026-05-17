@@ -25,9 +25,10 @@ public class ClanLeaderboardController {
 
     @GetMapping
     public ResponseEntity<List<LeaderboardResponse>> getLeaderboard(
-            @RequestHeader(value = SocialConstants.AUTHORIZATION_HEADER, required = false) String authHeader) {
+            @RequestHeader(value = SocialConstants.AUTHORIZATION_HEADER, required = false) String authHeader,
+            @org.springframework.web.bind.annotation.RequestParam(value = "search", required = false) String search) {
         String userId = getUserIdFromHeader(authHeader);
-        return ResponseEntity.ok(clanService.getLeaderboardByTier(userId));
+        return ResponseEntity.ok(clanService.getLeaderboardByTier(userId, search));
     }
 
     private String getUserIdFromHeader(String authHeader) {

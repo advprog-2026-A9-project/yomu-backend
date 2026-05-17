@@ -20,6 +20,10 @@ public final class SocialConstants {
     public static final String ROLE_MEMBER = "MEMBER";
     public static final String MY_CLAN_ROLE_LEADER = "KETUA";
     public static final String MY_CLAN_ROLE_MEMBER = "ANGGOTA";
+    
+    public static final String REQUEST_STATUS_PENDING = "PENDING";
+    public static final String REQUEST_STATUS_ACCEPTED = "ACCEPTED";
+    public static final String REQUEST_STATUS_REJECTED = "REJECTED";
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";

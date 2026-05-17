@@ -66,8 +66,13 @@ public class ClanController {
     }
 
     @GetMapping
-    public ResponseEntity<List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse>> getAll() {
-        return ResponseEntity.ok(clanService.findAll());
+    public ResponseEntity<List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse>> getAll(
+            @org.springframework.web.bind.annotation.RequestParam(value = "search", required = false) String search,
+            @org.springframework.web.bind.annotation.RequestParam(value = "random", defaultValue = "false") boolean random) {
+        if (random && (search == null || search.isBlank())) {
+            return ResponseEntity.ok(clanService.findRandomClans(10));
+        }
+        return ResponseEntity.ok(clanService.findAll(search));
     }
 
     @GetMapping("/me")
