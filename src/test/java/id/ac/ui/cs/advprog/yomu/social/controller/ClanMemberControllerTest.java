@@ -61,9 +61,9 @@ class ClanMemberControllerTest {
         mockMvc.perform(post("/api/clans/" + clanId + "/join")
                 .header(AUTHORIZATION_HEADER, authHeader))
                 .andExpect(status().isOk())
-                .andExpect(content().string(SocialConstants.JOIN_SUCCESS_MESSAGE));
+                .andExpect(content().string("Permintaan bergabung berhasil dikirim."));
 
-        verify(clanService, times(1)).joinClan(eq(clanId), eq(userId), eq(username), eq("MEMBER"));
+        verify(clanService, times(1)).requestJoin(eq(clanId), eq(userId), eq(username));
     }
 
     @Test
