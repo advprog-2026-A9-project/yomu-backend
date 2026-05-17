@@ -84,20 +84,6 @@ public class ClanMemberController {
         return ResponseEntity.ok("Semua request berhasil ditolak.");
     }
 
-    @PostMapping("/requests/seed/{count}")
-    public ResponseEntity<String> seedRequests(
-            @PathVariable("id") String id,
-            @PathVariable("count") int count) {
-        clanService.seedJoinRequests(id, count);
-        return ResponseEntity.ok("Berhasil menambahkan " + count + " request ke clan " + id);
-    }
-
-    @PostMapping("/requests/seed-members")
-    public ResponseEntity<String> seedFullMembers(
-            @PathVariable("id") String id) {
-        clanService.seedFullMembers(id);
-        return ResponseEntity.ok("Berhasil mengisi clan " + id + " hingga penuh (50 anggota).");
-    }
 
     @PostMapping("/leave")
     public ResponseEntity<String> leave(@PathVariable("id") String id,

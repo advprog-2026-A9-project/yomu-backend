@@ -151,49 +151,6 @@ public class ClanServiceImpl implements ClanService {
 
     @Override
     @Transactional
-    public void seedJoinRequests(String clanId, int count) {
-        clanValidator.requireClanId(clanId);
-        Clan clan = clanRepository.findById(clanId)
-                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
-        
-        List<ClanJoinRequest> requests = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            ClanJoinRequest req = new ClanJoinRequest();
-            req.setClanId(clanId);
-            req.setUserId("seeded-user-" + i + "-" + System.currentTimeMillis());
-            req.setUsername("User " + i);
-            req.setStatus(SocialConstants.REQUEST_STATUS_PENDING);
-            requests.add(req);
-        }
-        joinRequestRepository.saveAll(requests);
-    }
-
-    @Override
-    @Transactional
-    public void seedFullMembers(String clanId) {
-        clanValidator.requireClanId(clanId);
-        Clan clan = clanRepository.findById(clanId)
-                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
-        
-        long currentCount = memberRepository.countByClanId(clanId);
-        long slotsNeeded = SocialConstants.MAX_CLAN_SIZE - currentCount;
-        
-        if (slotsNeeded > 0) {
-            List<ClanMember> newMembers = new ArrayList<>();
-            for (int i = 0; i < slotsNeeded; i++) {
-                ClanMember m = new ClanMember();
-                m.setClanId(clanId);
-                m.setUserId("seeded-member-" + i + "-" + System.currentTimeMillis() + "-" + i);
-                m.setUsername("Anggota Seeding " + (i + 1));
-                m.setRole(SocialConstants.ROLE_MEMBER);
-                newMembers.add(m);
-            }
-            memberRepository.saveAll(newMembers);
-        }
-    }
-
-    @Override
-    @Transactional
     public void acceptJoinRequest(String clanId, Long requestId, String leaderId) {
         clanValidator.requireClanId(clanId);
         Clan clan = clanRepository.findById(clanId)
