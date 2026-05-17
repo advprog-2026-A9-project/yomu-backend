@@ -22,7 +22,6 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,7 +38,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
 class QuizQuestionControllerTest {
 
-    private static final String ADMIN_ROLE = "ADMIN";
     private static final String QUESTION_TEXT = "Apa kepanjangan OOP?";
     private static final String OPTION_ONE = "Object Oriented Programming";
     private static final String OPTION_TWO = "Open Operational Protocol";
@@ -63,7 +61,6 @@ class QuizQuestionControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Setup DRY: Mengurangi repetisi pembuatan List Option di setiap Test
         validRequest = new QuizQuestionRequest(
                 QUESTION_TEXT,
                 List.of(
@@ -87,22 +84,21 @@ class QuizQuestionControllerTest {
     // ==========================================
 
     @Test
-    @WithMockUser(authorities = {"ROLE_ADMIN"}) // Simulasi Security Context
+    @WithMockUser(authorities = {"ROLE_ADMIN"})
     void createQuestion_WhenAuthorized_ShouldReturnCreated() throws Exception {
-        when(quizQuestionService.createQuestion(anyLong(), any(QuizQuestionRequest.class), anyString()))
+        when(quizQuestionService.createQuestion(anyLong(), any(QuizQuestionRequest.class)))
                 .thenReturn(validResponse);
 
-        // Gunakan URI Variables agar lebih mudah diganti jika ada perubahan path
         mockMvc.perform(post("/api/reading-texts/{readingTextId}/questions", TEXT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(QUESTION_ID))
                 .andExpect(jsonPath("$.questionText").value(QUESTION_TEXT))
-                .andExpect(jsonPath("$.options.size()").value(2)) // Verifikasi Nested JSON Array
+                .andExpect(jsonPath("$.options.size()").value(2))
                 .andExpect(jsonPath("$.options[0].optionText").value(OPTION_ONE));
 
-        verify(quizQuestionService, times(1)).createQuestion(eq(TEXT_ID), any(QuizQuestionRequest.class), anyString());
+        verify(quizQuestionService, times(1)).createQuestion(eq(TEXT_ID), any(QuizQuestionRequest.class));
     }
 
     // ==========================================
@@ -135,6 +131,6 @@ class QuizQuestionControllerTest {
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        verify(quizQuestionService, times(1)).deleteQuestion(eq(QUESTION_ID), anyString());
+        verify(quizQuestionService, times(1)).deleteQuestion(QUESTION_ID);
     }
 }
