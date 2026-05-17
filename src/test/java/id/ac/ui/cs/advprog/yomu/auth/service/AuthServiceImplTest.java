@@ -14,8 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.context.ApplicationEvent;
 
 import java.util.Optional;
 
@@ -23,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import id.ac.ui.cs.advprog.yomu.auth.event.UserCreatedEvent;
+import id.ac.ui.cs.advprog.yomu.auth.event.UserUpdatedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,6 +93,23 @@ class AuthServiceImplTest {
         final AuthResponse response = authService.register(registerRequest);
 
         assertEquals(TEST_USERNAME, response.getUsername(), "Username harus sesuai");
+    }
+
+    @Test
+    void testRegisterPublishesCreatedEvent() {
+        when(userRepository.existsByUsername(any())).thenReturn(false);
+        when(userRepository.existsByEmail(any())).thenReturn(false);
+        when(passwordEncoder.encode(any())).thenReturn(TEST_ENCODED_PASSWORD);
+        when(userRepository.save(any())).thenReturn(mockUser);
+        when(jwtUtil.generateToken(any(), any(), any())).thenReturn(TEST_TOKEN);
+
+        authService.register(registerRequest);
+
+        final ArgumentCaptor<ApplicationEvent> eventCaptor = ArgumentCaptor.forClass(ApplicationEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        assertTrue(eventCaptor.getValue() instanceof UserCreatedEvent);
+        assertEquals(TEST_USER_ID, ((UserCreatedEvent) eventCaptor.getValue()).getUserId());
     }
 
     @Test
@@ -212,6 +233,24 @@ class AuthServiceImplTest {
         AccountResponse response = authService.updateAccount(TEST_USER_ID, request);
 
         assertNotNull(response, "Response tidak boleh null");
+    }
+
+    @Test
+    void testUpdateAccountPublishesUpdatedEvent() {
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.existsByUsername("newusername")).thenReturn(false);
+        when(userRepository.save(any())).thenReturn(mockUser);
+
+        UpdateAccountRequest request = new UpdateAccountRequest();
+        request.setUsername("newusername");
+
+        authService.updateAccount(TEST_USER_ID, request);
+
+        final ArgumentCaptor<ApplicationEvent> eventCaptor = ArgumentCaptor.forClass(ApplicationEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        assertTrue(eventCaptor.getValue() instanceof UserUpdatedEvent);
+        assertEquals(TEST_USER_ID, ((UserUpdatedEvent) eventCaptor.getValue()).getUserId());
     }
 
     @Test
