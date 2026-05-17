@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.yomu.reading.model.ReadingText;
 import id.ac.ui.cs.advprog.yomu.reading.repository.CategoryRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingTextRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,12 +21,9 @@ public class ReadingTextServiceImpl implements ReadingTextService {
     private final CategoryRepository categoryRepository;
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public ReadingTextResponse createText(ReadingTextRequest request, String role) {
-        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
-            throw new RuntimeException("Hanya ADMIN yang dapat membuat bacaan");
-        }
-
-        // Ini yang akan membuat test 'CategoryNotFound' menjadi Hijau
+        // Otomatis dicek oleh Spring Security, blok manual dihapus
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
@@ -53,10 +51,9 @@ public class ReadingTextServiceImpl implements ReadingTextService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteText(Long id, String role) {
-        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
-            throw new RuntimeException("Hanya ADMIN yang dapat menghapus bacaan");
-        }
+        // Otomatis dicek oleh Spring Security
         if (!readingTextRepository.existsById(id)) {
             throw new RuntimeException("Reading text not found");
         }
