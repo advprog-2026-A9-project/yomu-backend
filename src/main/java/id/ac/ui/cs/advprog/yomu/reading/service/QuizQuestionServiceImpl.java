@@ -10,6 +10,7 @@ import id.ac.ui.cs.advprog.yomu.reading.repository.QuizOptionRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.QuizQuestionRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingTextRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,11 +25,8 @@ public class QuizQuestionServiceImpl implements QuizQuestionService {
     private final ReadingTextRepository readingTextRepository;
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public QuizQuestionResponse createQuestion(Long readingTextId, QuizQuestionRequest request, String role) {
-        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
-            throw new RuntimeException("Pelajar tidak boleh membuat question");
-        }
-
         ReadingText text = readingTextRepository.findById(readingTextId)
                 .orElseThrow(() -> new RuntimeException("Harus melempar exception jika text bacaan induk tidak ditemukan"));
 
@@ -61,10 +59,8 @@ public class QuizQuestionServiceImpl implements QuizQuestionService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteQuestion(Long questionId, String role) {
-        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
-            throw new RuntimeException("Pelajar tidak memiliki akses untuk menghapus soal");
-        }
         if (!quizQuestionRepository.existsById(questionId)) {
             throw new RuntimeException("Harus melempar exception jika pertanyaan yang ingin dihapus tidak ada");
         }
