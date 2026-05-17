@@ -15,8 +15,7 @@ public interface ClanService {
     Clan createClan(ClanRequest request);
     void requestJoin(String clanId, String userId, String username);
     Page<id.ac.ui.cs.advprog.yomu.social.dto.ClanJoinRequestResponse> getJoinRequests(String clanId, String leaderId, int page, int size);
-    void seedJoinRequests(String clanId, int count);
-    void seedFullMembers(String clanId);
+
     void acceptJoinRequest(String clanId, Long requestId, String leaderId);
     void rejectJoinRequest(String clanId, Long requestId, String leaderId);
     void rejectAllJoinRequests(String clanId, String leaderId);
