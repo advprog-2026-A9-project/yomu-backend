@@ -27,6 +27,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ClanDataSeeder implements CommandLineRunner {
 
+    private static final String FULL_CAPACITY_CLAN_NAME = "Full Capacity Silver";
+    private static final String JOIN_REQUEST_TEST_CLAN_NAME = "Join Request Test Clan";
+    private static final String ROLE_MEMBER = "MEMBER";
+    private static final String ROLE_LEADER = "LEADER";
+    private static final String STATUS_PENDING = "PENDING";
+
     private final ClanRepository clanRepository;
     private final ClanMemberRepository clanMemberRepository;
     private final SeasonStateRepository seasonStateRepository;
@@ -75,8 +81,8 @@ public class ClanDataSeeder implements CommandLineRunner {
             createClan("Orion Diamond", "Diamond clan in close title race", "user-leader-o", Tier.DIAMOND, 615),
             createClan("Pulse Diamond", "Diamond clan with high consistency", "user-leader-p", Tier.DIAMOND, 590),
             // Special clans untuk QA testing
-            createClan("Full Capacity Silver", "Silver clan already at 50/50 capacity for TC-SOC-02b testing", "user-leader-full-silver", Tier.SILVER, 250),
-            createClan("Join Request Test Clan", "Clan with pending join requests for TC-SOC-03a and TC-SOC-03b testing", "leadreqclan", Tier.BRONZE, 100)
+            createClan(FULL_CAPACITY_CLAN_NAME, "Silver clan already at 50/50 capacity for TC-SOC-02b testing", "user-leader-full-silver", Tier.SILVER, 250),
+            createClan(JOIN_REQUEST_TEST_CLAN_NAME, "Clan with pending join requests for TC-SOC-03a and TC-SOC-03b testing", "leadreqclan", Tier.BRONZE, 100)
         ));
 
         // Tambah 50 clan secara dinamis
@@ -129,19 +135,19 @@ public class ClanDataSeeder implements CommandLineRunner {
 
     private List<ClanMember> createMembersForClan(Clan clan) {
         // Special handling untuk clan yang akan ditest
-        if ("Full Capacity Silver".equals(clan.getName())) {
+        if (FULL_CAPACITY_CLAN_NAME.equals(clan.getName())) {
             // Buat 50 members untuk menguji clan kapasitas penuh (TC-SOC-02b)
             return createFullCapacityMembers(clan);
-        } else if ("Join Request Test Clan".equals(clan.getName())) {
+        } else if (JOIN_REQUEST_TEST_CLAN_NAME.equals(clan.getName())) {
             // Buat 10 members untuk clan dengan pending join requests (TC-SOC-03a, TC-SOC-03b)
             return createMembersWithPendingRequests(clan);
         } else {
             // Default: 4 members (1 leader + 3 members)
             return List.of(
-                createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", "LEADER"),
-                createMember(clan, clan.getId() + "-m1", clan.getName() + " Member 1", "MEMBER"),
-                createMember(clan, clan.getId() + "-m2", clan.getName() + " Member 2", "MEMBER"),
-                createMember(clan, clan.getId() + "-m3", clan.getName() + " Member 3", "MEMBER")
+                createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", ROLE_LEADER),
+                createMember(clan, clan.getId() + "-m1", clan.getName() + " Member 1", ROLE_MEMBER),
+                createMember(clan, clan.getId() + "-m2", clan.getName() + " Member 2", ROLE_MEMBER),
+                createMember(clan, clan.getId() + "-m3", clan.getName() + " Member 3", ROLE_MEMBER)
             );
         }
     }
@@ -149,10 +155,10 @@ public class ClanDataSeeder implements CommandLineRunner {
     private List<ClanMember> createFullCapacityMembers(Clan clan) {
         List<ClanMember> members = new ArrayList<>();
         // Tambah leader
-        members.add(createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", "LEADER"));
+        members.add(createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", ROLE_LEADER));
         // Tambah 49 members untuk mencapai kapasitas maksimal 50/50
         for (int i = 1; i <= 49; i++) {
-            members.add(createMember(clan, clan.getId() + "-full-" + i, clan.getName() + " Member " + i, "MEMBER"));
+            members.add(createMember(clan, clan.getId() + "-full-" + i, clan.getName() + " Member " + i, ROLE_MEMBER));
         }
         return members;
     }
@@ -160,10 +166,10 @@ public class ClanDataSeeder implements CommandLineRunner {
     private List<ClanMember> createMembersWithPendingRequests(Clan clan) {
         List<ClanMember> members = new ArrayList<>();
         // Tambah leader
-        members.add(createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", "LEADER"));
+        members.add(createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", ROLE_LEADER));
         // Tambah 10 members
         for (int i = 1; i <= 10; i++) {
-            members.add(createMember(clan, clan.getId() + "-req-" + i, clan.getName() + " Member " + i, "MEMBER"));
+            members.add(createMember(clan, clan.getId() + "-req-" + i, clan.getName() + " Member " + i, ROLE_MEMBER));
         }
         return members;
     }
@@ -171,7 +177,7 @@ public class ClanDataSeeder implements CommandLineRunner {
     private void seedJoinRequests() {
         // Cari "Join Request Test Clan" untuk membuat pending requests
         var clanOptional = clanRepository.findAll().stream()
-            .filter(c -> "Join Request Test Clan".equals(c.getName()))
+            .filter(c -> JOIN_REQUEST_TEST_CLAN_NAME.equals(c.getName()))
             .findFirst();
 
         if (clanOptional.isPresent()) {
@@ -182,7 +188,7 @@ public class ClanDataSeeder implements CommandLineRunner {
                 request.setClanId(clan.getId());
                 request.setUserId("test-requester-" + i);
                 request.setUsername("Test Requester " + i);
-                request.setStatus("PENDING");
+                request.setStatus(STATUS_PENDING);
                 clanJoinRequestRepository.save(request);
             }
             if (log.isInfoEnabled()) {
