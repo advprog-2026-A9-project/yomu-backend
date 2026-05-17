@@ -130,14 +130,14 @@ class ClanControllerTest {
     void testGetAllClans() throws Exception {
         id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse summary = new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
                 clanId, clanName, "Description", leaderId, "Bronze", 0, 1, 0L, List.of(), List.of());
-        when(clanService.findAll()).thenReturn(List.of(summary));
+        when(clanService.findAll(null)).thenReturn(List.of(summary));
 
         mockMvc.perform(get(BASE_API))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value(clanName));
 
-        verify(clanService, times(1)).findAll();
+        verify(clanService, times(1)).findAll(null);
     }
 
     @Test
