@@ -1,12 +1,9 @@
 package id.ac.ui.cs.advprog.yomu.gamification.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,10 +52,7 @@ class AchievementShowcaseServiceImplTest {
 
         List<String> result = showcaseService.getShowcaseByUserId(USER_ID);
 
-        assertEquals(3, result.size());
-        assertTrue(result.contains("ach-1"));
-        assertTrue(result.contains("ach-2"));
-        assertTrue(result.contains("ach-3"));
+        assertEquals(achievementIds, result, "Should return the exact list of achievement IDs stored in user showcase");
     }
 
     @Test
@@ -67,12 +61,11 @@ class AchievementShowcaseServiceImplTest {
 
         List<String> result = showcaseService.getShowcaseByUserId(USER_ID);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertEquals(List.of(), result, "Should return an empty list when user showcase does not exist");
     }
 
     @Test
-    void updateShowcase_ShouldSaveAndPublishEvent() {
+    void updateShowcase_ShouldSaveToRepository() {
         ShowcaseUpdateRequest request = new ShowcaseUpdateRequest();
         request.setUserId(USER_ID);
         request.setAchievementIds(achievementIds);
@@ -83,6 +76,19 @@ class AchievementShowcaseServiceImplTest {
         showcaseService.updateShowcase(request);
 
         verify(repository).save(any(UserAchievementShowcase.class));
+    }
+
+    @Test
+    void updateShowcase_ShouldPublishShowcaseChangedEvent() {
+        ShowcaseUpdateRequest request = new ShowcaseUpdateRequest();
+        request.setUserId(USER_ID);
+        request.setAchievementIds(achievementIds);
+
+        when(repository.findById(USER_ID)).thenReturn(Optional.empty());
+        when(repository.save(any(UserAchievementShowcase.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        showcaseService.updateShowcase(request);
+
         verify(eventPublisher).publishEvent(new UserShowcaseAchievementChangedEvent(USER_ID, achievementIds));
     }
 }
