@@ -114,8 +114,36 @@ public class ClanServiceImpl implements ClanService {
     }
 
     @Override
-    public List<ClanSummaryResponse> findAll() {
-        return clanRepository.findAllClanSummaries().stream()
+    public List<ClanSummaryResponse> findAll(String search) {
+        var rows = (search == null || search.isBlank())
+                ? clanRepository.findAllClanSummaries()
+                : clanRepository.findClanSummariesByQuery(search);
+
+        return rows.stream()
+                .map(row -> {
+                    List<ClanModifier> activeModifiers = modifierRepository.findByClanIdAndActiveTrue(row.getClanId());
+                    List<ClanModifierDTO> activeBuffs = activeModifiers.stream()
+                            .filter(modifier -> modifier.getMultiplier() >= 1.0d)
+                            .map(socialMapper::toClanModifierDTO)
+                            .toList();
+                    List<ClanModifierDTO> debuffs = activeModifiers.stream()
+                            .filter(modifier -> modifier.getMultiplier() < 1.0d)
+                            .map(socialMapper::toClanModifierDTO)
+                            .toList();
+
+                    int effectiveScore = (int) Math
+                            .round(row.getScore() * modifierService.getActiveMultiplier(row.getClanId()));
+
+                    return socialMapper.toClanSummaryResponse(row, activeBuffs, debuffs, effectiveScore);
+                })
+                .toList();
+    }
+
+    @Override
+    public List<ClanSummaryResponse> findRandomClans(int limit) {
+        var rows = clanRepository.findRandomClanSummaries(limit);
+
+        return rows.stream()
                 .map(row -> {
                     List<ClanModifier> activeModifiers = modifierRepository.findByClanIdAndActiveTrue(row.getClanId());
                     List<ClanModifierDTO> activeBuffs = activeModifiers.stream()
@@ -241,7 +269,7 @@ public class ClanServiceImpl implements ClanService {
     }
 
     @Override
-    public List<LeaderboardResponse> getLeaderboardByTier(String userId) {
+    public List<LeaderboardResponse> getLeaderboardByTier(String userId, String search) {
         final Optional<ClanMember> userMember = userId != null
                 ? memberRepository.findByUserId(userId)
                 : Optional.empty();
@@ -252,9 +280,14 @@ public class ClanServiceImpl implements ClanService {
 
         return Stream.of(Tier.values())
                 .map(tier -> {
-                    List<ClanLeaderboardRow> rows = clanRepository.findLeaderboardByTier(
-                            tier,
-                            PageRequest.of(0, SocialConstants.LEADERBOARD_LIMIT));
+                    List<ClanLeaderboardRow> rows = (search == null || search.isBlank())
+                            ? clanRepository.findLeaderboardByTier(
+                                    tier,
+                                    PageRequest.of(0, SocialConstants.LEADERBOARD_LIMIT))
+                            : clanRepository.findLeaderboardByTierAndName(
+                                    tier,
+                                    search,
+                                    PageRequest.of(0, SocialConstants.LEADERBOARD_LIMIT));
 
                     List<LeaderboardEntryResponse> rankedEntries = new ArrayList<>();
                     for (int i = 0; i < rows.size(); i++) {

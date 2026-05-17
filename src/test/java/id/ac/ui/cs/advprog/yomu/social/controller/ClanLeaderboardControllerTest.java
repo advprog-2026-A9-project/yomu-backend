@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,13 +53,13 @@ class ClanLeaderboardControllerTest {
         LeaderboardResponse leaderboard = new LeaderboardResponse("Bronze", List.of(entry), entry);
 
         when(jwtUtil.extractUserId(anyString())).thenReturn(userId);
-        when(clanService.getLeaderboardByTier(anyString())).thenReturn(List.of(leaderboard));
+        when(clanService.getLeaderboardByTier(anyString(), any())).thenReturn(List.of(leaderboard));
 
         mockMvc.perform(get("/api/clans/leaderboard")
                 .header("Authorization", "Bearer dummy-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].tier").value("Bronze"));
 
-        verify(clanService, times(1)).getLeaderboardByTier(anyString());
+        verify(clanService, times(1)).getLeaderboardByTier(anyString(), any());
     }
 }

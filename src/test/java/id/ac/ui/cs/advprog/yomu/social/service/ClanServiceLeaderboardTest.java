@@ -83,7 +83,7 @@ class ClanServiceLeaderboardTest {
     void testGetLeaderboardByTier_ShouldNotReturnNull() {
         when(clanRepository.findLeaderboardByTier(any(Tier.class), any())).thenReturn(List.of());
 
-        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier("user-1");
+        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier("user-1", null);
 
         assertNotNull(leaderboard, "Leaderboard should not be null");
     }
@@ -92,7 +92,7 @@ class ClanServiceLeaderboardTest {
     void testGetLeaderboardByTier_ShouldContainTiers() {
         when(clanRepository.findLeaderboardByTier(any(Tier.class), any())).thenReturn(List.of());
 
-        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier("user-1");
+        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier("user-1", null);
 
         assertFalse(leaderboard.isEmpty(), "Leaderboard should contain at least one tier");
     }

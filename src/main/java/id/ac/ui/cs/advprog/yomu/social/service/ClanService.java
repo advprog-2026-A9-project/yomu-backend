@@ -14,14 +14,15 @@ public interface ClanService {
     void joinClan(String clanId, String userId, String username, String role);
     void leaveClan(String clanId, String userId);
     Clan editClan(final String clanId, final String userId, final ClanRequest request);
-    List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse> findAll();
+    List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse> findAll(String search);
+    List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse> findRandomClans(int limit);
     id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse getClanDetail(String clanId);
     Optional<MyClanResponse> getMyClanByUserId(String userId);
     void deleteClan(String clanId, String leaderId);
     List<ClanMember> getMembersByClanId(String clanId);
     
     // Leaderboard methods
-    List<LeaderboardResponse> getLeaderboardByTier(String userId);
+    List<LeaderboardResponse> getLeaderboardByTier(String userId, String search);
     void updateClanScore(String clanId, int basePoints);
     void kickMember(String clanId, String leaderId, String memberId);
 }
