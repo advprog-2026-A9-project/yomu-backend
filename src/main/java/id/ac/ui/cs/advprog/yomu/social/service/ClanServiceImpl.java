@@ -32,6 +32,9 @@ import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
 import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
 import lombok.RequiredArgsConstructor;
 
+import id.ac.ui.cs.advprog.yomu.social.model.ClanJoinRequest;
+import id.ac.ui.cs.advprog.yomu.social.repository.ClanJoinRequestRepository;
+
 @Service
 @RequiredArgsConstructor
 public class ClanServiceImpl implements ClanService {
@@ -39,10 +42,12 @@ public class ClanServiceImpl implements ClanService {
     private final ClanRepository clanRepository;
     private final ClanMemberRepository memberRepository;
     private final ClanModifierRepository modifierRepository;
+    private final ClanJoinRequestRepository joinRequestRepository;
     private final ScoringStrategyResolver scoringStrategyFactory;
     private final ClanModifierService modifierService;
     private final ClanValidator clanValidator;
     private final SocialMapper socialMapper;
+
 
     @Override
     @Transactional
@@ -104,6 +109,149 @@ public class ClanServiceImpl implements ClanService {
         member.setUserId(validUserId);
         member.setRole(role);
         memberRepository.save(member);
+    }
+
+    @Override
+    @Transactional
+    public void requestJoin(String clanId, String userId, String username) {
+        clanValidator.requireClanId(clanId);
+        final String validClanId = Objects.requireNonNull(clanId);
+
+        clanRepository.findById(validClanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+
+        clanValidator.requireNotAlreadyMember(memberRepository.findByClanIdAndUserId(clanId, userId).isPresent());
+        clanValidator.requireNotMemberOfOtherClan(memberRepository.findByUserId(userId).isPresent());
+        clanValidator.requireClanNotFull(memberRepository.countByClanId(validClanId));
+
+        if (joinRequestRepository.findByClanIdAndUserIdAndStatus(validClanId, userId, SocialConstants.REQUEST_STATUS_PENDING).isPresent()) {
+            throw new IllegalArgumentException("Permintaan bergabung sudah pernah dikirim.");
+        }
+
+        ClanJoinRequest req = new ClanJoinRequest();
+        req.setClanId(validClanId);
+        req.setUserId(userId);
+        req.setUsername(username);
+        req.setStatus(SocialConstants.REQUEST_STATUS_PENDING);
+        joinRequestRepository.save(req);
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<id.ac.ui.cs.advprog.yomu.social.dto.ClanJoinRequestResponse> getJoinRequests(String clanId, String leaderId, int page, int size) {
+        clanValidator.requireClanId(clanId);
+        Clan clan = clanRepository.findById(clanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+        clanValidator.requireLeaderPrivilege(clan, leaderId, "Hanya ketua yang dapat melihat request.");
+
+        org.springframework.data.domain.Pageable pageable = PageRequest.of(page, size);
+        return joinRequestRepository.findByClanIdAndStatus(clanId, SocialConstants.REQUEST_STATUS_PENDING, pageable)
+                .map(r -> new id.ac.ui.cs.advprog.yomu.social.dto.ClanJoinRequestResponse(
+                        r.getId(), r.getClanId(), r.getUserId(), r.getUsername(), r.getStatus(), r.getCreatedAt()));
+    }
+
+    @Override
+    @Transactional
+    public void seedJoinRequests(String clanId, int count) {
+        clanValidator.requireClanId(clanId);
+        Clan clan = clanRepository.findById(clanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+        
+        List<ClanJoinRequest> requests = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            ClanJoinRequest req = new ClanJoinRequest();
+            req.setClanId(clanId);
+            req.setUserId("seeded-user-" + i + "-" + System.currentTimeMillis());
+            req.setUsername("User " + i);
+            req.setStatus(SocialConstants.REQUEST_STATUS_PENDING);
+            requests.add(req);
+        }
+        joinRequestRepository.saveAll(requests);
+    }
+
+    @Override
+    @Transactional
+    public void seedFullMembers(String clanId) {
+        clanValidator.requireClanId(clanId);
+        Clan clan = clanRepository.findById(clanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+        
+        long currentCount = memberRepository.countByClanId(clanId);
+        long slotsNeeded = SocialConstants.MAX_CLAN_SIZE - currentCount;
+        
+        if (slotsNeeded > 0) {
+            List<ClanMember> newMembers = new ArrayList<>();
+            for (int i = 0; i < slotsNeeded; i++) {
+                ClanMember m = new ClanMember();
+                m.setClanId(clanId);
+                m.setUserId("seeded-member-" + i + "-" + System.currentTimeMillis() + "-" + i);
+                m.setUsername("Anggota Seeding " + (i + 1));
+                m.setRole(SocialConstants.ROLE_MEMBER);
+                newMembers.add(m);
+            }
+            memberRepository.saveAll(newMembers);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void acceptJoinRequest(String clanId, Long requestId, String leaderId) {
+        clanValidator.requireClanId(clanId);
+        Clan clan = clanRepository.findById(clanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+        clanValidator.requireLeaderPrivilege(clan, leaderId, "Hanya ketua yang dapat menerima request.");
+
+        final Long validRequestId = Objects.requireNonNull(requestId, "Request ID cannot be null");
+        ClanJoinRequest req = joinRequestRepository.findById(validRequestId)
+                .orElseThrow(() -> new IllegalArgumentException("Request tidak ditemukan."));
+
+        if (!req.getClanId().equals(clanId) || !SocialConstants.REQUEST_STATUS_PENDING.equals(req.getStatus())) {
+            throw new IllegalArgumentException("Request tidak valid.");
+        }
+
+        clanValidator.requireNotAlreadyMember(memberRepository.findByClanIdAndUserId(clanId, req.getUserId()).isPresent());
+        clanValidator.requireNotMemberOfOtherClan(memberRepository.findByUserId(req.getUserId()).isPresent());
+        clanValidator.requireClanNotFull(memberRepository.countByClanId(clanId));
+
+        req.setStatus(SocialConstants.REQUEST_STATUS_ACCEPTED);
+        joinRequestRepository.save(req);
+
+        final ClanMember member = new ClanMember();
+        member.setUsername(req.getUsername());
+        member.setClanId(clanId);
+        member.setUserId(req.getUserId());
+        member.setRole(SocialConstants.ROLE_MEMBER);
+        memberRepository.save(member);
+    }
+
+    @Override
+    @Transactional
+    public void rejectJoinRequest(String clanId, Long requestId, String leaderId) {
+        clanValidator.requireClanId(clanId);
+        Clan clan = clanRepository.findById(clanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+        clanValidator.requireLeaderPrivilege(clan, leaderId, "Hanya ketua yang dapat menolak request.");
+
+        final Long validRequestId = Objects.requireNonNull(requestId, "Request ID cannot be null");
+        ClanJoinRequest req = joinRequestRepository.findById(validRequestId)
+                .orElseThrow(() -> new IllegalArgumentException("Request tidak ditemukan."));
+
+        if (!req.getClanId().equals(clanId) || !SocialConstants.REQUEST_STATUS_PENDING.equals(req.getStatus())) {
+            throw new IllegalArgumentException("Request tidak valid.");
+        }
+
+        req.setStatus(SocialConstants.REQUEST_STATUS_REJECTED);
+        joinRequestRepository.save(req);
+    }
+
+    @Override
+    @Transactional
+    public void rejectAllJoinRequests(String clanId, String leaderId) {
+        clanValidator.requireClanId(clanId);
+        Clan clan = clanRepository.findById(clanId)
+                .orElseThrow(() -> new IllegalArgumentException(SocialConstants.CLAN_NOT_FOUND_MESSAGE));
+        clanValidator.requireLeaderPrivilege(clan, leaderId, "Hanya ketua yang dapat menolak request.");
+
+        joinRequestRepository.updateStatusByClanIdAndStatus(clanId, SocialConstants.REQUEST_STATUS_PENDING, SocialConstants.REQUEST_STATUS_REJECTED);
     }
 
     @Override
