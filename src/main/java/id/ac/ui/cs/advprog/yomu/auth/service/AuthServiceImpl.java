@@ -7,6 +7,8 @@ import id.ac.ui.cs.advprog.yomu.auth.dto.LinkLoginMethodRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
+import id.ac.ui.cs.advprog.yomu.auth.event.UserCreatedEvent;
+import id.ac.ui.cs.advprog.yomu.auth.event.UserUpdatedEvent;
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import id.ac.ui.cs.advprog.yomu.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,11 @@ public class AuthServiceImpl implements AuthService {
 
     private static final String USER_NOT_FOUND = "Akun tidak ditemukan";
 
+    private static final int MIN_PASSWORD_LENGTH = 8;
+    private static final int MIN_USERNAME_LENGTH = 3;
+    private static final int MAX_USERNAME_LENGTH = 20;
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+$");
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil; 
@@ -45,6 +52,18 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username sudah dipakai");
         }
+
+        if (request.getUsername().length() < MIN_USERNAME_LENGTH || 
+            request.getUsername().length() > MAX_USERNAME_LENGTH) {
+            throw new IllegalArgumentException("Username harus antara 3-20 karakter");
+        }
+        if (!USERNAME_PATTERN.matcher(request.getUsername()).matches()) {
+            throw new IllegalArgumentException("Username hanya boleh mengandung huruf, angka, dan underscore");
+        }
+        if (request.getPassword().length() < MIN_PASSWORD_LENGTH) {
+            throw new IllegalArgumentException("Password minimal 8 karakter");
+        }
+
         if (email != null && !EMAIL_PATTERN.matcher(email).matches()) {
             throw new IllegalArgumentException("Format email tidak valid. Contoh: example@gmail.com");
         }
@@ -64,6 +83,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRole("PELAJAR");
 
         final User saved = userRepository.save(user);
+        eventPublisher.publishEvent(new UserCreatedEvent(this, saved.getId()));
         final String token = jwtUtil.generateToken(saved.getId(), saved.getUsername(), saved.getRole());
         return new AuthResponse(saved.getId(), saved.getUsername(), saved.getRole(), token, "Registrasi berhasil");
     }
@@ -127,6 +147,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         final User saved = userRepository.save(user);
+        eventPublisher.publishEvent(new UserUpdatedEvent(this, saved.getId()));
         return new AccountResponse(
                 saved.getId(),
                 saved.getUsername(),
