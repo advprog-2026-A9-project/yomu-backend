@@ -6,8 +6,6 @@ import id.ac.ui.cs.advprog.yomu.reading.service.QuizQuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,27 +17,12 @@ public class QuizQuestionController {
 
     private final QuizQuestionService quizQuestionService;
 
-    /**
-     *Memusatkan logika ekstraksi Role dari Spring Security Context.
-     * Controller tidak lagi perlu tahu cara membedah JWT.
-     */
-    private String getRoleFromSecurityContext() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getAuthorities() != null && !authentication.getAuthorities().isEmpty()) {
-            String role = authentication.getAuthorities().iterator().next().getAuthority();
-            // Menghapus prefix "ROLE_" jika ada (standar Spring Security)
-            return role.startsWith("ROLE_") ? role.substring(5) : role;
-        }
-        return "PELAJAR";
-    }
-
     @PostMapping
     public ResponseEntity<QuizQuestionResponse> createQuestion(
             @PathVariable Long readingTextId,
-            @RequestBody QuizQuestionRequest request) { // Parameter header Authorization dihapus
+            @RequestBody QuizQuestionRequest request) {
 
-        final String role = getRoleFromSecurityContext();
-        final QuizQuestionResponse response = quizQuestionService.createQuestion(readingTextId, request, role);
+        final QuizQuestionResponse response = quizQuestionService.createQuestion(readingTextId, request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -51,13 +34,22 @@ public class QuizQuestionController {
         return ResponseEntity.ok(responses);
     }
 
+    @PutMapping("/{questionId}")
+    public ResponseEntity<QuizQuestionResponse> updateQuestion(
+            @PathVariable Long readingTextId,
+            @PathVariable Long questionId,
+            @RequestBody QuizQuestionRequest request) {
+
+        final QuizQuestionResponse response = quizQuestionService.updateQuestion(questionId, request);
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping("/{questionId}")
     public ResponseEntity<Void> deleteQuestion(
             @PathVariable Long readingTextId,
-            @PathVariable Long questionId) { // Parameter header Authorization dihapus
+            @PathVariable Long questionId) {
 
-        final String role = getRoleFromSecurityContext();
-        quizQuestionService.deleteQuestion(questionId, role);
+        quizQuestionService.deleteQuestion(questionId);
         return ResponseEntity.noContent().build();
     }
 }

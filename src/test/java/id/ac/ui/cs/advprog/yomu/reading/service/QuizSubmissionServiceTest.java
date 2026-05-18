@@ -111,7 +111,6 @@ class QuizSubmissionServiceTest {
         when(quizQuestionRepository.findByReadingTextId(TEXT_ID)).thenReturn(List.of(question1, question2));
         when(readingCompletionRepository.existsByUserIdAndReadingTextId(USER_ID, TEXT_ID)).thenReturn(false);
 
-        // Return object yang sama persis saat di-save
         when(readingCompletionRepository.save(any(ReadingCompletion.class))).thenAnswer(i -> i.getArgument(0));
 
         QuizSubmissionResponse response = quizSubmissionService.submitQuiz(TEXT_ID, USER_ID, validRequest);
@@ -122,15 +121,12 @@ class QuizSubmissionServiceTest {
         assertEquals(50, response.score(), "Skor harus 50 (1 benar dari 2 soal)");
         assertTrue(response.completed(), "Completion harus true");
 
-        // Pastikan tabel relasi ke-5 tersimpan
         verify(readingCompletionRepository, times(1)).save(any(ReadingCompletion.class));
-        // Pastikan event broadcasting ke modul lain berjalan
         verify(eventPublisher, times(1)).publishEvent(any(QuizCompletedEvent.class));
     }
 
     @Test
     void submitQuiz_WhenAlreadyCompleted_ShouldThrowException() {
-        // Skema cegah kecurangan: User sudah pernah submit
         when(readingCompletionRepository.existsByUserIdAndReadingTextId(USER_ID, TEXT_ID)).thenReturn(true);
 
         assertThrows(
@@ -145,7 +141,6 @@ class QuizSubmissionServiceTest {
 
     @Test
     void submitQuiz_WhenReadingTextNotFound_ShouldThrowException() {
-        // Skema Error: Frontend ngirim ID bacaan ngawur
         when(readingCompletionRepository.existsByUserIdAndReadingTextId(USER_ID, 99L)).thenReturn(false);
         when(readingTextRepository.findById(99L)).thenReturn(Optional.empty());
 

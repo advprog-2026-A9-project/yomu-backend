@@ -55,7 +55,6 @@ class QuizSubmissionControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Sentralisasi dummy data agar test methods lebih bersih
         validRequest = new QuizSubmissionRequest(
                 List.of(
                         new QuizAnswerRequest(10L, 100L),
@@ -63,7 +62,6 @@ class QuizSubmissionControllerTest {
                 )
         );
 
-        // Simulasi dari 2 pertanyaan, dijawab benar 1, skor 50
         validResponse = new QuizSubmissionResponse(2, 1, 50, true);
     }
 
@@ -72,12 +70,11 @@ class QuizSubmissionControllerTest {
     // ==========================================
 
     @Test
-    @WithMockUser(username = USER_ID) // Menggunakan "user-123" pada SecurityContext
+    @WithMockUser(username = USER_ID)
     void submitQuiz_WhenAuthorized_ShouldReturnOk() throws Exception {
         when(quizSubmissionService.submitQuiz(eq(TEXT_ID), eq(USER_ID), any(QuizSubmissionRequest.class)))
                 .thenReturn(validResponse);
 
-        // Menggunakan URI Variable {readingTextId}
         mockMvc.perform(post("/api/reading-texts/{readingTextId}/quiz/submit", TEXT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
@@ -87,7 +84,6 @@ class QuizSubmissionControllerTest {
                 .andExpect(jsonPath("$.score").value(50))
                 .andExpect(jsonPath("$.completed").value(true));
 
-        // Verifikasi bahwa layer Service benar-benar dipanggil dengan parameter yang tepat
         verify(quizSubmissionService, times(1)).submitQuiz(eq(TEXT_ID), eq(USER_ID), any(QuizSubmissionRequest.class));
     }
 
