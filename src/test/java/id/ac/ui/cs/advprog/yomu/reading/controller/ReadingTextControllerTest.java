@@ -19,7 +19,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,6 +26,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -59,20 +59,14 @@ class ReadingTextControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Setup standar agar kode rapi dan tidak berulang
         validRequest = new ReadingTextRequest(TITLE_JAVA, CONTENT_JAVA, CATEGORY_ID);
         validResponse = new ReadingTextResponse(TEXT_ID, TITLE_JAVA, CONTENT_JAVA, CATEGORY_NAME);
     }
 
-    // ==========================================
-    // TEST CREATE TEXT (POST)
-    // ==========================================
-
     @Test
     @WithMockUser(authorities = {"ROLE_ADMIN"})
     void createText_WhenAuthorized_ShouldReturnCreated() throws Exception {
-        // Asumsi Controller mengekstrak role dari SecurityContext dan melemparnya ke Service
-        when(readingTextService.createText(any(ReadingTextRequest.class), anyString())).thenReturn(validResponse);
+        when(readingTextService.createText(any(ReadingTextRequest.class))).thenReturn(validResponse);
 
         mockMvc.perform(post("/api/reading-texts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -81,14 +75,10 @@ class ReadingTextControllerTest {
                 .andExpect(jsonPath("$.id").value(TEXT_ID))
                 .andExpect(jsonPath("$.title").value(TITLE_JAVA))
                 .andExpect(jsonPath("$.content").value(CONTENT_JAVA))
-                .andExpect(jsonPath("$.categoryName").value(CATEGORY_NAME)); // Pastikan field dari tabel kategori terekspos
+                .andExpect(jsonPath("$.categoryName").value(CATEGORY_NAME));
 
-        verify(readingTextService, times(1)).createText(any(ReadingTextRequest.class), anyString());
+        verify(readingTextService, times(1)).createText(any(ReadingTextRequest.class));
     }
-
-    // ==========================================
-    // TEST GET ALL TEXTS (GET)
-    // ==========================================
 
     @Test
     @WithMockUser
@@ -106,10 +96,6 @@ class ReadingTextControllerTest {
         verify(readingTextService, times(1)).getAllTexts();
     }
 
-    // ==========================================
-    // TEST GET BY ID (GET)
-    // ==========================================
-
     @Test
     @WithMockUser
     void getTextById_WhenTextExists_ShouldReturnOk() throws Exception {
@@ -124,18 +110,28 @@ class ReadingTextControllerTest {
         verify(readingTextService, times(1)).getTextById(TEXT_ID);
     }
 
-    // ==========================================
-    // TEST DELETE TEXT (DELETE)
-    // ==========================================
+    @Test
+    @WithMockUser(authorities = {"ROLE_ADMIN"})
+    void updateText_WhenAuthorized_ShouldReturnOk() throws Exception {
+        when(readingTextService.updateText(eq(TEXT_ID), any(ReadingTextRequest.class))).thenReturn(validResponse);
+
+        mockMvc.perform(put("/api/reading-texts/" + TEXT_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(TEXT_ID))
+                .andExpect(jsonPath("$.title").value(TITLE_JAVA));
+
+        verify(readingTextService, times(1)).updateText(eq(TEXT_ID), any(ReadingTextRequest.class));
+    }
 
     @Test
     @WithMockUser(authorities = {"ROLE_ADMIN"})
     void deleteText_WhenAuthorized_ShouldReturnNoContent() throws Exception {
-        // Simulasi controller memanggil void method tanpa melempar exception
         mockMvc.perform(delete("/api/reading-texts/" + TEXT_ID))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
-        verify(readingTextService, times(1)).deleteText(eq(TEXT_ID), anyString());
+        verify(readingTextService, times(1)).deleteText(TEXT_ID);
     }
 }

@@ -10,6 +10,7 @@ import id.ac.ui.cs.advprog.yomu.reading.repository.QuizOptionRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.QuizQuestionRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingTextRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,11 +25,8 @@ public class QuizQuestionServiceImpl implements QuizQuestionService {
     private final ReadingTextRepository readingTextRepository;
 
     @Override
-    public QuizQuestionResponse createQuestion(Long readingTextId, QuizQuestionRequest request, String role) {
-        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
-            throw new RuntimeException("Pelajar tidak boleh membuat question");
-        }
-
+    @PreAuthorize("hasRole('ADMIN')")
+    public QuizQuestionResponse createQuestion(Long readingTextId, QuizQuestionRequest request) {
         ReadingText text = readingTextRepository.findById(readingTextId)
                 .orElseThrow(() -> new RuntimeException("Harus melempar exception jika text bacaan induk tidak ditemukan"));
 
@@ -61,10 +59,34 @@ public class QuizQuestionServiceImpl implements QuizQuestionService {
     }
 
     @Override
-    public void deleteQuestion(Long questionId, String role) {
-        if (!"ROLE_ADMIN".equals(role) && !"ADMIN".equals(role)) {
-            throw new RuntimeException("Pelajar tidak memiliki akses untuk menghapus soal");
-        }
+    @PreAuthorize("hasRole('ADMIN')")
+    public QuizQuestionResponse updateQuestion(Long questionId, QuizQuestionRequest request) {
+        QuizQuestion question = quizQuestionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        question.setQuestionText(request.questionText());
+
+        // Strategi Update: Hapus semua opsi lama, ganti dengan yang baru
+        quizOptionRepository.deleteAll(question.getOptions());
+        question.getOptions().clear();
+
+        QuizQuestion savedQuestion = quizQuestionRepository.save(question);
+
+        List<QuizOptionResponse> optionResponses = request.options().stream().map(optReq -> {
+            QuizOption option = new QuizOption();
+            option.setOptionText(optReq.optionText());
+            option.setCorrect(optReq.isCorrect());
+            option.setQuizQuestion(savedQuestion);
+            QuizOption savedOpt = quizOptionRepository.save(option);
+            return new QuizOptionResponse(savedOpt.getId(), savedOpt.getOptionText());
+        }).collect(Collectors.toList());
+
+        return new QuizQuestionResponse(savedQuestion.getId(), savedQuestion.getQuestionText(), optionResponses);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteQuestion(Long questionId) {
         if (!quizQuestionRepository.existsById(questionId)) {
             throw new RuntimeException("Harus melempar exception jika pertanyaan yang ingin dihapus tidak ada");
         }
