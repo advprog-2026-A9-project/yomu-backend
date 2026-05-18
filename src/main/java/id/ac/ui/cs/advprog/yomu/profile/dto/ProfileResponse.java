@@ -40,6 +40,5 @@ public class ProfileResponse {
         private String name;
         private String description;
         private String tier;
-        private String iconColor;
     }
 }

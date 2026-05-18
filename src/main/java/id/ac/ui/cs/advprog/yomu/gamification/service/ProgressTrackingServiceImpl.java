@@ -22,11 +22,13 @@ import id.ac.ui.cs.advprog.yomu.gamification.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserAchievementProgressRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserDailyMissionProgressRepository;
+import id.ac.ui.cs.advprog.yomu.gamification.strategy.AchievementProgressEvaluator;
 import id.ac.ui.cs.advprog.yomu.gamification.validation.GamificationValidator;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ProgressTrackingServiceImpl implements ProgressTrackingService {
 
     private static final String MISSION_TYPE_READ_ARTICLES = "read_n_articles";
@@ -35,6 +37,7 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
     private static final String ACHIEVEMENT_TYPE_READINGS_COMPLETED = "readings_completed";
     private static final String ACHIEVEMENT_TYPE_QUIZZES_PASSED = "quizzes_passed";
     private static final String ACHIEVEMENT_TYPE_ACCURACY_ABOVE = "accuracy_above";
+    private static final String ACHIEVEMENT_TYPE_RANKING = "ranking_achieved";
 
     private final AchievementRepository achievementRepository;
     private final DailyMissionRepository dailyMissionRepository;
@@ -43,6 +46,17 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
     private final GamificationValidator validator;
     private final GamificationMapper mapper;
     private final AllDailyMissionsCompletedEventPublisher allDailyMissionsCompletedEventPublisher;
+    private final List<AchievementProgressEvaluator> achievementEvaluators;
+
+    private boolean evaluateAchievement(UserAchievementProgress progress, Object context) {
+        String milestoneType = progress.getAchievement().getMilestoneType();
+        for (AchievementProgressEvaluator evaluator : achievementEvaluators) {
+            if (evaluator.supports(milestoneType)) {
+                return evaluator.evaluate(progress, context);
+            }
+        }
+        return false;
+    }
 
     @Override
     @Transactional
@@ -230,41 +244,54 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
                 .toList();
 
         for (Achievement achievement : achievements) {
-            boolean shouldUpdate = false;
-            int increment = 0;
+            UserAchievementProgress progress = userAchievementProgressRepository
+                    .findByUserIdAndAchievement(userId, achievement)
+                    .orElseGet(() -> {
+                        UserAchievementProgress created = new UserAchievementProgress();
+                        created.setUserId(userId);
+                        created.setAchievement(achievement);
+                        return created;
+                    });
 
+            boolean updated = false;
             if (isCountBasedAchievement(achievement.getMilestoneType())) {
-                shouldUpdate = true;
-                increment = 1;
+                updated = evaluateAchievement(progress, 1);
             } else if (ACHIEVEMENT_TYPE_ACCURACY_ABOVE.equals(achievement.getMilestoneType())) {
-                if (score >= achievement.getMilestoneThreshold()) {
-                    shouldUpdate = true;
-                    increment = 1;
-                }
+                updated = evaluateAchievement(progress, score);
             }
 
-            if (shouldUpdate) {
-                UserAchievementProgress progress = userAchievementProgressRepository
-                        .findByUserIdAndAchievement(userId, achievement)
-                        .orElseGet(() -> {
-                            UserAchievementProgress created = new UserAchievementProgress();
-                            created.setUserId(userId);
-                            created.setAchievement(achievement);
-                            return created;
-                        });
-
-                if (!progress.isUnlocked()) {
-                    progress.setProgressValue(progress.getProgressValue() + increment);
-                    if (progress.getProgressValue() >= achievement.getMilestoneThreshold()) {
-                        progress.setUnlocked(true);
-                        progress.setUnlockedAt(LocalDateTime.now());
-                    }
-                    userAchievementProgressRepository.save(progress);
-                }
+            if (updated) {
+                userAchievementProgressRepository.save(progress);
             }
         }
 
         publishAllDailyMissionsCompletedEventIfNeeded(userId, today, completedThisCall);
+    }
+
+    @Override
+    @Transactional
+    public void handleRankingAchieved(String userId, String rankingType, int rank) {
+        validator.validateUserId(userId);
+
+        List<Achievement> achievements = achievementRepository.findAll().stream()
+                .filter(Achievement::isActive)
+                .filter(a -> ACHIEVEMENT_TYPE_RANKING.equals(a.getMilestoneType()))
+                .toList();
+
+        for (Achievement achievement : achievements) {
+            UserAchievementProgress progress = userAchievementProgressRepository
+                    .findByUserIdAndAchievement(userId, achievement)
+                    .orElseGet(() -> {
+                        UserAchievementProgress created = new UserAchievementProgress();
+                        created.setUserId(userId);
+                        created.setAchievement(achievement);
+                        return created;
+                    });
+
+            if (evaluateAchievement(progress, rank)) {
+                userAchievementProgressRepository.save(progress);
+            }
+        }
     }
 
     private boolean isCountBasedMission(String missionType) {
