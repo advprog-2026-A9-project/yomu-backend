@@ -115,4 +115,13 @@ class ProfileServiceImplTest {
             profileService.updateBio(TEST_UNKNOWN, "New bio!");
         }, "Should throw IllegalArgumentException when updating bio of non-existent profile");
     }
+
+    @Test
+    void testUpdateBioExceedsMaxLength() {
+        String longBio = "A".repeat(101);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            profileService.updateBio(TEST_USER_ID, longBio);
+        }, "Should throw IllegalArgumentException when bio exceeds 100 characters");
+    }
 }

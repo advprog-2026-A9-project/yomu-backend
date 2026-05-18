@@ -171,7 +171,7 @@ public class ProfileEventListener {
                             .userId(userId)
                             .username(defaultUsername)
                             .displayName(defaultDisplayName)
-                            .bio("📖 Yomu avid reader | Seeking knowledge every single day. Advancing step-by-step through the world of words.")
+                            .bio("📖 Yomu avid reader | Seeking knowledge every single day.")
                             .joinedAt(LocalDateTime.now())
                             .completedTexts(0)
                             .totalMinutes(0)

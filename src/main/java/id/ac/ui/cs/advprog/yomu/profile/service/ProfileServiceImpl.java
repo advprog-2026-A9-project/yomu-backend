@@ -90,6 +90,10 @@ public class ProfileServiceImpl implements ProfileService {
             log.info("Updating bio for user: {} to: {}", userId, bio);
         }
         
+        if (bio != null && bio.length() > 100) {
+            throw new IllegalArgumentException("Bio tidak boleh lebih dari 100 karakter");
+        }
+        
         Profile profile = profileRepository.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new IllegalArgumentException("Profil tidak ditemukan untuk user: " + userId));
 
