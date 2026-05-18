@@ -17,7 +17,8 @@ public class GamificationValidatorImpl implements GamificationValidator {
         "readings_completed",
         "quizzes_passed",
         "accuracy_above",
-        "clan_promoted"
+        "clan_promoted",
+        "ranking_achieved"
     };
 
     private static final String[] DAILY_MISSION_TYPES = {

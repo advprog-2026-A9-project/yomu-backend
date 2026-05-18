@@ -38,6 +38,9 @@ public class Achievement {
     @Column(name = "milestone_threshold", nullable = false)
     private int milestoneThreshold;
 
+    @Column(name = "tier")
+    private String tier;
+
     @Column(nullable = false)
     private boolean active = true;
 
