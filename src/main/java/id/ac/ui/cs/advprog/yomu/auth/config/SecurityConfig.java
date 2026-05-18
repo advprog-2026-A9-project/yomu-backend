@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/gamification/showcase/**").authenticated()
 
                         // Role-based access untuk reading
+                        .requestMatchers(HttpMethod.POST, "/api/reading-texts/*/complete").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/reading-texts/*/quiz").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/reading-texts/**").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.DELETE, "/api/reading-texts/**").hasRole(ROLE_ADMIN)

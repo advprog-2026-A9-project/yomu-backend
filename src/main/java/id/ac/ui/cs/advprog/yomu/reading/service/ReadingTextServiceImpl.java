@@ -6,6 +6,8 @@ import id.ac.ui.cs.advprog.yomu.reading.model.Category;
 import id.ac.ui.cs.advprog.yomu.reading.model.ReadingText;
 import id.ac.ui.cs.advprog.yomu.reading.repository.CategoryRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingTextRepository;
+import id.ac.ui.cs.advprog.yomu.reading.event.ReadingCompletedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ public class ReadingTextServiceImpl implements ReadingTextService {
 
     private final ReadingTextRepository readingTextRepository;
     private final CategoryRepository categoryRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
@@ -73,5 +77,14 @@ public class ReadingTextServiceImpl implements ReadingTextService {
             throw new RuntimeException("Reading text not found");
         }
         readingTextRepository.deleteById(id);
+    }
+
+    @Override
+    public void completeReading(Long id, String username) {
+        readingTextRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reading text not found"));
+
+        ReadingCompletedEvent event = new ReadingCompletedEvent(this, id, username);
+        eventPublisher.publishEvent(event);
     }
 }
