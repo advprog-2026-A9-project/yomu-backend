@@ -11,4 +11,5 @@ public interface ReadingTextService {
     ReadingTextResponse getTextById(Long id);
     ReadingTextResponse updateText(Long id, ReadingTextRequest request);
     void deleteText(Long id);
+    void completeReading(Long id, String username);
 }
