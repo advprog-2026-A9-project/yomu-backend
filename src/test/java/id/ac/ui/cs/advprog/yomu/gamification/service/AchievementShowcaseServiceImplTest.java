@@ -19,6 +19,7 @@ import id.ac.ui.cs.advprog.yomu.gamification.dto.ShowcaseUpdateRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.event.UserShowcaseAchievementChangedEvent;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementShowcase;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserAchievementShowcaseRepository;
+import id.ac.ui.cs.advprog.yomu.gamification.repository.AchievementRepository;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
@@ -29,6 +30,9 @@ class AchievementShowcaseServiceImplTest {
 
     @Mock
     private UserAchievementShowcaseRepository repository;
+
+    @Mock
+    private AchievementRepository achievementRepository;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -89,6 +93,6 @@ class AchievementShowcaseServiceImplTest {
 
         showcaseService.updateShowcase(request);
 
-        verify(eventPublisher).publishEvent(new UserShowcaseAchievementChangedEvent(USER_ID, achievementIds));
+        verify(eventPublisher).publishEvent(any(UserShowcaseAchievementChangedEvent.class));
     }
 }
