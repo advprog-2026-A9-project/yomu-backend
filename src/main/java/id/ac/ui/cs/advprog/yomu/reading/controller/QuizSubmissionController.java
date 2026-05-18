@@ -17,14 +17,9 @@ public class QuizSubmissionController {
 
     private final QuizSubmissionService quizSubmissionService;
 
-    /**
-     * Clean Code: Mengambil User ID (Subject) langsung dari konteks autentikasi.
-     * Mengurangi coupling dengan utility eksternal.
-     */
     private String getUserIdFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
-            // Dalam konfigurasi Spring Security berbasis JWT, "name" biasanya diisi dengan User ID (subject)
             return authentication.getName();
         }
         throw new RuntimeException("Pengguna tidak terautentikasi atau token tidak valid");
@@ -33,7 +28,7 @@ public class QuizSubmissionController {
     @PostMapping("/submit")
     public ResponseEntity<QuizSubmissionResponse> submitQuiz(
             @PathVariable Long readingTextId,
-            @RequestBody QuizSubmissionRequest request) { // Parameter header Authorization dihapus
+            @RequestBody QuizSubmissionRequest request) {
 
         final String userId = getUserIdFromSecurityContext();
         final QuizSubmissionResponse response = quizSubmissionService.submitQuiz(readingTextId, userId, request);
@@ -42,7 +37,7 @@ public class QuizSubmissionController {
 
     @GetMapping("/completion")
     public ResponseEntity<Boolean> hasCompletedQuiz(
-            @PathVariable Long readingTextId) { // Parameter header Authorization dihapus
+            @PathVariable Long readingTextId) {
 
         final String userId = getUserIdFromSecurityContext();
         final boolean completed = quizSubmissionService.hasCompletedQuiz(readingTextId, userId);
