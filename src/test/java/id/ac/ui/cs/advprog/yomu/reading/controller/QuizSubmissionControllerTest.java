@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Map; // Tambahan Import Map
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,7 +27,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -70,12 +70,13 @@ class QuizSubmissionControllerTest {
     // ==========================================
 
     @Test
-    @WithMockUser(username = USER_ID)
+    @WithMockUser(username = USER_ID, roles = "PELAJAR") // Tambahkan roles agar tidak kena 403 PreAuthorize
     void submitQuiz_WhenAuthorized_ShouldReturnOk() throws Exception {
         when(quizSubmissionService.submitQuiz(eq(TEXT_ID), eq(USER_ID), any(QuizSubmissionRequest.class)))
                 .thenReturn(validResponse);
 
-        mockMvc.perform(post("/api/reading-texts/{readingTextId}/quiz/submit", TEXT_ID)
+        // PERBAIKAN: Menghapus "/submit" dari URL
+        mockMvc.perform(post("/api/reading-texts/{readingTextId}/quiz", TEXT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isOk())
@@ -92,14 +93,24 @@ class QuizSubmissionControllerTest {
     // ==========================================
 
     @Test
-    @WithMockUser(username = USER_ID)
+    @WithMockUser(username = USER_ID, roles = "PELAJAR")
     void hasCompletedQuiz_WhenAuthorized_ShouldReturnOk() throws Exception {
-        when(quizSubmissionService.hasCompletedQuiz(TEXT_ID, USER_ID)).thenReturn(true);
+
+        // PERBAIKAN: Mock response menggunakan Map sesuai implementasi terbaru
+        Map<String, Object> mockResponse = Map.of(
+                "completed", true,
+                "score", 100
+        );
+
+        // PERBAIKAN: Mock pemanggilan fungsi getCompletionStatus (bukan hasCompletedQuiz)
+        when(quizSubmissionService.getCompletionStatus(TEXT_ID, USER_ID))
+                .thenReturn(mockResponse);
 
         mockMvc.perform(get("/api/reading-texts/{readingTextId}/quiz/completion", TEXT_ID))
                 .andExpect(status().isOk())
-                .andExpect(content().string("true"));
+                .andExpect(jsonPath("$.completed").value(true)) // Cek nilai di dalam JSON
+                .andExpect(jsonPath("$.score").value(100));
 
-        verify(quizSubmissionService, times(1)).hasCompletedQuiz(TEXT_ID, USER_ID);
+        verify(quizSubmissionService, times(1)).getCompletionStatus(TEXT_ID, USER_ID);
     }
 }
