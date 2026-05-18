@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.yomu.gamification.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -12,15 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GamificationExceptionHandler {
 
-    private static class ErrorResponse {
-        public String errorCode;
-        public String message;
-
-        public ErrorResponse(String errorCode, String message) {
-            this.errorCode = errorCode;
-            this.message = message;
-        }
-    }
+    private record ErrorResponse(String errorCode, String message) {}
 
     @ExceptionHandler(GamificationException.class)
     public ResponseEntity<ErrorResponse> handleGamificationException(GamificationException ex) {
@@ -34,6 +27,7 @@ public class GamificationExceptionHandler {
         return new ResponseEntity<>(errorResponse, status);
     }
 
+    @NonNull
     private HttpStatus mapErrorCodeToHttpStatus(String errorCode) {
         return switch (errorCode) {
             case "NOT_FOUND" -> HttpStatus.NOT_FOUND;

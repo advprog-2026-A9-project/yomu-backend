@@ -16,4 +16,5 @@ public interface ProgressTrackingService {
     List<DailyMissionProgressResponse> getTodayDailyMissionProgressByUserId(String userId);
     List<DailyMissionProgressResponse> getTodayDailyMissionDashboard(String userId);
     void handleQuizCompletion(String userId, int score);
+    void handleRankingAchieved(String userId, String rankingType, int rank);
 }

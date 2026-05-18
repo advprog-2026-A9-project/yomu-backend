@@ -10,7 +10,6 @@ public record UserShowcaseAchievementChangedEvent(
         String id,
         String name,
         String description,
-        String tier,
-        String iconColor
+        String tier
     ) {}
 }

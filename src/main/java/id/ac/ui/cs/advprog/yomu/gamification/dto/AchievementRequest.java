@@ -19,4 +19,6 @@ public class AchievementRequest {
 
     @jakarta.validation.constraints.Positive(message = "Milestone threshold must be a positive integer")
     private int milestoneThreshold;
+
+    private String tier;
 }
