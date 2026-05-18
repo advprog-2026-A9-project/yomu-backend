@@ -13,6 +13,7 @@ import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingTextRepository;
 import id.ac.ui.cs.advprog.yomu.reading.event.QuizCompletedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class QuizSubmissionServiceImpl implements QuizSubmissionService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @PreAuthorize("hasRole('PELAJAR') or hasRole('STUDENT')")
     public QuizSubmissionResponse submitQuiz(Long readingTextId, String userId, QuizSubmissionRequest request) {
         if (hasCompletedQuiz(readingTextId, userId)) {
             throw new RuntimeException("User yang sudah selesai tidak boleh submit lagi");
@@ -77,5 +79,18 @@ public class QuizSubmissionServiceImpl implements QuizSubmissionService {
     @Override
     public boolean hasCompletedQuiz(Long readingTextId, String userId) {
         return readingCompletionRepository.existsByUserIdAndReadingTextId(userId, readingTextId);
+    }
+
+    @Override
+    public Map<String, Object> getCompletionStatus(Long readingTextId, String userId) {
+        return readingCompletionRepository.findByUserIdAndReadingTextId(userId, readingTextId)
+                .map(c -> Map.of(
+                        "completed", (Object) true,
+                        "score", (Object) c.getScore()
+                ))
+                .orElse(Map.of(
+                        "completed", false,
+                        "score", 0
+                ));
     }
 }

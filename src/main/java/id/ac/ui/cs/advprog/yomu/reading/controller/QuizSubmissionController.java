@@ -6,9 +6,12 @@ import id.ac.ui.cs.advprog.yomu.reading.service.QuizSubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reading-texts/{readingTextId}/quiz")
@@ -25,7 +28,8 @@ public class QuizSubmissionController {
         throw new RuntimeException("Pengguna tidak terautentikasi atau token tidak valid");
     }
 
-    @PostMapping("/submit")
+    @PostMapping
+    @PreAuthorize("hasRole('PELAJAR') or hasRole('STUDENT')")
     public ResponseEntity<QuizSubmissionResponse> submitQuiz(
             @PathVariable Long readingTextId,
             @RequestBody QuizSubmissionRequest request) {
@@ -36,11 +40,11 @@ public class QuizSubmissionController {
     }
 
     @GetMapping("/completion")
-    public ResponseEntity<Boolean> hasCompletedQuiz(
-            @PathVariable Long readingTextId) {
-
+    public ResponseEntity<Map<String, Object>> getCompletionStatus(@PathVariable Long readingTextId) {
         final String userId = getUserIdFromSecurityContext();
-        final boolean completed = quizSubmissionService.hasCompletedQuiz(readingTextId, userId);
-        return ResponseEntity.ok(completed);
+
+        Map<String, Object> status = quizSubmissionService.getCompletionStatus(readingTextId, userId);
+
+        return ResponseEntity.ok(status);
     }
 }
