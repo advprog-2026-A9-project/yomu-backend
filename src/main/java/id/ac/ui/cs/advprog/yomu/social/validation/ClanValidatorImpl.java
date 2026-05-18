@@ -15,7 +15,7 @@ import java.util.Objects;
 public class ClanValidatorImpl implements ClanValidator {
 
     private static final int MAX_CLAN_NAME_LENGTH = 100;
-    private static final int MAX_DESCRIPTION_LENGTH = 1000;
+    private static final int MAX_DESCRIPTION_LENGTH = 255;
 
     private void validateId(final String id, final String errorMessage) {
         if (id == null || id.isBlank()) {

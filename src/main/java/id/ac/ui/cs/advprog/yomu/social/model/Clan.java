@@ -22,6 +22,7 @@ public class Clan {
     @Column(unique = true, nullable = false)
     private String name;
 
+    @Column(length = 255)
     private String description;
 
     @Column(nullable = false)
