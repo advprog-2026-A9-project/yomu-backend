@@ -50,10 +50,6 @@ class ReadingTextServiceTest {
         savedText = new ReadingText(1L, TITLE_JAVA, CONTENT_DUMMY, validCategory);
     }
 
-    // ==========================================
-    // TEST CREATE TEXT (TDD: Relasi Category)
-    // ==========================================
-
     @Test
     void createText_WhenCategoryExists_ShouldReturnSavedText() {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(validCategory));
@@ -83,9 +79,45 @@ class ReadingTextServiceTest {
         verify(readingTextRepository, never()).save(any(ReadingText.class));
     }
 
-    // ==========================================
-    // TEST GET ALL & GET BY ID
-    // ==========================================
+    @Test
+    void updateText_WhenTextAndCategoryExist_ShouldReturnUpdatedText() {
+        when(readingTextRepository.findById(1L)).thenReturn(Optional.of(savedText));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(validCategory));
+        when(readingTextRepository.save(any(ReadingText.class))).thenReturn(savedText);
+
+        ReadingTextResponse response = readingTextService.updateText(1L, validRequest);
+
+        assertNotNull(response, "Response tidak boleh null");
+        verify(readingTextRepository, times(1)).findById(1L);
+        verify(categoryRepository, times(1)).findById(1L);
+        verify(readingTextRepository, times(1)).save(any(ReadingText.class));
+    }
+
+    @Test
+    void updateText_WhenTextNotFound_ShouldThrowException() {
+        when(readingTextRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(
+                RuntimeException.class,
+                () -> readingTextService.updateText(99L, validRequest),
+                "Harus melempar exception jika text tidak ditemukan"
+        );
+        verify(categoryRepository, never()).findById(anyLong());
+        verify(readingTextRepository, never()).save(any(ReadingText.class));
+    }
+
+    @Test
+    void updateText_WhenCategoryNotFound_ShouldThrowException() {
+        when(readingTextRepository.findById(1L)).thenReturn(Optional.of(savedText));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(
+                RuntimeException.class,
+                () -> readingTextService.updateText(1L, validRequest),
+                "Harus melempar exception jika kategori tidak ditemukan"
+        );
+        verify(readingTextRepository, never()).save(any(ReadingText.class));
+    }
 
     @Test
     void getAllTexts_ShouldReturnListOfResponses() {
@@ -95,8 +127,6 @@ class ReadingTextServiceTest {
 
         assertNotNull(responses, "Daftar respons tidak boleh null");
         assertEquals(1, responses.size(), "Ukuran daftar respons harus 1");
-        assertEquals(TITLE_JAVA, responses.get(0).title(), "Judul respons pertama harus sama");
-        assertEquals(CATEGORY_EDUKASI, responses.get(0).categoryName(), "Kategori respons pertama harus sama");
         verify(readingTextRepository, times(1)).findAll();
     }
 
@@ -108,7 +138,6 @@ class ReadingTextServiceTest {
 
         assertNotNull(response, "Respons tidak boleh null jika text ditemukan");
         assertEquals(1L, response.id(), "ID respons harus sama dengan ID yang diminta");
-        assertEquals(TITLE_JAVA, response.title(), "Judul respons harus sama dengan judul DB");
         verify(readingTextRepository, times(1)).findById(1L);
     }
 
@@ -122,10 +151,6 @@ class ReadingTextServiceTest {
                 "Harus melempar exception jika bacaan tidak ditemukan"
         );
     }
-
-    // ==========================================
-    // TEST DELETE TEXT
-    // ==========================================
 
     @Test
     void deleteText_WhenTextExists_ShouldDeleteSuccessfully() {

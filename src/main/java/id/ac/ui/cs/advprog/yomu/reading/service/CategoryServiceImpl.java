@@ -35,6 +35,15 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    public Category updateCategory(Long id, String name) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        category.setName(name);
+        return categoryRepository.save(category);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new RuntimeException("Category not found");

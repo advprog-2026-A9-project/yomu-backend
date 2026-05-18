@@ -60,6 +60,32 @@ public class QuizQuestionServiceImpl implements QuizQuestionService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    public QuizQuestionResponse updateQuestion(Long questionId, QuizQuestionRequest request) {
+        QuizQuestion question = quizQuestionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        question.setQuestionText(request.questionText());
+
+        // Strategi Update: Hapus semua opsi lama, ganti dengan yang baru
+        quizOptionRepository.deleteAll(question.getOptions());
+        question.getOptions().clear();
+
+        QuizQuestion savedQuestion = quizQuestionRepository.save(question);
+
+        List<QuizOptionResponse> optionResponses = request.options().stream().map(optReq -> {
+            QuizOption option = new QuizOption();
+            option.setOptionText(optReq.optionText());
+            option.setCorrect(optReq.isCorrect());
+            option.setQuizQuestion(savedQuestion);
+            QuizOption savedOpt = quizOptionRepository.save(option);
+            return new QuizOptionResponse(savedOpt.getId(), savedOpt.getOptionText());
+        }).collect(Collectors.toList());
+
+        return new QuizQuestionResponse(savedQuestion.getId(), savedQuestion.getQuestionText(), optionResponses);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteQuestion(Long questionId) {
         if (!quizQuestionRepository.existsById(questionId)) {
             throw new RuntimeException("Harus melempar exception jika pertanyaan yang ingin dihapus tidak ada");

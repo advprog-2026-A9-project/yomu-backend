@@ -34,6 +34,16 @@ public class QuizQuestionController {
         return ResponseEntity.ok(responses);
     }
 
+    @PutMapping("/{questionId}")
+    public ResponseEntity<QuizQuestionResponse> updateQuestion(
+            @PathVariable Long readingTextId,
+            @PathVariable Long questionId,
+            @RequestBody QuizQuestionRequest request) {
+
+        final QuizQuestionResponse response = quizQuestionService.updateQuestion(questionId, request);
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping("/{questionId}")
     public ResponseEntity<Void> deleteQuestion(
             @PathVariable Long readingTextId,

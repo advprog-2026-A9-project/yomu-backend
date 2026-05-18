@@ -8,6 +8,7 @@ import java.util.List;
 public interface ReadingTextService {
     ReadingTextResponse createText(ReadingTextRequest request);
     List<ReadingTextResponse> getAllTexts();
-    void deleteText(Long id);
     ReadingTextResponse getTextById(Long id);
+    ReadingTextResponse updateText(Long id, ReadingTextRequest request);
+    void deleteText(Long id);
 }

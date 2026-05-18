@@ -18,9 +18,7 @@ public class ReadingTextController {
     private final ReadingTextService readingTextService;
 
     @PostMapping
-    public ResponseEntity<ReadingTextResponse> createText(
-            @RequestBody ReadingTextRequest request) {
-
+    public ResponseEntity<ReadingTextResponse> createText(@RequestBody ReadingTextRequest request) {
         ReadingTextResponse response = readingTextService.createText(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -31,16 +29,23 @@ public class ReadingTextController {
         return ResponseEntity.ok(responses);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteText(@PathVariable Long id) {
-
-        readingTextService.deleteText(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<ReadingTextResponse> getTextById(@PathVariable Long id) {
         final ReadingTextResponse response = readingTextService.getTextById(id);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ReadingTextResponse> updateText(
+            @PathVariable Long id,
+            @RequestBody ReadingTextRequest request) {
+        ReadingTextResponse response = readingTextService.updateText(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteText(@PathVariable Long id) {
+        readingTextService.deleteText(id);
+        return ResponseEntity.noContent().build();
     }
 }

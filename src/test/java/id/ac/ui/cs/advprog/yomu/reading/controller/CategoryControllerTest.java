@@ -17,12 +17,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,6 +36,7 @@ class CategoryControllerTest {
 
     private static final Long CATEGORY_ID = 1L;
     private static final String CATEGORY_NAME = "Teknologi";
+    private static final String UPDATED_CATEGORY_NAME = "Sains"; // PMD Fix: Ekstraksi String ke konstanta
 
     @Autowired
     private MockMvc mockMvc;
@@ -54,10 +57,6 @@ class CategoryControllerTest {
         validCategory = new Category(CATEGORY_ID, CATEGORY_NAME);
     }
 
-    // ==========================================
-    // TEST GET ALL CATEGORIES (GET)
-    // ==========================================
-
     @Test
     @WithMockUser
     void getAllCategories_ShouldReturnOk() throws Exception {
@@ -72,10 +71,6 @@ class CategoryControllerTest {
         verify(categoryService, times(1)).getAllCategories();
     }
 
-    // ==========================================
-    // TEST GET BY ID (GET)
-    // ==========================================
-
     @Test
     @WithMockUser
     void getCategoryById_ShouldReturnOk() throws Exception {
@@ -88,10 +83,6 @@ class CategoryControllerTest {
 
         verify(categoryService, times(1)).getCategoryById(CATEGORY_ID);
     }
-
-    // ==========================================
-    // TEST CREATE CATEGORY (POST)
-    // ==========================================
 
     @Test
     @WithMockUser(authorities = {"ROLE_ADMIN"})
@@ -110,9 +101,23 @@ class CategoryControllerTest {
         verify(categoryService, times(1)).createCategory(CATEGORY_NAME);
     }
 
-    // ==========================================
-    // TEST DELETE CATEGORY (DELETE)
-    // ==========================================
+    @Test
+    @WithMockUser(authorities = {"ROLE_ADMIN"})
+    void updateCategory_WhenAuthorized_ShouldReturnOk() throws Exception {
+        Map<String, String> requestBody = Map.of("name", UPDATED_CATEGORY_NAME);
+        Category updatedCategory = new Category(CATEGORY_ID, UPDATED_CATEGORY_NAME);
+
+        when(categoryService.updateCategory(eq(CATEGORY_ID), eq(UPDATED_CATEGORY_NAME))).thenReturn(updatedCategory);
+
+        mockMvc.perform(put("/api/categories/{id}", CATEGORY_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(CATEGORY_ID))
+                .andExpect(jsonPath("$.name").value(UPDATED_CATEGORY_NAME));
+
+        verify(categoryService, times(1)).updateCategory(eq(CATEGORY_ID), eq(UPDATED_CATEGORY_NAME));
+    }
 
     @Test
     @WithMockUser(authorities = {"ROLE_ADMIN"})
