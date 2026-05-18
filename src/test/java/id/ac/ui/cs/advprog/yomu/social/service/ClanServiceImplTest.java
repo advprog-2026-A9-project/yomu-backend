@@ -35,6 +35,8 @@ import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
 import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
 import static org.mockito.Mockito.lenient;
 
+import org.springframework.context.ApplicationEventPublisher;
+
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class ClanServiceImplTest {
@@ -50,6 +52,9 @@ class ClanServiceImplTest {
 
     @Mock
     private SocialMapper socialMapper;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private ClanServiceImpl clanService;
