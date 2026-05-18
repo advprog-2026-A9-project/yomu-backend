@@ -1,4 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.reading.controller;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 import id.ac.ui.cs.advprog.yomu.reading.dto.ReadingTextRequest;
 import id.ac.ui.cs.advprog.yomu.reading.dto.ReadingTextResponse;
@@ -47,5 +49,15 @@ public class ReadingTextController {
     public ResponseEntity<Void> deleteText(@PathVariable Long id) {
         readingTextService.deleteText(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/complete")
+    @PreAuthorize("hasRole('PELAJAR') or hasRole('STUDENT')")
+    public ResponseEntity<String> completeReading(@PathVariable Long id, Authentication authentication) {
+        String username = authentication.getName();
+
+        readingTextService.completeReading(id, username);
+
+        return ResponseEntity.ok("Teks berhasil ditandai selesai dibaca");
     }
 }
