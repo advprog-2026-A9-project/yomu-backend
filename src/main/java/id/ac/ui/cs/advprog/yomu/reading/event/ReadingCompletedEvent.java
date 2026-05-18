@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationEvent;
 
 @Getter
 public class ReadingCompletedEvent extends ApplicationEvent {
+    private static final long serialVersionUID = 1L;
     private final Long readingTextId;
     private final String username;
 
