@@ -9,12 +9,14 @@ public class UserJoinClanEvent extends ApplicationEvent {
     private final String userId;
     private final String clanId;
     private final String clanName;
+    private final String clanTier;
 
-    public UserJoinClanEvent(Object source, String userId, String clanId, String clanName) {
+    public UserJoinClanEvent(Object source, String userId, String clanId, String clanName, String clanTier) {
         super(source);
         this.userId = userId;
         this.clanId = clanId;
         this.clanName = clanName;
+        this.clanTier = clanTier;
     }
 
     public String getUserId() {
@@ -27,5 +29,9 @@ public class UserJoinClanEvent extends ApplicationEvent {
 
     public String getClanName() {
         return clanName;
+    }
+
+    public String getClanTier() {
+        return clanTier;
     }
 }
