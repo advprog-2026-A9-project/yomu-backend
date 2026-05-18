@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.ShowcaseUpdateRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementShowcase;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserAchievementShowcaseRepository;
+import id.ac.ui.cs.advprog.yomu.gamification.event.UserShowcaseAchievementChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class AchievementShowcaseServiceImpl implements AchievementShowcaseService {
 
     private final UserAchievementShowcaseRepository repository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public List<String> getShowcaseByUserId(String userId) {
@@ -37,5 +40,7 @@ public class AchievementShowcaseServiceImpl implements AchievementShowcaseServic
 
         showcase.setAchievementIds(request.getAchievementIds());
         repository.save(showcase);
+
+        eventPublisher.publishEvent(new UserShowcaseAchievementChangedEvent(userId, request.getAchievementIds()));
     }
 }
