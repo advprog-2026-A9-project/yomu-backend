@@ -128,7 +128,7 @@ public class ClanServiceImpl implements ClanService {
         member.setRole(role);
         memberRepository.save(member);
 
-        eventPublisher.publishEvent(new UserJoinClanEvent(this, validUserId, validClanId, clan.getName()));
+        eventPublisher.publishEvent(new UserJoinClanEvent(this, validUserId, validClanId, clan.getName(), clan.getTier() != null ? clan.getTier().name() : "BRONZE"));
     }
 
     @Override
@@ -201,7 +201,7 @@ public class ClanServiceImpl implements ClanService {
         member.setRole(SocialConstants.ROLE_MEMBER);
         memberRepository.save(member);
 
-        eventPublisher.publishEvent(new UserJoinClanEvent(this, req.getUserId(), validClanId, clan.getName()));
+        eventPublisher.publishEvent(new UserJoinClanEvent(this, req.getUserId(), validClanId, clan.getName(), clan.getTier() != null ? clan.getTier().name() : "BRONZE"));
     }
 
     @Override

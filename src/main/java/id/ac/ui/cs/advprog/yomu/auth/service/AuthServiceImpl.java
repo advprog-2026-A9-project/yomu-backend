@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRole("PELAJAR");
 
         final User saved = userRepository.save(user);
-        eventPublisher.publishEvent(new UserCreatedEvent(this, saved.getId()));
+        eventPublisher.publishEvent(new UserCreatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
         final String token = jwtUtil.generateToken(saved.getId(), saved.getUsername(), saved.getRole());
         return new AuthResponse(saved.getId(), saved.getUsername(), saved.getRole(), token, "Registrasi berhasil");
     }
@@ -147,7 +147,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         final User saved = userRepository.save(user);
-        eventPublisher.publishEvent(new UserUpdatedEvent(this, saved.getId()));
+        eventPublisher.publishEvent(new UserUpdatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
         return new AccountResponse(
                 saved.getId(),
                 saved.getUsername(),
