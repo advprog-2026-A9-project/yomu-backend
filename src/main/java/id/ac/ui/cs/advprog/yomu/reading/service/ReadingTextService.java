@@ -6,16 +6,9 @@ import id.ac.ui.cs.advprog.yomu.reading.dto.ReadingTextResponse;
 import java.util.List;
 
 public interface ReadingTextService {
-
-    // Fitur: Admin dapat membuat teks bacaan
-    ReadingTextResponse createText(ReadingTextRequest request, String role);
-
-    // Fitur: Pelajar dapat melihat daftar teks yang tersedia
+    ReadingTextResponse createText(ReadingTextRequest request);
     List<ReadingTextResponse> getAllTexts();
-
-    // Fitur: Admin dapat menghapus teks bacaan
-    void deleteText(Long id, String role);
-
     ReadingTextResponse getTextById(Long id);
-
+    ReadingTextResponse updateText(Long id, ReadingTextRequest request);
+    void deleteText(Long id);
 }
