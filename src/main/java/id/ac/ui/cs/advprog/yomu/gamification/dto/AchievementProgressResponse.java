@@ -8,6 +8,7 @@ public record AchievementProgressResponse(
     boolean unlocked,
     String milestone,
     String milestoneType,
-    int milestoneThreshold
+    int milestoneThreshold,
+    String tier
 ) {
 }

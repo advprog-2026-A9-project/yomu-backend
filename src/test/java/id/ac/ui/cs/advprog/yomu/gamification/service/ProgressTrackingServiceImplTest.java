@@ -27,6 +27,12 @@ import id.ac.ui.cs.advprog.yomu.gamification.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserAchievementProgressRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserDailyMissionProgressRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.validation.GamificationValidator;
+import id.ac.ui.cs.advprog.yomu.gamification.mapper.GamificationMapper;
+import id.ac.ui.cs.advprog.yomu.gamification.strategy.AchievementProgressEvaluator;
+import id.ac.ui.cs.advprog.yomu.gamification.strategy.CountBasedAchievementEvaluator;
+import id.ac.ui.cs.advprog.yomu.gamification.strategy.AccuracyBasedAchievementEvaluator;
+import id.ac.ui.cs.advprog.yomu.gamification.strategy.RankingBasedAchievementEvaluator;
+import id.ac.ui.cs.advprog.yomu.gamification.strategy.ClanPromotedAchievementEvaluator;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings({"null", "unused"})
@@ -54,7 +60,9 @@ class ProgressTrackingServiceImplTest {
     @Mock
     private AllDailyMissionsCompletedEventPublisher allDailyMissionsCompletedEventPublisher;
 
-    @InjectMocks
+    @Mock
+    private GamificationMapper mapper;
+
     private ProgressTrackingServiceImpl progressTrackingService;
 
     private DailyMission readMission;
@@ -101,6 +109,24 @@ class ProgressTrackingServiceImplTest {
         skippedAchievement.setMilestoneType("accuracy_above");
         skippedAchievement.setMilestoneThreshold(90);
         skippedAchievement.setActive(true);
+
+        List<AchievementProgressEvaluator> achievementEvaluators = List.of(
+            new CountBasedAchievementEvaluator(),
+            new AccuracyBasedAchievementEvaluator(),
+            new RankingBasedAchievementEvaluator(),
+            new ClanPromotedAchievementEvaluator()
+        );
+
+        progressTrackingService = new ProgressTrackingServiceImpl(
+            achievementRepository,
+            dailyMissionRepository,
+            userAchievementProgressRepository,
+            userDailyMissionProgressRepository,
+            validator,
+            mapper,
+            allDailyMissionsCompletedEventPublisher,
+            achievementEvaluators
+        );
     }
 
     @Test

@@ -183,7 +183,7 @@ class ProfileEventListenerTest {
 
         List<UserShowcaseAchievementChangedEvent.ShowcaseAchievementInfo> achievements = new ArrayList<>();
         achievements.add(new UserShowcaseAchievementChangedEvent.ShowcaseAchievementInfo(
-            "ach-1", "First Quiz", "Complete a quiz", "GOLD", "text-amber-400"
+            "ach-1", "First Quiz", "Complete a quiz", "GOLD"
         ));
 
         UserShowcaseAchievementChangedEvent event = new UserShowcaseAchievementChangedEvent(TEST_USER_ID, achievements);

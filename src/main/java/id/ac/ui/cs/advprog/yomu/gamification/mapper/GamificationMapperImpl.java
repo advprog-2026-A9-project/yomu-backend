@@ -26,6 +26,7 @@ public class GamificationMapperImpl implements GamificationMapper {
             achievement.getMilestone(),
             achievement.getMilestoneType(),
             achievement.getMilestoneThreshold(),
+            achievement.getTier(),
             0L,
             achievement.isActive()
         );
@@ -56,7 +57,8 @@ public class GamificationMapperImpl implements GamificationMapper {
             progress.isUnlocked(),
             progress.getAchievement().getMilestone(),
             progress.getAchievement().getMilestoneType(),
-            progress.getAchievement().getMilestoneThreshold()
+            progress.getAchievement().getMilestoneThreshold(),
+            progress.getAchievement().getTier()
         );
     }
 

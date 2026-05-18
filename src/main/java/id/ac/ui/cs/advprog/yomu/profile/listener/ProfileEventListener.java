@@ -142,7 +142,6 @@ public class ProfileEventListener {
                         .name(achInfo.name())
                         .description(achInfo.description())
                         .tier(achInfo.tier())
-                        .iconColor(achInfo.iconColor())
                         .build());
             }
         }
