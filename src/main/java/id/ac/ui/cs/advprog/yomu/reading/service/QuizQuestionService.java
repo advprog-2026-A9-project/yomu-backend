@@ -8,5 +8,6 @@ import java.util.List;
 public interface QuizQuestionService {
     QuizQuestionResponse createQuestion(Long readingTextId, QuizQuestionRequest request);
     List<QuizQuestionResponse> getQuestionsByReadingId(Long readingTextId);
+    QuizQuestionResponse updateQuestion(Long questionId, QuizQuestionRequest request);
     void deleteQuestion(Long questionId);
 }

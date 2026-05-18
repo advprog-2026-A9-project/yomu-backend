@@ -22,7 +22,6 @@ public class ReadingCompletion {
     @JoinColumn(name = "reading_text_id", nullable = false)
     private ReadingText readingText;
 
-    // Tambahan atribut metrik kuis agar sesuai dengan Service-mu
     @Column(nullable = false)
     private int score;
 

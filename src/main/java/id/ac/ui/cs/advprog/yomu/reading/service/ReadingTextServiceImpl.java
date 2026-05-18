@@ -51,6 +51,23 @@ public class ReadingTextServiceImpl implements ReadingTextService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    public ReadingTextResponse updateText(Long id, ReadingTextRequest request) {
+        ReadingText readingText = readingTextRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reading text not found"));
+
+        Category category = categoryRepository.findById(request.categoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        readingText.setTitle(request.title());
+        readingText.setContent(request.content());
+        readingText.setCategory(category);
+
+        ReadingText saved = readingTextRepository.save(readingText);
+        return new ReadingTextResponse(saved.getId(), saved.getTitle(), saved.getContent(), saved.getCategory().getName());
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteText(Long id) {
         if (!readingTextRepository.existsById(id)) {
             throw new RuntimeException("Reading text not found");

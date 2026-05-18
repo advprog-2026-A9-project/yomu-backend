@@ -35,10 +35,6 @@ class CategoryServiceTest {
         category = new Category(1L, CAT_NAME);
     }
 
-    // ==========================================
-    // TEST GET ALL CATEGORIES
-    // ==========================================
-
     @Test
     void getAllCategories_ShouldReturnList() {
         when(categoryRepository.findAll()).thenReturn(List.of(category));
@@ -51,10 +47,6 @@ class CategoryServiceTest {
         verify(categoryRepository, times(1)).findAll();
     }
 
-    // ==========================================
-    // TEST CREATE CATEGORY
-    // ==========================================
-
     @Test
     void createCategory_ShouldSave() {
         when(categoryRepository.save(any(Category.class))).thenReturn(category);
@@ -66,10 +58,29 @@ class CategoryServiceTest {
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 
+    @Test
+    void updateCategory_WhenExists_ShouldUpdateAndSave() {
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
-    // ==========================================
-    // TEST GET BY ID
-    // ==========================================
+        Category result = categoryService.updateCategory(1L, "Sains");
+
+        assertNotNull(result, "Kategori tidak boleh null");
+        verify(categoryRepository, times(1)).findById(1L);
+        verify(categoryRepository, times(1)).save(any(Category.class));
+    }
+
+    @Test
+    void updateCategory_WhenDoesNotExist_ShouldThrowException() {
+        when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(
+                RuntimeException.class,
+                () -> categoryService.updateCategory(99L, "Sains"),
+                "Harus melempar exception jika kategori tidak ditemukan"
+        );
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
 
     @Test
     void getCategoryById_WhenExists_ShouldReturnCategory() {
@@ -92,10 +103,6 @@ class CategoryServiceTest {
                 "Harus melempar exception jika kategori tidak ditemukan"
         );
     }
-
-    // ==========================================
-    // TEST DELETE CATEGORY
-    // ==========================================
 
     @Test
     void deleteCategory_WhenExists_ShouldDelete() {

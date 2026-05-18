@@ -19,12 +19,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -61,10 +63,6 @@ class ReadingTextControllerTest {
         validResponse = new ReadingTextResponse(TEXT_ID, TITLE_JAVA, CONTENT_JAVA, CATEGORY_NAME);
     }
 
-    // ==========================================
-    // TEST CREATE TEXT (POST)
-    // ==========================================
-
     @Test
     @WithMockUser(authorities = {"ROLE_ADMIN"})
     void createText_WhenAuthorized_ShouldReturnCreated() throws Exception {
@@ -82,10 +80,6 @@ class ReadingTextControllerTest {
         verify(readingTextService, times(1)).createText(any(ReadingTextRequest.class));
     }
 
-    // ==========================================
-    // TEST GET ALL TEXTS (GET)
-    // ==========================================
-
     @Test
     @WithMockUser
     void getAllTexts_ShouldReturnOk() throws Exception {
@@ -102,10 +96,6 @@ class ReadingTextControllerTest {
         verify(readingTextService, times(1)).getAllTexts();
     }
 
-    // ==========================================
-    // TEST GET BY ID (GET)
-    // ==========================================
-
     @Test
     @WithMockUser
     void getTextById_WhenTextExists_ShouldReturnOk() throws Exception {
@@ -120,9 +110,20 @@ class ReadingTextControllerTest {
         verify(readingTextService, times(1)).getTextById(TEXT_ID);
     }
 
-    // ==========================================
-    // TEST DELETE TEXT (DELETE)
-    // ==========================================
+    @Test
+    @WithMockUser(authorities = {"ROLE_ADMIN"})
+    void updateText_WhenAuthorized_ShouldReturnOk() throws Exception {
+        when(readingTextService.updateText(eq(TEXT_ID), any(ReadingTextRequest.class))).thenReturn(validResponse);
+
+        mockMvc.perform(put("/api/reading-texts/" + TEXT_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(TEXT_ID))
+                .andExpect(jsonPath("$.title").value(TITLE_JAVA));
+
+        verify(readingTextService, times(1)).updateText(eq(TEXT_ID), any(ReadingTextRequest.class));
+    }
 
     @Test
     @WithMockUser(authorities = {"ROLE_ADMIN"})
