@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.yomu.gamification.bootstrap;
 import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import id.ac.ui.cs.advprog.yomu.gamification.model.Achievement;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Order(1)
 @RequiredArgsConstructor
 @Slf4j
 public class GamificationDataSeeder implements CommandLineRunner {
@@ -66,62 +68,36 @@ public class GamificationDataSeeder implements CommandLineRunner {
 
     private void seedAchievements() {
         List<Achievement> achievements = List.of(
-                // --- READING MILESTONES (15) ---
-                createAchievement("First Page", "Read your first 5 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 5),
-                createAchievement("Quick Learner", "Read 10 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 10),
-                createAchievement("Consistent Reader", "Read 20 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 20),
-                createAchievement("Knowledge Seeker", "Read 35 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 35),
-                createAchievement("Literacy Enthusiast", "Read 50 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 50),
-                createAchievement("Bibliophile", "Read 75 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 75),
-                createAchievement("Information Junkie", "Read 100 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 100),
-                createAchievement("Deep Diver", "Read 125 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 125),
-                createAchievement("Wisdom Gatherer", "Read 150 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 150),
-                createAchievement("Archivist", "Read 175 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 175),
-                createAchievement("Polymath in Training", "Read 200 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 200),
-                createAchievement("Walking Encyclopedia", "Read 250 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 250),
-                createAchievement("Library Resident", "Read 300 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 300),
-                createAchievement("Knowledge Overlord", "Read 400 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 400),
-                createAchievement("The Ultimate Reader", "Read 500 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 500),
+                // --- READING MILESTONES (Starter + 5 Tahap) ---
+                createAchievement("First Steps", "Read 1 article", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 1,
+                        "BRONZE"),
+                createAchievement("Literacy Enthusiast", "Read 50 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 50,
+                        "SILVER"),
+                createAchievement("Wisdom Gatherer", "Read 150 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 150,
+                        "GOLD"),
+                createAchievement("Library Resident", "Read 300 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 300,
+                        "DIAMOND"),
+                createAchievement("The Ultimate Reader", "Read 500 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 500,
+                        "MYTHIC"),
+                createAchievement("Knowledge Deity", "Read 1000 articles", ACHIEVEMENT_TYPE_READINGS_COMPLETED, 1000,
+                        "GODLIKE"),
 
-                // --- QUIZ MILESTONES (15) ---
-                createAchievement("Quiz Starter", "Pass 5 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 5),
-                createAchievement("Academic Apprentice", "Pass 10 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 10),
-                createAchievement("Test Taker", "Pass 15 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 15),
-                createAchievement("Study Buddy", "Pass 25 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 25),
-                createAchievement("Exam Crusher", "Pass 40 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 40),
-                createAchievement("Knowledge Validator", "Pass 60 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 60),
-                createAchievement("Quiz Veteran", "Pass 80 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 80),
-                createAchievement("Master of Inquiry", "Pass 100 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 100),
-                createAchievement("The Analyzer", "Pass 125 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 125),
-                createAchievement("Critical Thinker", "Pass 150 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 150),
-                createAchievement("Intellectual Beast", "Pass 200 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 200),
-                createAchievement("Quiz God", "Pass 250 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 250),
-                createAchievement("Unstoppable Genius", "Pass 300 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 300),
-                createAchievement("The Oracle", "Pass 400 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 400),
-                createAchievement("Sovereign of Scores", "Pass 500 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 500),
+                // --- QUIZ MILESTONES (Starter + 5 Tahap) ---
+                createAchievement("Quiz Initiate", "Pass 1 quiz", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 1, "BRONZE"),
+                createAchievement("Exam Crusher", "Pass 50 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 50, "SILVER"),
+                createAchievement("Critical Thinker", "Pass 150 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 150, "GOLD"),
+                createAchievement("Unstoppable Genius", "Pass 300 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 300,
+                        "DIAMOND"),
+                createAchievement("Sovereign of Scores", "Pass 500 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 500,
+                        "MYTHIC"),
+                createAchievement("Quiz Deity", "Pass 1000 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 1000, "GODLIKE"),
 
-                // --- ACCURACY EXCELLENCE (20) ---
-                createAchievement("First Strike", "Get 100% in 1 quiz", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("Sharpened Mind", "Get 90% or more in 5 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 90),
-                createAchievement("High Achiever", "Get 85% or more in 10 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 85),
-                createAchievement("Sniper Precision", "Get 100% in 5 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("Excellent Merit", "Get 95% or more in 15 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 95),
-                createAchievement("Perfect streak", "Get 100% in 10 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("Elite Scholar", "Get 90% or more in 25 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 90),
-                createAchievement("Silver Tongue", "Get 80% or more in 40 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 80),
-                createAchievement("Gold Standard", "Get 100% in 20 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("Diamond Accuracy", "Get 95% or more in 35 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 95),
-                createAchievement("Flawless Logic", "Get 100% in 30 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("Master of Truth", "Get 90% or more in 50 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 90),
-                createAchievement("Divine Insight", "Get 100% in 50 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("The Perfectionist", "Get 100% in 75 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("Centurion", "Get 100% in 100 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("Godly Focus", "Get 98% or more in 125 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 98),
-                createAchievement("Impeccable Record", "Get 100% in 150 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("Legend of Literacy", "Get 95% or more in 200 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 95),
-                createAchievement("Ascended Mind", "Get 100% in 250 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100),
-                createAchievement("Eternal Wisdom", "Get 100% in 500 quizzes", ACHIEVEMENT_TYPE_ACCURACY_ABOVE, 100)
-        );
+                // --- CONTOH MANUAL OVERRIDE (Top 1 Clan in Season) ---
+                // Threshold diset ke 0 karena ini bukan achievement berbasis progres numerik,
+                // tapi tier diset langsung ke GODLIKE sehingga saat di-unlock akan dianggap
+                // tertinggi.
+                createAchievement("Season 1 Champion", "Top 1 Clan in Season 1 Leaderboard", "special_event", 0,
+                        "GODLIKE"));
 
         int count = 0;
         for (Achievement ach : achievements) {
@@ -145,12 +121,13 @@ public class GamificationDataSeeder implements CommandLineRunner {
         return mission;
     }
 
-    private Achievement createAchievement(String name, String milestone, String type, int threshold) {
+    private Achievement createAchievement(String name, String milestone, String type, int threshold, String tier) {
         Achievement ach = new Achievement();
         ach.setName(name);
         ach.setMilestone(milestone);
         ach.setMilestoneType(type);
         ach.setMilestoneThreshold(threshold);
+        ach.setTier(tier);
         ach.setActive(true);
         return ach;
     }

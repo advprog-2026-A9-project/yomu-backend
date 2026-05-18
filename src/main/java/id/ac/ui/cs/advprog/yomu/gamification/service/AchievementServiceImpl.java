@@ -44,6 +44,7 @@ public class AchievementServiceImpl implements AchievementService {
         achievement.setMilestone(request.getMilestone().trim());
         achievement.setMilestoneType(request.getMilestoneType().trim());
         achievement.setMilestoneThreshold(request.getMilestoneThreshold());
+        achievement.setTier(request.getTier() != null && !request.getTier().isBlank() ? request.getTier().trim().toUpperCase(java.util.Locale.ROOT) : null);
 
         Achievement saved = achievementRepository.save(achievement);
         return toResponse(saved);
@@ -72,6 +73,7 @@ public class AchievementServiceImpl implements AchievementService {
         achievement.setMilestone(request.getMilestone().trim());
         achievement.setMilestoneType(request.getMilestoneType().trim());
         achievement.setMilestoneThreshold(request.getMilestoneThreshold());
+        achievement.setTier(request.getTier() != null && !request.getTier().isBlank() ? request.getTier().trim().toUpperCase(java.util.Locale.ROOT) : null);
 
         return toResponse(achievementRepository.save(achievement));
     }
@@ -104,6 +106,7 @@ public class AchievementServiceImpl implements AchievementService {
             achievement.getMilestone(),
             achievement.getMilestoneType(),
             achievement.getMilestoneThreshold(),
+            achievement.getTier(),
             userAchievementProgressRepository.countByAchievement(achievement),
             achievement.isActive()
         );
