@@ -10,9 +10,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanJoinRequest;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.model.SeasonState;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
+import id.ac.ui.cs.advprog.yomu.social.repository.ClanJoinRequestRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.SeasonStateRepository;
@@ -25,9 +27,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ClanDataSeeder implements CommandLineRunner {
 
+    private static final String FULL_CAPACITY_CLAN_NAME = "Full Capacity Silver";
+    private static final String JOIN_REQUEST_TEST_CLAN_NAME = "Join Request Test Clan";
+    private static final String ROLE_MEMBER = "MEMBER";
+    private static final String ROLE_LEADER = "LEADER";
+    private static final String STATUS_PENDING = "PENDING";
+
     private final ClanRepository clanRepository;
     private final ClanMemberRepository clanMemberRepository;
     private final SeasonStateRepository seasonStateRepository;
+    private final ClanJoinRequestRepository clanJoinRequestRepository;
 
     @Override
     @Transactional
@@ -35,6 +44,7 @@ public class ClanDataSeeder implements CommandLineRunner {
         if (clanRepository.count() == 0) {
             seedClans();
             seedMembers();
+            seedJoinRequests();
             if (log.isInfoEnabled()) {
                 log.info("Seeded dummy clan data for end-season simulation.");
             }
@@ -69,7 +79,10 @@ public class ClanDataSeeder implements CommandLineRunner {
             createClan("Nova Gold", "Gold clan with steady performance", "user-leader-n", Tier.GOLD, 332),
             createClan("Helix Diamond", "Diamond clan for stability checks", "user-leader-h", Tier.DIAMOND, 650),
             createClan("Orion Diamond", "Diamond clan in close title race", "user-leader-o", Tier.DIAMOND, 615),
-            createClan("Pulse Diamond", "Diamond clan with high consistency", "user-leader-p", Tier.DIAMOND, 590)
+            createClan("Pulse Diamond", "Diamond clan with high consistency", "user-leader-p", Tier.DIAMOND, 590),
+            // Special clans untuk QA testing
+            createClan(FULL_CAPACITY_CLAN_NAME, "Silver clan already at 50/50 capacity for TC-SOC-02b testing", "user-leader-full-silver", Tier.SILVER, 250),
+            createClan(JOIN_REQUEST_TEST_CLAN_NAME, "Clan with pending join requests for TC-SOC-03a and TC-SOC-03b testing", "leadreqclan", Tier.BRONZE, 100)
         ));
 
         // Tambah 50 clan secara dinamis
@@ -99,12 +112,15 @@ public class ClanDataSeeder implements CommandLineRunner {
 
         clans.forEach(clanRepository::save);
         if (log.isInfoEnabled()) {
-            log.info("Seeded {} dummy clans.", clans.size());
+            log.info("Seeded {} dummy clans (including 2 special QA test clans).", clans.size());
         }
     }
 
     private void seedMembers() {
-        clanRepository.findAll().forEach(clan -> createMembersForClan(clan).forEach(clanMemberRepository::save));
+        clanRepository.findAll().forEach(clan -> {
+            List<ClanMember> members = createMembersForClan(clan);
+            members.forEach(clanMemberRepository::save);
+        });
     }
 
     private Clan createClan(String name, String description, String leaderUserId, Tier tier, int score) {
@@ -118,12 +134,67 @@ public class ClanDataSeeder implements CommandLineRunner {
     }
 
     private List<ClanMember> createMembersForClan(Clan clan) {
-        return List.of(
-            createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", "LEADER"),
-            createMember(clan, clan.getId() + "-m1", clan.getName() + " Member 1", "MEMBER"),
-            createMember(clan, clan.getId() + "-m2", clan.getName() + " Member 2", "MEMBER"),
-            createMember(clan, clan.getId() + "-m3", clan.getName() + " Member 3", "MEMBER")
-        );
+        // Special handling untuk clan yang akan ditest
+        if (FULL_CAPACITY_CLAN_NAME.equals(clan.getName())) {
+            // Buat 50 members untuk menguji clan kapasitas penuh (TC-SOC-02b)
+            return createFullCapacityMembers(clan);
+        } else if (JOIN_REQUEST_TEST_CLAN_NAME.equals(clan.getName())) {
+            // Buat 10 members untuk clan dengan pending join requests (TC-SOC-03a, TC-SOC-03b)
+            return createMembersWithPendingRequests(clan);
+        } else {
+            // Default: 4 members (1 leader + 3 members)
+            return List.of(
+                createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", ROLE_LEADER),
+                createMember(clan, clan.getId() + "-m1", clan.getName() + " Member 1", ROLE_MEMBER),
+                createMember(clan, clan.getId() + "-m2", clan.getName() + " Member 2", ROLE_MEMBER),
+                createMember(clan, clan.getId() + "-m3", clan.getName() + " Member 3", ROLE_MEMBER)
+            );
+        }
+    }
+
+    private List<ClanMember> createFullCapacityMembers(Clan clan) {
+        List<ClanMember> members = new ArrayList<>();
+        // Tambah leader
+        members.add(createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", ROLE_LEADER));
+        // Tambah 49 members untuk mencapai kapasitas maksimal 50/50
+        for (int i = 1; i <= 49; i++) {
+            members.add(createMember(clan, clan.getId() + "-full-" + i, clan.getName() + " Member " + i, ROLE_MEMBER));
+        }
+        return members;
+    }
+
+    private List<ClanMember> createMembersWithPendingRequests(Clan clan) {
+        List<ClanMember> members = new ArrayList<>();
+        // Tambah leader
+        members.add(createMember(clan, clan.getLeaderUserId(), clan.getName() + " Leader", ROLE_LEADER));
+        // Tambah 10 members
+        for (int i = 1; i <= 10; i++) {
+            members.add(createMember(clan, clan.getId() + "-req-" + i, clan.getName() + " Member " + i, ROLE_MEMBER));
+        }
+        return members;
+    }
+
+    private void seedJoinRequests() {
+        // Cari "Join Request Test Clan" untuk membuat pending requests
+        var clanOptional = clanRepository.findAll().stream()
+            .filter(c -> JOIN_REQUEST_TEST_CLAN_NAME.equals(c.getName()))
+            .findFirst();
+
+        if (clanOptional.isPresent()) {
+            Clan clan = clanOptional.get();
+            // Buat 5 pending join requests untuk testing TC-SOC-03a dan TC-SOC-03b
+            for (int i = 1; i <= 5; i++) {
+                ClanJoinRequest request = new ClanJoinRequest();
+                request.setClanId(clan.getId());
+                request.setUserId("test-requester-" + i);
+                request.setUsername("Test Requester " + i);
+                request.setStatus(STATUS_PENDING);
+                clanJoinRequestRepository.save(request);
+            }
+            if (log.isInfoEnabled()) {
+                log.info("Seeded 5 pending join requests for '{}' clan.", clan.getName());
+            }
+        }
     }
 
     private ClanMember createMember(Clan clan, String userId, String username, String role) {

@@ -53,6 +53,9 @@ class ClanServiceLeaderboardTest {
     @Mock
     private SocialMapper socialMapper;
 
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private ClanServiceImpl clanService;
 
