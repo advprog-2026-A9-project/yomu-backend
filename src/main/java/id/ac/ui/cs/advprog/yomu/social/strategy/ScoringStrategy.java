@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.social.strategy;
 
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
+import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 
 /**
  * Strategy interface for calculating clan scores based on tier level.
@@ -16,8 +17,8 @@ public interface ScoringStrategy {
     int calculateScore(Clan clan, int basePoints);
 
     /**
-     * Get the name/description of this scoring strategy.
-     * @return strategy name
+     * Get the tier that this scoring strategy supports.
+     * @return supported tier
      */
-    String getStrategyName();
+    Tier getSupportedTier();
 }
