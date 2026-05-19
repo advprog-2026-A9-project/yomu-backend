@@ -8,6 +8,7 @@ import id.ac.ui.cs.advprog.yomu.profile.dto.ProfileResponse;
 import id.ac.ui.cs.advprog.yomu.profile.model.Profile;
 import id.ac.ui.cs.advprog.yomu.profile.repository.ProfileRepository;
 import id.ac.ui.cs.advprog.yomu.reading.event.QuizCompletedEvent;
+import id.ac.ui.cs.advprog.yomu.reading.event.ReadingCompletedEvent;
 import id.ac.ui.cs.advprog.yomu.social.event.ClanNameChangedEvent;
 import id.ac.ui.cs.advprog.yomu.social.event.UserDeleteClanEvent;
 import id.ac.ui.cs.advprog.yomu.social.event.UserJoinClanEvent;
@@ -58,15 +59,26 @@ public class ProfileEventListener {
         }
         Profile profile = getOrCreateProfile(event.userId());
         
-        profile.setCompletedTexts(profile.getCompletedTexts() + 1);
-        profile.setTotalMinutes(profile.getCompletedTexts() * 8);
-        
         profile.setCorrectAnswersSum(profile.getCorrectAnswersSum() + event.correctAnswers());
         profile.setTotalQuestionsSum(profile.getTotalQuestionsSum() + event.totalQuestions());
         
         if (profile.getTotalQuestionsSum() > 0) {
             profile.setQuizAccuracy((int) Math.round((profile.getCorrectAnswersSum() * 100.0) / profile.getTotalQuestionsSum()));
         }
+        
+        profileRepository.save(java.util.Objects.requireNonNull(profile));
+    }
+
+    @EventListener
+    @Transactional
+    public void onReadingCompleted(ReadingCompletedEvent event) {
+        if (log.isInfoEnabled()) {
+            log.info("Handling ReadingCompletedEvent for user: {}", event.getUsername());
+        }
+        Profile profile = getOrCreateProfile(event.getUsername());
+        
+        profile.setCompletedTexts(profile.getCompletedTexts() + 1);
+        profile.setTotalMinutes(profile.getCompletedTexts() * 8);
         
         profileRepository.save(java.util.Objects.requireNonNull(profile));
     }

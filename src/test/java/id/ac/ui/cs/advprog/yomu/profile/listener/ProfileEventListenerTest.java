@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.yomu.gamification.event.UserShowcaseAchievementChange
 import id.ac.ui.cs.advprog.yomu.profile.model.Profile;
 import id.ac.ui.cs.advprog.yomu.profile.repository.ProfileRepository;
 import id.ac.ui.cs.advprog.yomu.reading.event.QuizCompletedEvent;
+import id.ac.ui.cs.advprog.yomu.reading.event.ReadingCompletedEvent;
 import id.ac.ui.cs.advprog.yomu.social.event.ClanNameChangedEvent;
 import id.ac.ui.cs.advprog.yomu.social.event.UserDeleteClanEvent;
 import id.ac.ui.cs.advprog.yomu.social.event.UserJoinClanEvent;
@@ -100,11 +101,24 @@ class ProfileEventListenerTest {
         profileEventListener.onQuizCompleted(event);
 
         assertAll("quiz completed stats",
-                () -> assertEquals(1, sampleProfile.getCompletedTexts(), "Completed texts count should increment by 1"),
-                () -> assertEquals(8, sampleProfile.getTotalMinutes(), "Total minutes should increment by 8"),
+                () -> assertEquals(0, sampleProfile.getCompletedTexts(), "Completed texts count should not increment"),
+                () -> assertEquals(0, sampleProfile.getTotalMinutes(), "Total minutes should not increment"),
                 () -> assertEquals(80, sampleProfile.getQuizAccuracy(), "Quiz accuracy should be 80%"),
                 () -> assertEquals(4, sampleProfile.getCorrectAnswersSum(), "Correct answers sum should match"),
                 () -> assertEquals(5, sampleProfile.getTotalQuestionsSum(), "Total questions sum should match"));
+    }
+
+    @Test
+    void testOnReadingCompleted() {
+        when(profileRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(sampleProfile));
+        when(profileRepository.save(any(Profile.class))).thenReturn(sampleProfile);
+
+        ReadingCompletedEvent event = new ReadingCompletedEvent(this, 1L, TEST_USER_ID);
+        profileEventListener.onReadingCompleted(event);
+
+        assertAll("reading completed stats",
+                () -> assertEquals(1, sampleProfile.getCompletedTexts(), "Completed texts count should increment by 1"),
+                () -> assertEquals(8, sampleProfile.getTotalMinutes(), "Total minutes should increment by 8"));
     }
 
     @Test
