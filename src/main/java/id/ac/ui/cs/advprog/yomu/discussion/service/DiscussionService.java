@@ -10,10 +10,10 @@ import java.util.UUID;
 
 public interface DiscussionService {
     CommentResponse createComment(CreateCommentRequest request);
-    List<CommentResponse> getCommentsByReading(UUID readingId);
+    List<CommentResponse> getCommentsByReading(Long readingId);
     CommentResponse updateComment(UUID commentId, UpdateCommentRequest request);
     void deleteComment(UUID commentId, UUID userId);
-
+    List<CommentResponse> getAllComments();
     void addReaction(UUID commentId, UUID userId, ReactionRequest request);
     void deleteCommentByAdmin(UUID commentId);
 }

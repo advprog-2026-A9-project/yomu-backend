@@ -10,7 +10,7 @@ public class CommentResponse {
     private UUID id;
     private String content;
     private UUID userId;
-    private UUID readingId;
+    private Long readingId;
     private UUID parentId; // Tambahkan ini
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt; // Tambahkan ini
