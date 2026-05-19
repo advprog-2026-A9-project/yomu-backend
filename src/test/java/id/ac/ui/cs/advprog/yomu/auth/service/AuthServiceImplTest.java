@@ -39,6 +39,7 @@ class AuthServiceImplTest {
     private static final String TEST_NEW_USERNAME = "newusername";
     private static final String INVALID_ID = "invalid-id";
     private static final String USER_NOT_FOUND_MSG = "Harus throw exception jika user tidak ditemukan";
+    private static final String UNKNOWN_STRING = "unknown";
 
     @Mock
     private UserRepository userRepository;
@@ -212,6 +213,7 @@ class AuthServiceImplTest {
     void testLoginFailUserNotFound() {
         when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
         when(userRepository.findByEmail(any())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailIgnoreCase(any())).thenReturn(Optional.empty());
         when(userRepository.findByPhoneNumber(any())).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
@@ -220,63 +222,90 @@ class AuthServiceImplTest {
     }
 
     @Test
+    void testLoginTrimsIdentifierBeforeLookup() {
+        loginRequest.setIdentifier("  " + TEST_USERNAME + "  ");
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(TEST_PASSWORD, TEST_ENCODED_PASSWORD)).thenReturn(true);
+        when(jwtUtil.generateToken(any(), any(), any())).thenReturn(TEST_TOKEN);
+
+        final AuthResponse response = authService.login(loginRequest);
+
+        assertEquals(TEST_USERNAME, response.getUsername(), "Username harus ditemukan walau identifier punya spasi");
+    }
+
+    @Test
+    void testLoginFindsEmailCaseInsensitive() {
+        loginRequest.setIdentifier("MIZUKI@TEST.COM");
+        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(any())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailIgnoreCase("MIZUKI@TEST.COM")).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(TEST_PASSWORD, TEST_ENCODED_PASSWORD)).thenReturn(true);
+        when(jwtUtil.generateToken(any(), any(), any())).thenReturn(TEST_TOKEN);
+
+        final AuthResponse response = authService.login(loginRequest);
+
+        assertEquals(TEST_USERNAME, response.getUsername(), "Login email harus tidak sensitif huruf besar/kecil");
+    }
+
+    @Test
     void testUpdateAccountSuccessUsername() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
         when(userRepository.existsByUsername(TEST_NEW_USERNAME)).thenReturn(false);
         when(userRepository.save(any())).thenReturn(mockUser);
 
         UpdateAccountRequest request = new UpdateAccountRequest();
         request.setUsername(TEST_NEW_USERNAME);
 
-        AccountResponse response = authService.updateAccount(TEST_USER_ID, request);
+        AccountResponse response = authService.updateAccount(TEST_USERNAME, request);
 
         assertNotNull(response, "Response tidak boleh null");
     }
 
+
     @Test
     void testUpdateAccountPublishesUpdatedEvent() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
         when(userRepository.existsByUsername(TEST_NEW_USERNAME)).thenReturn(false);
         when(userRepository.save(any())).thenReturn(mockUser);
 
         UpdateAccountRequest request = new UpdateAccountRequest();
         request.setUsername(TEST_NEW_USERNAME);
 
-        authService.updateAccount(TEST_USER_ID, request);
+        authService.updateAccount(TEST_USERNAME, request);
 
         verify(eventPublisher).publishEvent(argThat(event ->
                 event instanceof UserUpdatedEvent
                         && TEST_USER_ID.equals(((UserUpdatedEvent) event).getUserId())));
     }
-
+    
     @Test
     void testUpdateAccountFailUserNotFound() {
-        when(userRepository.findById(INVALID_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByUsername(UNKNOWN_STRING)).thenReturn(Optional.empty());
 
         UpdateAccountRequest request = new UpdateAccountRequest();
-        request.setUsername("newusername");
+        request.setUsername(TEST_NEW_USERNAME);
 
         assertThrows(IllegalArgumentException.class,
-            () -> authService.updateAccount(INVALID_ID, request),
-            USER_NOT_FOUND_MSG);
+            () -> authService.updateAccount(UNKNOWN_STRING, request),
+            "Harus throw exception jika user tidak ditemukan");
     }
-
+    
     @Test
     void testUpdateAccountFailUsernameAlreadyTaken() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
         when(userRepository.existsByUsername("takenusername")).thenReturn(true);
 
         UpdateAccountRequest request = new UpdateAccountRequest();
         request.setUsername("takenusername");
 
         assertThrows(IllegalArgumentException.class,
-            () -> authService.updateAccount(TEST_USER_ID, request),
+            () -> authService.updateAccount(TEST_USERNAME, request),
             "Harus throw exception jika username sudah dipakai");
     }
 
     @Test
     void testUpdateAccountSuccessPassword() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(TEST_PASSWORD, TEST_ENCODED_PASSWORD)).thenReturn(true);
         when(passwordEncoder.encode("newpassword")).thenReturn("encoded_newpassword");
         when(userRepository.save(any())).thenReturn(mockUser);
@@ -285,12 +314,12 @@ class AuthServiceImplTest {
         request.setOldPassword(TEST_PASSWORD);
         request.setNewPassword("newpassword");
 
-        assertDoesNotThrow(() -> authService.updateAccount(TEST_USER_ID, request));
+        assertDoesNotThrow(() -> authService.updateAccount(TEST_USERNAME, request));
     }
 
     @Test
     void testUpdateAccountFailWrongOldPassword() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(any(), any())).thenReturn(false);
 
         UpdateAccountRequest request = new UpdateAccountRequest();
@@ -298,94 +327,94 @@ class AuthServiceImplTest {
         request.setNewPassword("newpassword");
 
         assertThrows(IllegalArgumentException.class,
-            () -> authService.updateAccount(TEST_USER_ID, request),
+            () -> authService.updateAccount(TEST_USERNAME, request),
             "Harus throw exception jika password lama salah");
     }
 
-    @Test
+   @Test
     void testDeleteAccountSuccess() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
 
-        assertDoesNotThrow(() -> authService.deleteAccount(TEST_USER_ID),
+        assertDoesNotThrow(() -> authService.deleteAccount(TEST_USERNAME),
             "Harus berhasil menghapus akun yang ada");
     }
 
     @Test
     void testDeleteAccountFailUserNotFound() {
-        when(userRepository.findById(INVALID_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByUsername(UNKNOWN_STRING)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
-            () -> authService.deleteAccount(INVALID_ID),
+            () -> authService.deleteAccount(UNKNOWN_STRING),
             USER_NOT_FOUND_MSG);
     }
 
     @Test
     void testDeleteAccountPublishesEvent() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
 
-        authService.deleteAccount(TEST_USER_ID);
+        authService.deleteAccount(TEST_USERNAME);
 
         verify(userRepository, times(1)).delete(mockUser);
     }
 
     @Test
     void testLinkLoginMethodSuccessEmail() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
         when(userRepository.existsByEmail("newemail@test.com")).thenReturn(false);
         when(userRepository.save(any())).thenReturn(mockUser);
 
         LinkLoginMethodRequest request = new LinkLoginMethodRequest();
         request.setEmail("newemail@test.com");
 
-        assertDoesNotThrow(() -> authService.linkLoginMethod(TEST_USER_ID, request));
+        assertDoesNotThrow(() -> authService.linkLoginMethod(TEST_USERNAME, request));
     }
 
     @Test
     void testLinkLoginMethodSuccessPhoneNumber() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
         when(userRepository.existsByPhoneNumber("08123456789")).thenReturn(false);
         when(userRepository.save(any())).thenReturn(mockUser);
 
         LinkLoginMethodRequest request = new LinkLoginMethodRequest();
         request.setPhoneNumber("08123456789");
 
-        assertDoesNotThrow(() -> authService.linkLoginMethod(TEST_USER_ID, request));
+        assertDoesNotThrow(() -> authService.linkLoginMethod(TEST_USERNAME, request));
     }
 
     @Test
     void testLinkLoginMethodFailUserNotFound() {
-        when(userRepository.findById(INVALID_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByUsername(UNKNOWN_STRING)).thenReturn(Optional.empty());
 
         LinkLoginMethodRequest request = new LinkLoginMethodRequest();
         request.setEmail("newemail@test.com");
 
         assertThrows(IllegalArgumentException.class,
-            () -> authService.linkLoginMethod(INVALID_ID, request),
+            () -> authService.linkLoginMethod(UNKNOWN_STRING, request),
             USER_NOT_FOUND_MSG);
     }
 
     @Test
     void testLinkLoginMethodFailEmailAlreadyTaken() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
         when(userRepository.existsByEmail("taken@test.com")).thenReturn(true);
 
         LinkLoginMethodRequest request = new LinkLoginMethodRequest();
         request.setEmail("taken@test.com");
 
         assertThrows(IllegalArgumentException.class,
-            () -> authService.linkLoginMethod(TEST_USER_ID, request),
+            () -> authService.linkLoginMethod(TEST_USERNAME, request),
             "Harus throw exception jika email sudah terdaftar");
     }
 
     @Test
     void testLinkLoginMethodFailInvalidEmailFormat() {
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
 
         LinkLoginMethodRequest request = new LinkLoginMethodRequest();
         request.setEmail("invalid-email");
 
         assertThrows(IllegalArgumentException.class,
-            () -> authService.linkLoginMethod(TEST_USER_ID, request),
+            () -> authService.linkLoginMethod(TEST_USERNAME, request),
             "Harus throw exception jika format email tidak valid");
     }
 
@@ -445,10 +474,10 @@ class AuthServiceImplTest {
 
     @Test
     void testGetMeFailUserNotFound() {
-        when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername(UNKNOWN_STRING)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
-            () -> authService.getMe("unknown"),
+            () -> authService.getMe(UNKNOWN_STRING),
             "Harus throw exception jika user tidak ditemukan");
     }
 }

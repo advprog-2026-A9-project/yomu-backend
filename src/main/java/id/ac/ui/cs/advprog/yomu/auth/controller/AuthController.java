@@ -38,7 +38,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.getMe(principal.getName()));
     }
 
-    @PutMapping("/account")
+   @PutMapping("/account")
     public ResponseEntity<AccountResponse> updateAccount(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody UpdateAccountRequest request) {
