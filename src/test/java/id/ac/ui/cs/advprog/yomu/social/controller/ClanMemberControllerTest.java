@@ -10,15 +10,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.joinrequest.ClanJoinRequestService;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.membership.ClanMembershipService;
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
@@ -27,54 +28,49 @@ class ClanMemberControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private ClanService clanService;
+    private ClanJoinRequestService joinRequestService;
 
     @Mock
-    private JwtUtil jwtUtil;
+    private ClanMembershipService membershipService;
+
+    @Mock
+    private Authentication authentication;
 
     @InjectMocks
     private ClanMemberController clanMemberController;
 
-    private static final String AUTHORIZATION_HEADER = "Authorization";
     private String clanId;
-    private String userId;
     private String username;
-    private String authHeader;
-    private String token;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(clanMemberController).build();
 
         clanId = "clan-123";
-        userId = "user-456";
         username = "testuser";
-        token = "dummy-token";
-        authHeader = "Bearer " + token;
     }
 
     @Test
     void testJoinClan() throws Exception {
-        when(jwtUtil.extractUserId(token)).thenReturn(userId);
-        when(jwtUtil.extractUsername(token)).thenReturn(username);
+        when(authentication.getName()).thenReturn(username);
 
         mockMvc.perform(post("/api/clans/" + clanId + "/join")
-                .header(AUTHORIZATION_HEADER, authHeader))
+                .principal(authentication))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Permintaan bergabung berhasil dikirim."));
 
-        verify(clanService, times(1)).requestJoin(eq(clanId), eq(userId), eq(username));
+        verify(joinRequestService, times(1)).requestJoin(eq(clanId), eq(username));
     }
 
     @Test
     void testLeaveClan() throws Exception {
-        when(jwtUtil.extractUserId(token)).thenReturn(userId);
+        when(authentication.getName()).thenReturn(username);
 
         mockMvc.perform(post("/api/clans/" + clanId + "/leave")
-                .header(AUTHORIZATION_HEADER, authHeader))
+                .principal(authentication))
                 .andExpect(status().isOk())
                 .andExpect(content().string(SocialConstants.LEAVE_SUCCESS_MESSAGE));
 
-        verify(clanService, times(1)).leaveClan(eq(clanId), eq(userId));
+        verify(membershipService, times(1)).leaveClan(eq(clanId), eq(username));
     }
 }

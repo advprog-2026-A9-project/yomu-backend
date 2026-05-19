@@ -1,0 +1,24 @@
+package id.ac.ui.cs.advprog.yomu.social.service.buff;
+
+import java.time.Instant;
+
+import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
+import id.ac.ui.cs.advprog.yomu.social.model.ModifierType;
+
+public interface BuffDefinition {
+    String getKey();
+    ModifierType getType();
+    double getMultiplier();
+
+    default ClanModifier createModifier(String clanId) {
+        ClanModifier m = new ClanModifier();
+        m.setClanId(clanId);
+        m.setKey(getKey());
+        m.setType(getType());
+        m.setMultiplier(getMultiplier());
+        m.setActive(true);
+        m.setStartAt(Instant.now());
+        m.setEndAt(null);
+        return m;
+    }
+}

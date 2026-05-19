@@ -45,6 +45,9 @@ public final class SocialConstants {
     public static final int LOW_ACCURACY_MIN_QUESTIONS = 10;
     public static final long LOW_ACCURACY_PENALTY_DURATION_MINUTES = 30;
 
+    public static final String DAILY_MISSION_BUFF_KEY = "DAILY_MISSION_BUFF";
+    public static final double DAILY_MISSION_BUFF_MULTIPLIER = 1.2d;
+
     public static final double MULTIPLIER_MIN = 0.5d;
     public static final double MULTIPLIER_MAX = 10.0d;
 }

@@ -1,4 +1,4 @@
-package id.ac.ui.cs.advprog.yomu.social.service;
+package id.ac.ui.cs.advprog.yomu.social.service.season;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,11 +21,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
+import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.SeasonStateRepository;
 import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
 import id.ac.ui.cs.advprog.yomu.social.dto.*;
-import java.util.ArrayList;
+import id.ac.ui.cs.advprog.yomu.social.service.score.ClanQuizStatsService;
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +45,7 @@ class SeasonServiceImplTest {
     private SeasonStateRepository seasonStateRepository;
 
     @Mock
-    private ClanModifierService modifierService;
+    private ClanModifierRepository modifierRepository;
 
     @Mock
     private SocialMapper socialMapper;
@@ -81,8 +82,11 @@ class SeasonServiceImplTest {
 
         when(seasonStateRepository.findTopByOrderByIdDesc()).thenReturn(Optional.empty());
         when(socialMapper.toDefaultSeasonStatusResponse()).thenReturn(new SeasonStatusResponse(1, "Active"));
-        lenient().when(socialMapper.toSeasonClanSummary(any(), any(Integer.class))).thenReturn(new SeasonClanSummary("id", "name", "tier", 0, 0));
-        lenient().when(socialMapper.toSeasonEndResponse(any(Integer.class), any(Integer.class), any(), any(), any(), any())).thenReturn(new SeasonEndResponse(1, 2, List.of(), List.of(), List.of(), List.of()));
+        lenient().when(socialMapper.toSeasonClanSummary(any(), any(Integer.class)))
+                .thenReturn(new SeasonClanSummary("id", "name", "tier", 0, 0));
+        lenient().when(
+                socialMapper.toSeasonEndResponse(any(Integer.class), any(Integer.class), any(), any(), any(), any()))
+                .thenReturn(new SeasonEndResponse(1, 2, List.of(), List.of(), List.of(), List.of()));
     }
 
     @Test
@@ -139,6 +143,6 @@ class SeasonServiceImplTest {
         assertAll("Verify global resets",
                 () -> verify(clanRepository).resetAllScores(),
                 () -> verify(statsService).resetSeasonStats(),
-                () -> verify(modifierService).clearSeasonModifiers());
+                () -> verify(modifierRepository).deactivateAllActive(any(java.time.Instant.class)));
     }
 }

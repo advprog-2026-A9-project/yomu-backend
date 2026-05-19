@@ -30,21 +30,21 @@ class ClanMemberTest {
     }
 
     @Test
-    void testSetAndGetUserId() {
-        String userId = "user-uuid-999";
-        clanMember.setUserId(userId);
-        assertEquals(userId, clanMember.getUserId(), "The User ID should match the assigned value");
+    void testSetAndGetUsername() {
+        String username = "user-uuid-999";
+        clanMember.setUsername(username);
+        assertEquals(username, clanMember.getUsername(), "The Username should match the assigned value");
     }
 
     @Test
     void testClanMemberFieldsNotNull() {
         clanMember.setId(10L);
         clanMember.setClanId("C-1");
-        clanMember.setUserId("U-1");
+        clanMember.setUsername("U-1");
 
         assertAll("Verify ClanMember Fields",
                 () -> assertNotNull(clanMember.getId(), "ClanMember ID should not be null"),
                 () -> assertNotNull(clanMember.getClanId(), "Clan ID should not be null"),
-                () -> assertNotNull(clanMember.getUserId(), "User ID should not be null"));
+                () -> assertNotNull(clanMember.getUsername(), "Username should not be null"));
     }
 }

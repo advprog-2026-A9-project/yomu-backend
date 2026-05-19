@@ -29,8 +29,8 @@ public class ClanValidatorImpl implements ClanValidator {
     }
 
     @Override
-    public void requireUserId(final String userId) {
-        validateId(userId, SocialConstants.USER_ID_NULL_MESSAGE);
+    public void requireUsername(final String username) {
+        validateId(username, SocialConstants.USER_ID_NULL_MESSAGE);
     }
 
     @Override
@@ -60,8 +60,8 @@ public class ClanValidatorImpl implements ClanValidator {
     }
 
     @Override
-    public void requireLeaderPrivilege(final Clan clan, final String userId, final String errorMessage) {
-        if (!Objects.equals(clan.getLeaderUserId(), userId)) {
+    public void requireLeaderPrivilege(final Clan clan, final String username, final String errorMessage) {
+        if (!Objects.equals(clan.getLeaderUsername(), username)) {
             throw new IllegalStateException(errorMessage);
         }
     }
@@ -88,10 +88,10 @@ public class ClanValidatorImpl implements ClanValidator {
     }
 
     @Override
-    public String resolveReplacementLeader(final List<ClanMember> allMembers, final String currentLeaderId) {
+    public String resolveReplacementLeader(final List<ClanMember> allMembers, final String currentLeaderUsername) {
         return allMembers.stream()
-                .map(ClanMember::getUserId)
-                .filter(userId -> !userId.equals(currentLeaderId))
+                .map(ClanMember::getUsername)
+                .filter(username -> !username.equals(currentLeaderUsername))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(SocialConstants.FAILED_FIND_REPLACEMENT_LEADER_MESSAGE));
     }

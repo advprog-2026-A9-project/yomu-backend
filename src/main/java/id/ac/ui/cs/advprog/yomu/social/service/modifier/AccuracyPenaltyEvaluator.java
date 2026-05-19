@@ -10,7 +10,7 @@ import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats;
 import id.ac.ui.cs.advprog.yomu.social.model.ModifierType;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanQuizStatsService;
+import id.ac.ui.cs.advprog.yomu.social.service.score.ClanQuizStatsService;
 import lombok.RequiredArgsConstructor;
 
 @Component

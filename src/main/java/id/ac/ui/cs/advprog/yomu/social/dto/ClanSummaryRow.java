@@ -6,7 +6,7 @@ public interface ClanSummaryRow {
     String getClanId();
     String getClanName();
     String getDescription();
-    String getLeaderUserId();
+    String getLeaderUsername();
     Tier getTier();
     int getScore();
     long getMemberCount();

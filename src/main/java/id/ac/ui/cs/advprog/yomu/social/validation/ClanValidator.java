@@ -14,7 +14,7 @@ public interface ClanValidator {
 
     void requireClanId(String clanId);
 
-    void requireUserId(String userId);
+    void requireUsername(String username);
 
     void requireValidClanName(String clanName);
 
@@ -22,7 +22,7 @@ public interface ClanValidator {
 
     void requireClanNameAvailable(boolean nameExists);
 
-    void requireLeaderPrivilege(Clan clan, String userId, String errorMessage);
+    void requireLeaderPrivilege(Clan clan, String username, String errorMessage);
 
     void requireNotAlreadyMember(boolean isAlreadyMember);
 
@@ -30,5 +30,5 @@ public interface ClanValidator {
 
     void requireClanNotFull(long currentMemberCount);
 
-    String resolveReplacementLeader(List<ClanMember> allMembers, String currentLeaderId);
+    String resolveReplacementLeader(List<ClanMember> allMembers, String currentLeaderUsername);
 }
