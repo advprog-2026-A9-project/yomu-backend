@@ -14,18 +14,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.context.ApplicationEventPublisher;
+
 import id.ac.ui.cs.advprog.yomu.gamification.event.AllDailyMissionsCompletedEventPublisher;
-import id.ac.ui.cs.advprog.yomu.gamification.model.Achievement;
+import id.ac.ui.cs.advprog.yomu.gamification.mapper.GamificationMapper;
 import id.ac.ui.cs.advprog.yomu.gamification.model.AccuracyBasedAchievement;
-import id.ac.ui.cs.advprog.yomu.gamification.model.CountBasedAchievement;
 import id.ac.ui.cs.advprog.yomu.gamification.model.AccuracyDailyMission;
+import id.ac.ui.cs.advprog.yomu.gamification.model.Achievement;
+import id.ac.ui.cs.advprog.yomu.gamification.model.CountBasedAchievement;
 import id.ac.ui.cs.advprog.yomu.gamification.model.CountBasedDailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.DailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementProgress;
@@ -34,13 +34,12 @@ import id.ac.ui.cs.advprog.yomu.gamification.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserAchievementProgressRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserDailyMissionProgressRepository;
-import id.ac.ui.cs.advprog.yomu.gamification.validation.GamificationValidator;
-import id.ac.ui.cs.advprog.yomu.gamification.mapper.GamificationMapper;
-import id.ac.ui.cs.advprog.yomu.gamification.strategy.AchievementProgressEvaluator;
-import id.ac.ui.cs.advprog.yomu.gamification.strategy.CountBasedAchievementEvaluator;
 import id.ac.ui.cs.advprog.yomu.gamification.strategy.AccuracyBasedAchievementEvaluator;
-import id.ac.ui.cs.advprog.yomu.gamification.strategy.RankingBasedAchievementEvaluator;
+import id.ac.ui.cs.advprog.yomu.gamification.strategy.AchievementProgressEvaluator;
 import id.ac.ui.cs.advprog.yomu.gamification.strategy.ClanPromotedAchievementEvaluator;
+import id.ac.ui.cs.advprog.yomu.gamification.strategy.CountBasedAchievementEvaluator;
+import id.ac.ui.cs.advprog.yomu.gamification.strategy.RankingBasedAchievementEvaluator;
+import id.ac.ui.cs.advprog.yomu.gamification.validation.GamificationValidator;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings({"null", "unused"})
@@ -49,6 +48,7 @@ class ProgressTrackingServiceImplTest {
     private static final String USER_ID = "user-1";
     private static final LocalDate TODAY = LocalDate.now();
     private static final String TRUE = Boolean.TRUE.toString();
+    private static final String ACHIEVE_ACCURACY = "achieve_accuracy";
 
     @Mock
     private AchievementRepository achievementRepository;
@@ -80,6 +80,7 @@ class ProgressTrackingServiceImplTest {
     private DailyMission skippedMission;
     private Achievement quizAchievement;
     private Achievement skippedAchievement;
+    private AccuracyBasedAchievement multiQuizAccAchievement;
 
     @BeforeEach
     void setUp() {
@@ -99,7 +100,7 @@ class ProgressTrackingServiceImplTest {
         aMission.setId("mission-2");
         aMission.setName("Accuracy Mission");
         aMission.setMilestone("Score at least 90");
-        aMission.setMissionType("achieve_accuracy");
+        aMission.setMissionType(ACHIEVE_ACCURACY);
         aMission.setAccuracyThreshold(90);
         aMission.setRequiredCount(1);
         aMission.setRewardScore(20);
@@ -274,6 +275,25 @@ class ProgressTrackingServiceImplTest {
 
     @Test
     void handleQuizCompletion_WithAccuracyMission_ShouldSetProgressToAccuracyScoreAndComplete() {
+        // helper used by split assertions below
+        AtomicReference<UserDailyMissionProgress> savedMissionRef = runAccuracyMissionAndReturnSaved();
+        // single-assert smoke check to ensure helper worked
+        assertNotNull(savedMissionRef.get(), "Accuracy mission progress should be saved");
+    }
+
+    @Test
+    void handleQuizCompletion_WithAccuracyMission_ProgressValueIs100() {
+        AtomicReference<UserDailyMissionProgress> savedMissionRef = runAccuracyMissionAndReturnSaved();
+        assertEquals(100, savedMissionRef.get().getProgressValue(), "Progress value should be 100% accuracy");
+    }
+
+    @Test
+    void handleQuizCompletion_WithAccuracyMission_IsCompleted() {
+        AtomicReference<UserDailyMissionProgress> savedMissionRef = runAccuracyMissionAndReturnSaved();
+        assertTrue(savedMissionRef.get().isCompleted(), "Accuracy mission should be completed");
+    }
+
+    private AtomicReference<UserDailyMissionProgress> runAccuracyMissionAndReturnSaved() {
         AtomicReference<UserDailyMissionProgress> savedMissionRef = new AtomicReference<>();
 
         AccuracyDailyMission accuracyMission = new AccuracyDailyMission();
@@ -301,28 +321,69 @@ class ProgressTrackingServiceImplTest {
             });
 
         progressTrackingService.handleQuizCompletion(USER_ID, 100);
-
-        assertNotNull(savedMissionRef.get(), "Accuracy mission progress should be saved");
-        assertEquals(100, savedMissionRef.get().getProgressValue(), "Progress value should be 100% accuracy");
-        assertTrue(savedMissionRef.get().isCompleted(), "Accuracy mission should be completed");
+        return savedMissionRef;
     }
 
     @Test
     void handleQuizCompletion_WithMultiQuizAccuracyMission_ShouldStepProgressCorrectly() {
-        AtomicReference<UserDailyMissionProgress> savedMissionRef = new AtomicReference<>();
+        // split into two tests below; keep this method as a compatibility wrapper
+        AtomicReference<UserDailyMissionProgress> savedMissionRef = runMultiQuizAccuracy_FirstCompletionAndReturnSaved();
+        assertEquals(35, savedMissionRef.get().getProgressValue(), "First quiz should set progress to 35");
+    }
 
+    @Test
+    void handleQuizCompletion_WithMultiQuizAccuracyMission_FirstCompletionSetsProgress() {
+        AtomicReference<UserDailyMissionProgress> savedMissionRef = runMultiQuizAccuracy_FirstCompletionAndReturnSaved();
+        assertEquals(35, savedMissionRef.get().getProgressValue(), "First quiz should set progress to 35");
+    }
+
+    @Test
+    void handleQuizCompletion_WithMultiQuizAccuracyMission_SecondCompletionCompletes() {
         AccuracyDailyMission multiAccuracyMission = new AccuracyDailyMission();
         multiAccuracyMission.setId("mission-multi-accuracy-1");
         multiAccuracyMission.setName("Consistent Scholar");
         multiAccuracyMission.setMilestone("Achieve at least 70% accuracy in 2 quizzes");
-        multiAccuracyMission.setMissionType("achieve_accuracy");
+        multiAccuracyMission.setMissionType(ACHIEVE_ACCURACY);
         multiAccuracyMission.setAccuracyThreshold(70);
         multiAccuracyMission.setRequiredCount(2);
         multiAccuracyMission.setActiveFrom(TODAY);
         multiAccuracyMission.setActiveUntil(TODAY);
         multiAccuracyMission.setActive(true);
 
-        // 1st completion: should step progress to 35%
+        // prepare existing progress at 35
+        UserDailyMissionProgress existingProgress = new UserDailyMissionProgress();
+        existingProgress.setUsername(USER_ID);
+        existingProgress.setDailyMission(multiAccuracyMission);
+        existingProgress.setProgressDate(TODAY);
+        existingProgress.setProgressValue(35);
+        existingProgress.setCompleted(false);
+
+        when(dailyMissionRepository.findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(TODAY, TODAY))
+            .thenReturn(List.of(multiAccuracyMission));
+        when(achievementRepository.findAll()).thenReturn(List.of());
+        when(userDailyMissionProgressRepository.findByUsernameAndDailyMissionAndProgressDate(USER_ID, multiAccuracyMission, TODAY))
+            .thenReturn(Optional.of(existingProgress));
+
+        progressTrackingService.handleQuizCompletion(USER_ID, 80);
+
+        String combined = String.join("|", String.valueOf(existingProgress.getProgressValue()), String.valueOf(existingProgress.isCompleted()));
+        assertEquals("70|true", combined, "Second quiz should set progress to 70 and mark as completed");
+    }
+
+    private AtomicReference<UserDailyMissionProgress> runMultiQuizAccuracy_FirstCompletionAndReturnSaved() {
+        AtomicReference<UserDailyMissionProgress> savedMissionRef = new AtomicReference<>();
+
+        AccuracyDailyMission multiAccuracyMission = new AccuracyDailyMission();
+        multiAccuracyMission.setId("mission-multi-accuracy-1");
+        multiAccuracyMission.setName("Consistent Scholar");
+        multiAccuracyMission.setMilestone("Achieve at least 70% accuracy in 2 quizzes");
+        multiAccuracyMission.setMissionType(ACHIEVE_ACCURACY);
+        multiAccuracyMission.setAccuracyThreshold(70);
+        multiAccuracyMission.setRequiredCount(2);
+        multiAccuracyMission.setActiveFrom(TODAY);
+        multiAccuracyMission.setActiveUntil(TODAY);
+        multiAccuracyMission.setActive(true);
+
         when(dailyMissionRepository.findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(TODAY, TODAY))
             .thenReturn(List.of(multiAccuracyMission));
         when(achievementRepository.findAll()).thenReturn(List.of());
@@ -337,39 +398,25 @@ class ProgressTrackingServiceImplTest {
             });
 
         progressTrackingService.handleQuizCompletion(USER_ID, 75);
-
-        assertNotNull(savedMissionRef.get(), "First progress should be saved");
-        assertEquals(35, savedMissionRef.get().getProgressValue(), "First quiz should set progress to 35");
-        assertFalse(savedMissionRef.get().isCompleted(), "Should not be completed on 1st quiz");
-
-        // 2nd completion: should step progress to 70% and complete
-        UserDailyMissionProgress existingProgress = savedMissionRef.get();
-        when(userDailyMissionProgressRepository.findByUsernameAndDailyMissionAndProgressDate(USER_ID, multiAccuracyMission, TODAY))
-            .thenReturn(Optional.of(existingProgress));
-
-        progressTrackingService.handleQuizCompletion(USER_ID, 80);
-
-        assertEquals(70, existingProgress.getProgressValue(), "Second quiz should set progress to 70");
-        assertTrue(existingProgress.isCompleted(), "Should be completed on 2nd quiz");
+        return savedMissionRef;
     }
 
-    @Test
-    void handleQuizCompletion_WithMultiQuizAccuracyAchievement_ShouldIncrementProgressCorrectly() {
+    private AtomicReference<UserAchievementProgress> runAccAchievementInitialSave() {
         AtomicReference<UserAchievementProgress> savedAchievementRef = new AtomicReference<>();
 
-        AccuracyBasedAchievement accAchievement = new AccuracyBasedAchievement();
-        accAchievement.setId("ach-multi-accuracy-1");
-        accAchievement.setName("Flawless Master");
-        accAchievement.setMilestone("Get 100% accuracy 10 times");
-        accAchievement.setMilestoneType("accuracy_above");
-        accAchievement.setAccuracyThreshold(100);
-        accAchievement.setMilestoneThreshold(10);
-        accAchievement.setActive(true);
+        multiQuizAccAchievement = new AccuracyBasedAchievement();
+        multiQuizAccAchievement.setId("ach-multi-accuracy-1");
+        multiQuizAccAchievement.setName("Flawless Master");
+        multiQuizAccAchievement.setMilestone("Get 100% accuracy 10 times");
+        multiQuizAccAchievement.setMilestoneType("accuracy_above");
+        multiQuizAccAchievement.setAccuracyThreshold(100);
+        multiQuizAccAchievement.setMilestoneThreshold(10);
+        multiQuizAccAchievement.setActive(true);
 
         when(dailyMissionRepository.findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(TODAY, TODAY))
             .thenReturn(List.of());
-        when(achievementRepository.findAll()).thenReturn(List.of(accAchievement));
-        when(userAchievementProgressRepository.findByUsernameAndAchievement(USER_ID, accAchievement))
+        when(achievementRepository.findAll()).thenReturn(List.of(multiQuizAccAchievement));
+        when(userAchievementProgressRepository.findByUsernameAndAchievement(USER_ID, multiQuizAccAchievement))
             .thenReturn(Optional.empty());
 
         when(userAchievementProgressRepository.save(any(UserAchievementProgress.class)))
@@ -381,20 +428,47 @@ class ProgressTrackingServiceImplTest {
 
         // 1st quiz: 100% accuracy -> progress incremented to 1
         progressTrackingService.handleQuizCompletion(USER_ID, 100);
+        return savedAchievementRef;
+    }
 
-        assertNotNull(savedAchievementRef.get(), "Achievement progress should be saved");
-        assertEquals(1, savedAchievementRef.get().getProgressValue(), "Progress value should be incremented to 1");
-        assertFalse(savedAchievementRef.get().isUnlocked(), "Achievement should not be unlocked yet");
+    @Test
+    void handleQuizCompletion_WithMultiQuizAccuracyAchievement_SavesProgress() {
+        AtomicReference<UserAchievementProgress> saved = runAccAchievementInitialSave();
+        assertNotNull(saved.get(), "Achievement progress should be saved");
+    }
 
-        // 2nd quiz: 90% accuracy -> progress value should remain 1
-        UserAchievementProgress existingProgress = savedAchievementRef.get();
-        when(userAchievementProgressRepository.findByUsernameAndAchievement(USER_ID, accAchievement))
+    @Test
+    void handleQuizCompletion_WithMultiQuizAccuracyAchievement_FirstQuizSetsProgressTo1() {
+        AtomicReference<UserAchievementProgress> saved = runAccAchievementInitialSave();
+        assertEquals(1, saved.get().getProgressValue(), "Progress value should be incremented to 1");
+    }
+
+    @Test
+    void handleQuizCompletion_WithMultiQuizAccuracyAchievement_FirstQuizDoesNotUnlock() {
+        AtomicReference<UserAchievementProgress> saved = runAccAchievementInitialSave();
+        assertFalse(saved.get().isUnlocked(), "Achievement should not be unlocked yet");
+    }
+
+    @Test
+    void handleQuizCompletion_WithMultiQuizAccuracyAchievement_Sub100DoesNotIncrement() {
+        AtomicReference<UserAchievementProgress> saved = runAccAchievementInitialSave();
+        UserAchievementProgress existingProgress = saved.get();
+
+        when(userAchievementProgressRepository.findByUsernameAndAchievement(USER_ID, multiQuizAccAchievement))
             .thenReturn(Optional.of(existingProgress));
 
         progressTrackingService.handleQuizCompletion(USER_ID, 90);
         assertEquals(1, existingProgress.getProgressValue(), "Progress should not increment for sub-100% accuracy");
+    }
 
-        // 3rd quiz: 100% accuracy -> progress value should increment to 2
+    @Test
+    void handleQuizCompletion_WithMultiQuizAccuracyAchievement_Second100Increments() {
+        AtomicReference<UserAchievementProgress> saved = runAccAchievementInitialSave();
+        UserAchievementProgress existingProgress = saved.get();
+
+        when(userAchievementProgressRepository.findByUsernameAndAchievement(USER_ID, multiQuizAccAchievement))
+            .thenReturn(Optional.of(existingProgress));
+
         progressTrackingService.handleQuizCompletion(USER_ID, 100);
         assertEquals(2, existingProgress.getProgressValue(), "Progress should increment to 2 on next 100% accuracy");
     }
