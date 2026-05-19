@@ -7,10 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
+import id.ac.ui.cs.advprog.yomu.social.port.ClanMemberValidationPort;
 import jakarta.transaction.Transactional;
 
 @Repository
-public interface ClanMemberRepository extends JpaRepository<ClanMember, Long> {
+public interface ClanMemberRepository extends JpaRepository<ClanMember, Long>, ClanMemberValidationPort {
     
     List<ClanMember> findByClanId(String clanId);
     
@@ -20,6 +21,7 @@ public interface ClanMemberRepository extends JpaRepository<ClanMember, Long> {
 
     List<ClanMember> getClanMembersByClanId(String clanId);
     
+    @Override
     long countByClanId(String clanId);
 
     @Transactional

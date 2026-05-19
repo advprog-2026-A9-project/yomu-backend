@@ -13,10 +13,14 @@ import org.springframework.stereotype.Repository;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
+import id.ac.ui.cs.advprog.yomu.social.port.ClanLookupPort;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @Repository
-public interface ClanRepository extends JpaRepository<Clan, String> {
+public interface ClanRepository extends JpaRepository<Clan, String>, ClanLookupPort {
+
+        @Override
+        Optional<Clan> findClanById(String id);
 
         Optional<Clan> findByName(String name);
 
