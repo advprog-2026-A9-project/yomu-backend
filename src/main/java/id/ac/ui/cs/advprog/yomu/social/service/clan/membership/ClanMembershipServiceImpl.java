@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
-import id.ac.ui.cs.advprog.yomu.social.event.UserDeleteClanEvent;
+import id.ac.ui.cs.advprog.yomu.social.event.ClanShouldBeDeletedEvent;
 import id.ac.ui.cs.advprog.yomu.social.event.UserJoinClanEvent;
 import id.ac.ui.cs.advprog.yomu.social.event.UserLeaveClanEvent;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
@@ -83,9 +83,7 @@ public class ClanMembershipServiceImpl implements ClanMembershipService {
 
         if (allMembers.size() <= minClanSize) {
             memberRepository.deleteByClanIdAndUsername(clan.getId(), leaderUsername);
-            clanRepository.delete(Objects.requireNonNull(clan));
-            eventPublisher.publishEvent(new UserLeaveClanEvent(this, leaderUsername, clan.getId()));
-            eventPublisher.publishEvent(new UserDeleteClanEvent(this, clan.getId()));
+            eventPublisher.publishEvent(new ClanShouldBeDeletedEvent(this, clan.getId(), leaderUsername));
         } else {
             final String newLeaderUsername = clanValidator.resolveReplacementLeader(allMembers,
                     leaderUsername);
@@ -93,8 +91,9 @@ public class ClanMembershipServiceImpl implements ClanMembershipService {
             clan.setLeaderUsername(newLeaderUsername);
             clanRepository.save(clan);
             memberRepository.deleteByClanIdAndUsername(clan.getId(), leaderUsername);
-            eventPublisher.publishEvent(new UserLeaveClanEvent(this, leaderUsername, clan.getId()));
         }
+
+        eventPublisher.publishEvent(new UserLeaveClanEvent(this, leaderUsername, clan.getId()));
     }
 
     @Override
@@ -126,5 +125,12 @@ public class ClanMembershipServiceImpl implements ClanMembershipService {
         clanValidator.requireClanId(clanId);
 
         return memberRepository.getClanMembersByClanId(clanId).stream().toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllMembers(final String clanId) {
+        clanValidator.requireClanId(clanId);
+        memberRepository.deleteByClanId(clanId);
     }
 }

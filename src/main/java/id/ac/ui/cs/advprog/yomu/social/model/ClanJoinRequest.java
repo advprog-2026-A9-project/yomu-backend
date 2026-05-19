@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.social.model;
 
+import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,4 +30,17 @@ public class ClanJoinRequest {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    public void accept() {
+        if (!SocialConstants.REQUEST_STATUS_PENDING.equals(this.status)) {
+            throw new IllegalStateException("Hanya request pending yang dapat disetujui.");
+        }
+        this.status = SocialConstants.REQUEST_STATUS_ACCEPTED;
+    }
+
+    public void reject() {
+        if (!SocialConstants.REQUEST_STATUS_PENDING.equals(this.status)) {
+            throw new IllegalStateException("Hanya request pending yang dapat ditolak.");
+        }
+        this.status = SocialConstants.REQUEST_STATUS_REJECTED;
+    }
 }

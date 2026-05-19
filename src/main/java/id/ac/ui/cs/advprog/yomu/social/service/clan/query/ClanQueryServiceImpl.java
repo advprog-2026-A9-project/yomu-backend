@@ -1,9 +1,9 @@
 package id.ac.ui.cs.advprog.yomu.social.service.clan.query;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.springframework.data.domain.PageRequest;
@@ -14,17 +14,16 @@ import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanMemberDTO;
-import id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.ModifierSummary;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
-import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
-import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
 import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
 import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
@@ -37,24 +36,14 @@ public class ClanQueryServiceImpl implements ClanQueryService {
 
     private final ClanRepository clanRepository;
     private final ClanMemberRepository memberRepository;
-    private final ClanModifierRepository modifierRepository;
     private final ClanValidator clanValidator;
     private final SocialMapper socialMapper;
     private final ClanModifierService modifierService;
 
-    private record ActiveModifiers(List<ClanModifierDTO> buffs, List<ClanModifierDTO> debuffs) {}
-
-    private ActiveModifiers resolveActiveModifiers(String clanId) {
-        List<ClanModifier> all = modifierRepository.findByClanIdAndActiveTrue(clanId);
-        List<ClanModifierDTO> buffs = all.stream()
-                .filter(ClanModifier::isBuff)
-                .map(socialMapper::toClanModifierDTO)
-                .toList();
-        List<ClanModifierDTO> debuffs = all.stream()
-                .filter(ClanModifier::isDebuff)
-                .map(socialMapper::toClanModifierDTO)
-                .toList();
-        return new ActiveModifiers(buffs, debuffs);
+    private ClanSummaryResponse mapToSummaryResponse(ClanSummaryRow row) {
+        ModifierSummary mod = modifierService.getModifierSummary(row.getClanId());
+        int effectiveScore = (int) Math.round(row.getScore() * mod.multiplier());
+        return socialMapper.toClanSummaryResponse(row, mod.buffs(), mod.debuffs(), effectiveScore);
     }
 
     @Override
@@ -65,33 +54,15 @@ public class ClanQueryServiceImpl implements ClanQueryService {
                 : clanRepository.findClanSummariesByQuery(search);
 
         return rows.stream()
-                .map(row -> {
-                    ActiveModifiers modifiers = resolveActiveModifiers(row.getClanId());
-                    int effectiveScore = (int) Math
-                            .round(row.getScore() * modifierService
-                                    .getActiveMultiplier(row.getClanId()));
-
-                    return socialMapper.toClanSummaryResponse(row, modifiers.buffs(), modifiers.debuffs(),
-                            effectiveScore);
-                })
+                .map(this::mapToSummaryResponse)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ClanSummaryResponse> findRandomClans(int limit) {
-        var rows = clanRepository.findRandomClanSummaries(limit);
-
-        return rows.stream()
-                .map(row -> {
-                    ActiveModifiers modifiers = resolveActiveModifiers(row.getClanId());
-                    int effectiveScore = (int) Math
-                            .round(row.getScore() * modifierService
-                                    .getActiveMultiplier(row.getClanId()));
-
-                    return socialMapper.toClanSummaryResponse(row, modifiers.buffs(), modifiers.debuffs(),
-                            effectiveScore);
-                })
+        return clanRepository.findRandomClanSummaries(limit).stream()
+                .map(this::mapToSummaryResponse)
                 .toList();
     }
 
@@ -104,86 +75,73 @@ public class ClanQueryServiceImpl implements ClanQueryService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         SocialConstants.CLAN_NOT_FOUND_MESSAGE));
 
-        List<ClanMember> members = memberRepository.getClanMembersByClanId(validClanId).stream().toList();
-        List<ClanMemberDTO> memberDTOs = members.stream()
+        List<ClanMemberDTO> memberDTOs = memberRepository.getClanMembersByClanId(validClanId).stream()
                 .map(socialMapper::toClanMemberDTO)
                 .toList();
 
         int rank = (int) clanRepository.findRankByTierAndScore(clan.getTier(), clan.getScore(), clan.getId());
 
-        ActiveModifiers modifiers = resolveActiveModifiers(validClanId);
+        ModifierSummary mod = modifierService.getModifierSummary(validClanId);
 
-        return socialMapper.toClanDetailResponse(clan, rank, members.size(), memberDTOs, modifiers.buffs(), modifiers.debuffs());
+        return socialMapper.toClanDetailResponse(clan, rank, memberDTOs.size(), memberDTOs, mod.buffs(),
+                mod.debuffs());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<MyClanResponse> getMyClanByUsername(final String username) {
         return memberRepository.findByUsername(username)
-                .flatMap(member -> {
-                    final String clanId = member.getClanId();
-                    if (clanId == null || clanId.isBlank()) {
-                        return Optional.empty();
-                    }
+                .map(ClanMember::getClanId)
+                .filter(id -> id != null && !id.isBlank())
+                .flatMap(clanRepository::findById)
+                .map(clan -> buildMyClanResponse(clan, username));
+    }
 
-                    final Clan clan = clanRepository.findById(clanId).orElse(null);
-                    if (clan == null) {
-                        return Optional.empty();
-                    }
+    private MyClanResponse buildMyClanResponse(Clan clan, String username) {
+        List<ClanMember> members = memberRepository.getClanMembersByClanId(clan.getId()).stream().toList();
+        int rank = (int) clanRepository.findRankByTierAndScore(clan.getTier(), clan.getScore(), clan.getId());
 
-                    final List<ClanMember> members = memberRepository.getClanMembersByClanId(clanId).stream().toList();
-                    final int rank = (int) clanRepository.findRankByTierAndScore(clan.getTier(), clan.getScore(),
-                            clan.getId());
+        String role = clan.getLeaderUsername().equals(username)
+                ? SocialConstants.MY_CLAN_ROLE_LEADER
+                : SocialConstants.MY_CLAN_ROLE_MEMBER;
 
-                    final String role = clan.getLeaderUsername().equals(username)
-                            ? SocialConstants.MY_CLAN_ROLE_LEADER
-                            : SocialConstants.MY_CLAN_ROLE_MEMBER;
-
-                    final MyClanResponse response = socialMapper.toMyClanResponse(clan, role, rank,
-                            members);
-                    return Optional.of(response);
-                });
+        return socialMapper.toMyClanResponse(clan, role, rank, members);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<LeaderboardResponse> getLeaderboardByTier(String username, String search) {
-        final Optional<ClanMember> userMember = username != null
-                ? memberRepository.findByUsername(username)
-                : Optional.empty();
-
-        final Optional<Clan> userClan = userMember
+        final Optional<Clan> userClan = Optional.ofNullable(username)
+                .flatMap(memberRepository::findByUsername)
                 .map(ClanMember::getClanId)
                 .flatMap(clanRepository::findById);
 
         return Stream.of(Tier.values())
-                .map(tier -> {
-                    List<ClanLeaderboardRow> rows = (search == null || search.isBlank())
-                            ? clanRepository.findLeaderboardByTier(
-                                    tier,
-                                    PageRequest.of(0,
-                                            SocialConstants.LEADERBOARD_LIMIT))
-                            : clanRepository.findLeaderboardByTierAndName(
-                                    tier,
-                                    search,
-                                    PageRequest.of(0,
-                                            SocialConstants.LEADERBOARD_LIMIT));
-
-                    List<LeaderboardEntryResponse> rankedEntries = new ArrayList<>();
-                    for (int i = 0; i < rows.size(); i++) {
-                        rankedEntries.add(socialMapper.toLeaderboardEntryResponse(rows.get(i), i + 1));
-                    }
-
-                    LeaderboardEntryResponse userEntry = null;
-                    if (userClan.isPresent() && userClan.get().getTier() == tier) {
-                        Clan uc = userClan.get();
-                        int userRank = (int) clanRepository.findRankByTierAndScore(tier, uc.getScore(), uc.getId());
-                        userEntry = socialMapper.toLeaderboardEntryResponse(uc, userRank,
-                                (int) memberRepository.countByClanId(uc.getId()));
-                    }
-
-                    return new LeaderboardResponse(tier.getDisplayName(), rankedEntries, userEntry);
-                })
+                .map(tier -> buildLeaderboardForTier(tier, search, userClan))
                 .toList();
+    }
+
+    private LeaderboardResponse buildLeaderboardForTier(Tier tier, String search, Optional<Clan> userClan) {
+        PageRequest pageRequest = PageRequest.of(0, SocialConstants.LEADERBOARD_LIMIT);
+
+        List<ClanLeaderboardRow> rows = (search == null || search.isBlank())
+                ? clanRepository.findLeaderboardByTier(tier, pageRequest)
+                : clanRepository.findLeaderboardByTierAndName(tier, search, pageRequest);
+
+        List<LeaderboardEntryResponse> rankedEntries = IntStream.range(0, rows.size())
+                .mapToObj(i -> socialMapper.toLeaderboardEntryResponse(rows.get(i), i + 1))
+                .toList();
+
+        LeaderboardEntryResponse userEntry = userClan
+                .filter(clan -> clan.getTier() == tier)
+                .map(clan -> {
+                    int userRank = (int) clanRepository.findRankByTierAndScore(tier,
+                            clan.getScore(), clan.getId());
+                    int memberCount = (int) memberRepository.countByClanId(clan.getId());
+                    return socialMapper.toLeaderboardEntryResponse(clan, userRank, memberCount);
+                })
+                .orElse(null);
+
+        return new LeaderboardResponse(tier.getDisplayName(), rankedEntries, userEntry);
     }
 }
