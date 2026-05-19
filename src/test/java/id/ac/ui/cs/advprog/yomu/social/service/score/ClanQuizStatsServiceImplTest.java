@@ -26,13 +26,14 @@ class ClanQuizStatsServiceImplTest {
     private ClanQuizStatsServiceImpl statsService;
 
     @Test
-    void recordQuizResult_WhenExistingStats_ShouldAccumulateValues() {
+    void recordQuizResult_WhenExistingStats_ShouldAccumulateValuesAndRollingHistory() {
         ClanQuizStats existing = new ClanQuizStats();
         existing.setClanId("clan-1");
         existing.setTotalQuizAttempts(2);
         existing.setTotalCorrectAnswers(5);
         existing.setTotalQuestions(10);
         existing.setTotalScore(120);
+        existing.setRollingQuizHistory("2/5,3/5");
 
         when(statsRepository.findById("clan-1")).thenReturn(Optional.of(existing));
         when(statsRepository.save(existing)).thenReturn(existing);
@@ -44,6 +45,7 @@ class ClanQuizStatsServiceImplTest {
                 () -> assertEquals(8, result.getTotalCorrectAnswers(), "Correct answers should accumulate"),
                 () -> assertEquals(14, result.getTotalQuestions(), "Total questions should accumulate"),
                 () -> assertEquals(200, result.getTotalScore(), "Score should accumulate"),
+                () -> assertEquals("2/5,3/5,3/4", result.getRollingQuizHistory(), "Rolling history should append entry"),
                 () -> verify(statsRepository).save(existing));
     }
 
@@ -62,13 +64,29 @@ class ClanQuizStatsServiceImplTest {
                 () -> assertEquals(1, result.getTotalQuizAttempts(), "Attempts should start at 1"),
                 () -> assertEquals(2, result.getTotalCorrectAnswers(), "Correct answers should set"),
                 () -> assertEquals(5, result.getTotalQuestions(), "Total questions should set"),
-                () -> assertEquals(40, result.getTotalScore(), "Score should set"));
+                () -> assertEquals(40, result.getTotalScore(), "Score should set"),
+                () -> assertEquals("2/5", result.getRollingQuizHistory(), "Rolling history should initialize"));
     }
 
     @Test
-    void getAccuracyRatio_WhenNoQuestions_ShouldReturnDefault() {
+    void recordQuizResult_WhenHistoryReachesTen_ShouldSlideWindow() {
+        ClanQuizStats existing = new ClanQuizStats();
+        existing.setClanId("clan-3");
+        existing.setRollingQuizHistory("1/1,2/2,3/3,4/4,5/5,6/6,7/7,8/8,9/9,10/10");
+
+        when(statsRepository.findById("clan-3")).thenReturn(Optional.of(existing));
+        when(statsRepository.save(existing)).thenReturn(existing);
+
+        ClanQuizStats result = statsService.recordQuizResult("clan-3", 11, 11, 100);
+
+        assertEquals("2/2,3/3,4/4,5/5,6/6,7/7,8/8,9/9,10/10,11/11", result.getRollingQuizHistory(),
+                "Oldest history entry should be dropped");
+    }
+
+    @Test
+    void getAccuracyRatio_WhenNoAttemptsExist_ShouldReturnDefault() {
         ClanQuizStats stats = new ClanQuizStats();
-        stats.setTotalQuestions(0);
+        stats.setRollingQuizHistory("");
 
         double ratio = statsService.getAccuracyRatio(stats);
 
@@ -76,14 +94,13 @@ class ClanQuizStatsServiceImplTest {
     }
 
     @Test
-    void getAccuracyRatio_WhenQuestionsExist_ShouldCalculateRatio() {
+    void getAccuracyRatio_WhenRecentAttemptsExist_ShouldCalculateRatioFromLast10() {
         ClanQuizStats stats = new ClanQuizStats();
-        stats.setTotalQuestions(4);
-        stats.setTotalCorrectAnswers(3);
+        stats.setRollingQuizHistory("3/4,1/4");
 
         double ratio = statsService.getAccuracyRatio(stats);
 
-        assertEquals(0.75d, ratio, 0.0001d, "Accuracy should be correctAnswers/totalQuestions");
+        assertEquals(0.50d, ratio, 0.0001d, "Accuracy should be 4/8 = 50%");
     }
 
     @Test
