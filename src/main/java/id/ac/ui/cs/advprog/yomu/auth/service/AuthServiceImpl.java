@@ -114,10 +114,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse getMe(String username) {
+    public AccountResponse getMe(String username) {
         final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
-        return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), null, "OK");
+        return new AccountResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getDisplayName(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getRole(),
+                "OK"
+        );
     }
 
    @Override
