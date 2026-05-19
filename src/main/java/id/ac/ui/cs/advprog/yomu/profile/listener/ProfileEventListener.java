@@ -34,19 +34,18 @@ public class ProfileEventListener {
     @Transactional
     public void onUserCreated(UserCreatedEvent event) {
         if (log.isInfoEnabled()) {
-            log.info("Handling UserCreatedEvent for user id: {}", event.getUserId());
+            log.info("Handling UserCreatedEvent for username: {}", event.getUsername());
         }
-        getOrCreateProfile(event.getUserId(), event.getUsername(), event.getDisplayName());
+        getOrCreateProfile(event.getUsername(), event.getDisplayName());
     }
 
     @EventListener
     @Transactional
     public void onUserUpdated(UserUpdatedEvent event) {
         if (log.isInfoEnabled()) {
-            log.info("Handling UserUpdatedEvent for user id: {}", event.getUserId());
+            log.info("Handling UserUpdatedEvent for username: {}", event.getUsername());
         }
-        Profile profile = getOrCreateProfile(event.getUserId(), event.getUsername(), event.getDisplayName());
-        profile.setUsername(event.getUsername());
+        Profile profile = getOrCreateProfile(event.getUsername(), event.getDisplayName());
         profile.setDisplayName(event.getDisplayName());
         profileRepository.save(java.util.Objects.requireNonNull(profile));
     }
@@ -55,7 +54,7 @@ public class ProfileEventListener {
     @Transactional
     public void onQuizCompleted(QuizCompletedEvent event) {
         if (log.isInfoEnabled()) {
-            log.info("Handling QuizCompletedEvent for user id: {}", event.userId());
+            log.info("Handling QuizCompletedEvent for user: {}", event.userId());
         }
         Profile profile = getOrCreateProfile(event.userId());
         
@@ -76,9 +75,9 @@ public class ProfileEventListener {
     @Transactional
     public void onUserJoinClan(UserJoinClanEvent event) {
         if (log.isInfoEnabled()) {
-            log.info("Handling UserJoinClanEvent for user id: {} and clan name: {}", event.getUserId(), event.getClanName());
+            log.info("Handling UserJoinClanEvent for user: {} and clan name: {}", event.getUsername(), event.getClanName());
         }
-        Profile profile = getOrCreateProfile(event.getUserId());
+        Profile profile = getOrCreateProfile(event.getUsername());
         profile.setClanId(event.getClanId());
         profile.setClanName(event.getClanName());
         profile.setClanTier(event.getClanTier());
@@ -89,9 +88,9 @@ public class ProfileEventListener {
     @Transactional
     public void onUserLeaveClan(UserLeaveClanEvent event) {
         if (log.isInfoEnabled()) {
-            log.info("Handling UserLeaveClanEvent for user id: {}", event.getUserId());
+            log.info("Handling UserLeaveClanEvent for user: {}", event.getUsername());
         }
-        Profile profile = getOrCreateProfile(event.getUserId());
+        Profile profile = getOrCreateProfile(event.getUsername());
         profile.setClanId(null);
         profile.setClanName(null);
         profile.setClanTier(null);
@@ -130,9 +129,9 @@ public class ProfileEventListener {
     @Transactional
     public void onUserShowcaseAchievementChanged(UserShowcaseAchievementChangedEvent event) {
         if (log.isInfoEnabled()) {
-            log.info("Handling UserShowcaseAchievementChangedEvent for user id: {}", event.userId());
+            log.info("Handling UserShowcaseAchievementChangedEvent for user: {}", event.username());
         }
-        Profile profile = getOrCreateProfile(event.userId());
+        Profile profile = getOrCreateProfile(event.username());
         
         List<ProfileResponse.ShowcaseAchievementDto> dtoList = new ArrayList<>();
         if (event.achievements() != null) {
@@ -159,16 +158,15 @@ public class ProfileEventListener {
         profileRepository.save(java.util.Objects.requireNonNull(profile));
     }
 
-    private Profile getOrCreateProfile(String userId) {
-        return getOrCreateProfile(userId, "user_" + userId, "User " + userId);
+    private Profile getOrCreateProfile(String username) {
+        return getOrCreateProfile(username, "User " + username);
     }
 
-    private Profile getOrCreateProfile(String userId, String defaultUsername, String defaultDisplayName) {
-        return profileRepository.findById(java.util.Objects.requireNonNull(userId))
+    private Profile getOrCreateProfile(String username, String defaultDisplayName) {
+        return profileRepository.findById(java.util.Objects.requireNonNull(username))
                 .orElseGet(() -> {
                     Profile profile = Profile.builder()
-                            .userId(userId)
-                            .username(defaultUsername)
+                            .username(username)
                             .displayName(defaultDisplayName)
                             .bio("📖 Yomu avid reader | Seeking knowledge every single day.")
                             .joinedAt(LocalDateTime.now())

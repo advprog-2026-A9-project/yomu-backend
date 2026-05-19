@@ -34,8 +34,7 @@ public class ProfileController {
         if (principal == null) {
             return ResponseEntity.status(401).build();
         }
-        ProfileResponse currentProfile = profileService.getProfileByUserIdOrUsername(principal.getName());
-        ProfileResponse updated = profileService.updateBio(currentProfile.getUserId(), request.getBio());
+        ProfileResponse updated = profileService.updateBio(principal.getName(), request.getBio());
         return ResponseEntity.ok(updated);
     }
 }
