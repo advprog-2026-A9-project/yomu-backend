@@ -130,4 +130,21 @@ class AuthControllerTest {
             .andReturn();
         assertNotNull(result, RESPONSE_NOT_NULL);
     }
+
+    @Test
+    @WithMockUser(username = TEST_USER, roles = ROLE_PELAJAR)
+    void logoutShouldReturn200() throws Exception {
+        final var result = mockMvc.perform(post("/api/auth/logout"))
+            .andExpect(status().isOk())
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
+    }
+
+    @Test
+    void logoutShouldReturn401WhenNotAuthenticated() throws Exception {
+        final var result = mockMvc.perform(post("/api/auth/logout"))
+            .andExpect(status().isUnauthorized())
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
+    }
 }
