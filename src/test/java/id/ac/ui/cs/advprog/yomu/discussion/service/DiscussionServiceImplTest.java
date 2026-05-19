@@ -4,7 +4,6 @@ import id.ac.ui.cs.advprog.yomu.discussion.dto.CommentResponse;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.CreateCommentRequest;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.UpdateCommentRequest;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.ReactionRequest;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import id.ac.ui.cs.advprog.yomu.discussion.model.Comment;
 import id.ac.ui.cs.advprog.yomu.discussion.model.CommentReaction;
 import id.ac.ui.cs.advprog.yomu.discussion.model.ReactionType;
@@ -40,7 +39,7 @@ class DiscussionServiceImplTest {
     private UUID commentId;
     private UUID userId;
     private UUID otherUserId;
-    private UUID readingId;
+    private Long readingId;
     private UUID parentId;
 
     @BeforeEach
@@ -48,7 +47,7 @@ class DiscussionServiceImplTest {
         commentId = UUID.randomUUID();
         userId = UUID.randomUUID();
         otherUserId = UUID.randomUUID();
-        readingId = UUID.randomUUID();
+        readingId = 1L;
         parentId = UUID.randomUUID();
 
         mockComment = Comment.builder()
