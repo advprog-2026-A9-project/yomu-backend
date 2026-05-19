@@ -10,8 +10,6 @@ import org.mockito.Mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.never;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import id.ac.ui.cs.advprog.yomu.gamification.event.AllDailyMissionsCompletedEvent;
@@ -27,6 +25,7 @@ class DailyMissionCompletedEventListenerTest {
 
     private static final String CLAN_ID = "clan-1";
     private static final String USER_ID = "user-1";
+    private static final String NO_CLAN_USER = "user-2";
 
     @Mock
     private ClanMemberRepository memberRepository;
@@ -57,9 +56,9 @@ class DailyMissionCompletedEventListenerTest {
 
     @Test
     void onDailyMissionCompleted_WhenNoClanMembership_ShouldDoNothing() {
-        DailyMissionCompletedEvent event = new DailyMissionCompletedEvent("user-2", 200);
+        DailyMissionCompletedEvent event = new DailyMissionCompletedEvent(NO_CLAN_USER, 200);
 
-        when(memberRepository.findByUsername("user-2")).thenReturn(Optional.empty());
+        when(memberRepository.findByUsername(NO_CLAN_USER)).thenReturn(Optional.empty());
 
         listener.onDailyMissionCompleted(event);
 
@@ -98,9 +97,9 @@ class DailyMissionCompletedEventListenerTest {
 
     @Test
     void onAllDailyMissionsCompleted_WhenNoClanMembership_ShouldDoNothing() {
-        AllDailyMissionsCompletedEvent event = new AllDailyMissionsCompletedEvent("user-2", LocalDate.now());
+        AllDailyMissionsCompletedEvent event = new AllDailyMissionsCompletedEvent(NO_CLAN_USER, LocalDate.now());
 
-        when(memberRepository.findByUsername("user-2")).thenReturn(Optional.empty());
+        when(memberRepository.findByUsername(NO_CLAN_USER)).thenReturn(Optional.empty());
 
         listener.onAllDailyMissionsCompleted(event);
 
