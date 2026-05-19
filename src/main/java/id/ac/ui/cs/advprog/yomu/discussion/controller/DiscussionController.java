@@ -26,7 +26,7 @@ public class DiscussionController {
     }
 
     @GetMapping("/reading/{readingId}")
-    public ResponseEntity<List<CommentResponse>> getCommentsByReading(@PathVariable UUID readingId) {
+    public ResponseEntity<List<CommentResponse>> getCommentsByReading(@PathVariable Long readingId) {
         return ResponseEntity.ok(discussionService.getCommentsByReading(readingId));
     }
 
