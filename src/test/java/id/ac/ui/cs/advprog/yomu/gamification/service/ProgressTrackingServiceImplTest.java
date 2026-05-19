@@ -86,9 +86,9 @@ class ProgressTrackingServiceImplTest {
     void setUp() {
         CountBasedDailyMission cMission = new CountBasedDailyMission();
         cMission.setId("mission-1");
-        cMission.setName("Read One Article");
-        cMission.setMilestone("Complete one article today");
-        cMission.setMissionType("read_n_articles");
+        cMission.setName("Quiz Starter");
+        cMission.setMilestone("Complete one quiz today");
+        cMission.setMissionType("complete_n_quizzes");
         cMission.setTargetCount(1);
         cMission.setRewardScore(10);
         cMission.setActiveFrom(TODAY);
@@ -471,5 +471,77 @@ class ProgressTrackingServiceImplTest {
 
         progressTrackingService.handleQuizCompletion(USER_ID, 100);
         assertEquals(2, existingProgress.getProgressValue(), "Progress should increment to 2 on next 100% accuracy");
+    }
+
+    @Test
+    void handleReadingCompletion_ShouldUpdateReadingMissionAndAchievement() {
+        AtomicReference<UserDailyMissionProgress> savedMissionRef = new AtomicReference<>();
+        AtomicReference<UserAchievementProgress> savedAchievementRef = new AtomicReference<>();
+
+        CountBasedDailyMission readMissionObj = new CountBasedDailyMission();
+        readMissionObj.setId("mission-read-1");
+        readMissionObj.setName("Reading Starter");
+        readMissionObj.setMilestone("Read one article today");
+        readMissionObj.setMissionType("read_n_articles");
+        readMissionObj.setTargetCount(1);
+        readMissionObj.setRewardScore(10);
+        readMissionObj.setActiveFrom(TODAY);
+        readMissionObj.setActiveUntil(TODAY);
+        readMissionObj.setActive(true);
+
+        CountBasedAchievement readAch = new CountBasedAchievement();
+        readAch.setId("achievement-read-1");
+        readAch.setName("Avid Reader");
+        readAch.setMilestone("Read one article");
+        readAch.setMilestoneType("readings_completed");
+        readAch.setMilestoneThreshold(1);
+        readAch.setActive(true);
+
+        when(dailyMissionRepository.findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(TODAY, TODAY))
+            .thenReturn(List.of(readMissionObj));
+        when(achievementRepository.findAll()).thenReturn(List.of(readAch));
+        when(userDailyMissionProgressRepository.findByUsernameAndDailyMissionAndProgressDate(USER_ID, readMissionObj, TODAY))
+            .thenReturn(Optional.empty());
+        when(userAchievementProgressRepository.findByUsernameAndAchievement(USER_ID, readAch))
+            .thenReturn(Optional.empty());
+        when(userDailyMissionProgressRepository.save(any(UserDailyMissionProgress.class)))
+            .thenAnswer(invocation -> {
+                UserDailyMissionProgress saved = invocation.getArgument(0);
+                savedMissionRef.set(saved);
+                return saved;
+            });
+        when(userAchievementProgressRepository.save(any(UserAchievementProgress.class)))
+            .thenAnswer(invocation -> {
+                UserAchievementProgress saved = invocation.getArgument(0);
+                savedAchievementRef.set(saved);
+                return saved;
+            });
+
+        progressTrackingService.handleReadingCompletion(USER_ID);
+
+        String expectedSignature = String.join("|",
+            USER_ID,
+            readMissionObj.getId(),
+            TODAY.toString(),
+            "1",
+            TRUE,
+            USER_ID,
+            readAch.getId(),
+            "1",
+            TRUE
+        );
+        String actualSignature = String.join("|",
+            savedMissionRef.get().getUsername(),
+            savedMissionRef.get().getDailyMission().getId(),
+            savedMissionRef.get().getProgressDate().toString(),
+            String.valueOf(savedMissionRef.get().getProgressValue()),
+            String.valueOf(savedMissionRef.get().isCompleted()),
+            savedAchievementRef.get().getUsername(),
+            savedAchievementRef.get().getAchievement().getId(),
+            String.valueOf(savedAchievementRef.get().getProgressValue()),
+            String.valueOf(savedAchievementRef.get().isUnlocked())
+        );
+
+        assertEquals(expectedSignature, actualSignature, "Reading completion should update the matching reading mission and achievement");
     }
 }

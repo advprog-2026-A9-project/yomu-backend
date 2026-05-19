@@ -37,6 +37,7 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
     private static final String ACHIEVEMENT_TYPE_QUIZZES_PASSED = "quizzes_passed";
     private static final String ACHIEVEMENT_TYPE_ACCURACY_ABOVE = "accuracy_above";
     private static final String ACHIEVEMENT_TYPE_RANKING = "ranking_achieved";
+    private static final String MISSION_TYPE_READ_N_ARTICLES = "read_n_articles";
 
     private final AchievementRepository achievementRepository;
     private final DailyMissionRepository dailyMissionRepository;
@@ -210,6 +211,9 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
                 .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
 
         for (DailyMission mission : activeMissions) {
+            if (MISSION_TYPE_READ_N_ARTICLES.equals(mission.getMissionType())) {
+                continue;
+            }
             boolean shouldUpdate = mission.isEligibleForUpdate(score);
 
             if (shouldUpdate) {
@@ -272,6 +276,70 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
 
     @Override
     @Transactional
+    public void handleReadingCompletion(String username) {
+        validator.validateUsername(username);
+        LocalDate today = LocalDate.now();
+        boolean completedThisCall = false;
+
+        // 1. Update Daily Missions of type "read_n_articles"
+        List<DailyMission> activeMissions = dailyMissionRepository
+                .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
+
+        for (DailyMission mission : activeMissions) {
+            if (MISSION_TYPE_READ_N_ARTICLES.equals(mission.getMissionType())) {
+                UserDailyMissionProgress progress = userDailyMissionProgressRepository
+                        .findByUsernameAndDailyMissionAndProgressDate(username, mission, today)
+                        .orElseGet(() -> {
+                            UserDailyMissionProgress created = new UserDailyMissionProgress();
+                            created.setUsername(username);
+                            created.setDailyMission(mission);
+                            created.setProgressDate(today);
+                            return created;
+                        });
+
+                if (!progress.isCompleted()) {
+                    progress.setProgressValue(mission.calculateNewProgressValue(progress.getProgressValue()));
+                    int targetCountVal = mission.getTargetValue();
+
+                    if (progress.getProgressValue() >= targetCountVal) {
+                        progress.setCompleted(true);
+                        progress.setCompletedAt(LocalDateTime.now());
+                        completedThisCall = true;
+                        eventPublisher.publishEvent(
+                                new DailyMissionCompletedEvent(username,
+                                        mission.getRewardScore()));
+                    }
+                    userDailyMissionProgressRepository.save(progress);
+                }
+            }
+        }
+
+        // 2. Update Achievements of type "readings_completed"
+        List<Achievement> achievements = achievementRepository.findAll().stream()
+                .filter(Achievement::isActive)
+                .filter(a -> ACHIEVEMENT_TYPE_READINGS_COMPLETED.equals(a.getMilestoneType()))
+                .toList();
+
+        for (Achievement achievement : achievements) {
+            UserAchievementProgress progress = userAchievementProgressRepository
+                    .findByUsernameAndAchievement(username, achievement)
+                    .orElseGet(() -> {
+                        UserAchievementProgress created = new UserAchievementProgress();
+                        created.setUsername(username);
+                        created.setAchievement(achievement);
+                        return created;
+                    });
+
+            if (evaluateAchievement(progress, 1)) {
+                userAchievementProgressRepository.save(progress);
+            }
+        }
+
+        publishAllDailyMissionsCompletedEventIfNeeded(username, today, completedThisCall);
+    }
+
+    @Override
+    @Transactional
     public void handleRankingAchieved(String username, String rankingType, int rank) {
         validator.validateUsername(username);
 
@@ -297,8 +365,7 @@ public class ProgressTrackingServiceImpl implements ProgressTrackingService {
     }
 
     private boolean isCountBasedAchievement(String milestoneType) {
-        return ACHIEVEMENT_TYPE_READINGS_COMPLETED.equals(milestoneType)
-                || ACHIEVEMENT_TYPE_QUIZZES_PASSED.equals(milestoneType);
+        return ACHIEVEMENT_TYPE_QUIZZES_PASSED.equals(milestoneType);
     }
 
     private void publishAllDailyMissionsCompletedEventIfNeeded(String username, LocalDate progressDate,
