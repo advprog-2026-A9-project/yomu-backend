@@ -15,6 +15,11 @@ public final class SocialConstants {
     public static final String ONLY_LEADER_CAN_DELETE_MESSAGE = "Hanya Leader yang bisa menghapus Clan";
     public static final String FAILED_FIND_REPLACEMENT_LEADER_MESSAGE = "Gagal menemukan pengganti Leader";
     public static final String CLAN_FULL_MESSAGE = "Clan sudah penuh (maksimum 50 anggota)";
+    public static final String ONLY_LEADER_CAN_ACCEPT_REQUEST_MESSAGE = "Hanya ketua yang dapat menerima request.";
+    public static final String ONLY_LEADER_CAN_REJECT_REQUEST_MESSAGE = "Hanya ketua yang dapat menolak request.";
+    public static final String REQUEST_NOT_FOUND_MESSAGE = "Request tidak ditemukan.";
+    public static final String REQUEST_INVALID_MESSAGE = "Request tidak valid.";
+    public static final String ALREADY_REQUESTED_JOIN_MESSAGE = "Anda sudah mengirimkan request join ke clan ini.";
 
     public static final String ROLE_LEADER = "LEADER";
     public static final String ROLE_MEMBER = "MEMBER";
