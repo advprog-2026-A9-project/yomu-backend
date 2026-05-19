@@ -83,7 +83,7 @@ class ClanServiceLeaderboardTest {
         lenient().when(socialMapper.toLeaderboardEntryResponse(any(), anyInt())).thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
         lenient().when(socialMapper.toLeaderboardEntryResponse(any(Clan.class), anyInt(), anyInt())).thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
 
-        queryService = new ClanQueryServiceImpl(clanRepository, memberRepository, null, clanValidation, socialMapper, modifierService);
+        queryService = new ClanQueryServiceImpl(clanRepository, memberRepository, clanValidation, socialMapper, modifierService);
     }
 
     @Test

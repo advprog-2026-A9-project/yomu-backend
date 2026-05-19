@@ -27,6 +27,7 @@ import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
+import id.ac.ui.cs.advprog.yomu.social.event.ClanCreatedEvent;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanJoinRequestRepository;
@@ -116,7 +117,7 @@ class ClanServiceImplTest {
 
         lifecycleService = new ClanLifecycleServiceImpl(clanRepository, memberRepository, clanValidation, eventPublisher);
         membershipService = new ClanMembershipServiceImpl(clanRepository, memberRepository, clanValidation, eventPublisher);
-        queryService = new ClanQueryServiceImpl(clanRepository, memberRepository, null, clanValidation, socialMapper, null);
+        queryService = new ClanQueryServiceImpl(clanRepository, memberRepository, clanValidation, socialMapper, null);
     }
 
     @Test
@@ -146,7 +147,7 @@ class ClanServiceImplTest {
 
         assertAll("Verify repository save calls",
                 () -> verify(clanRepository, times(1)).save(any(Clan.class)),
-                () -> verify(memberRepository, times(1)).save(any(ClanMember.class)));
+                () -> verify(eventPublisher, times(1)).publishEvent(any(ClanCreatedEvent.class)));
     }
 
     @Test
@@ -213,9 +214,9 @@ class ClanServiceImplTest {
 
         membershipService.leaveClan(clanId, leaderId);
 
-        assertAll("Verify clan deletion",
+        assertAll("Verify clan deletion triggered via event",
                 () -> verify(memberRepository).deleteByClanIdAndUsername(clanId, leaderId),
-                () -> verify(clanRepository).delete(dummyClan));
+                () -> verify(eventPublisher).publishEvent(any(id.ac.ui.cs.advprog.yomu.social.event.ClanShouldBeDeletedEvent.class)));
     }
 
     @Test

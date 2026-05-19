@@ -8,4 +8,5 @@ public interface ClanMembershipService {
     void leaveClan(String clanId, String username);
     void kickMember(String clanId, String leaderUsername, String memberUsername);
     List<ClanMember> getMembersByClanId(String clanId);
+    void deleteAllMembers(String clanId);
 }
