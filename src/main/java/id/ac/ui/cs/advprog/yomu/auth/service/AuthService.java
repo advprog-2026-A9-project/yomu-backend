@@ -10,7 +10,7 @@ import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
 public interface AuthService {
     AuthResponse register(RegisterRequest request);
     AuthResponse login(LoginRequest request);
-    AuthResponse getMe(String username);
+    AccountResponse getMe(String username);
     AccountResponse updateAccount(String userId, UpdateAccountRequest request);
     void deleteAccount(String userId);
     AccountResponse linkLoginMethod(String userId, LinkLoginMethodRequest request);
