@@ -43,7 +43,7 @@ class AuthControllerTest {
     @WithMockUser(username = TEST_USER, roles = ROLE_PELAJAR)
     void getMeShouldReturnUserInfo() throws Exception {
         when(authService.getMe(TEST_USER)).thenReturn(
-            new AuthResponse("123", TEST_USER, ROLE_PELAJAR, null, "OK")
+            new AccountResponse("123", TEST_USER, "Mizuki", null, null, ROLE_PELAJAR, "OK")
         );
 
         final var result = mockMvc.perform(get("/api/auth/me"))
