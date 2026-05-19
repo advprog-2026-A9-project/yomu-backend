@@ -60,4 +60,9 @@ public class DiscussionController {
         discussionService.deleteCommentByAdmin(commentId);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/all")
+    public ResponseEntity<List<CommentResponse>> getAllCommentsAdmin() {
+        List<CommentResponse> allComments = discussionService.getAllComments();
+        return ResponseEntity.ok(allComments);
+    }
 }

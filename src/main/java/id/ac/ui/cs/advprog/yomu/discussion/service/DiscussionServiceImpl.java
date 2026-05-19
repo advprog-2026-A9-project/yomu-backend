@@ -108,4 +108,11 @@ public class DiscussionServiceImpl implements DiscussionService {
                 .updatedAt(comment.getUpdatedAt())
                 .build();
     }
+
+    @Override
+    public List<CommentResponse> getAllComments() {
+        return commentRepository.findAll().stream()
+                .map(this::mapToResponse) 
+                .toList();
+    }
 }

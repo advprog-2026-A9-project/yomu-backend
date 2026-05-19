@@ -13,7 +13,7 @@ public interface DiscussionService {
     List<CommentResponse> getCommentsByReading(UUID readingId);
     CommentResponse updateComment(UUID commentId, UpdateCommentRequest request);
     void deleteComment(UUID commentId, UUID userId);
-
+    List<CommentResponse> getAllComments();
     void addReaction(UUID commentId, UUID userId, ReactionRequest request);
     void deleteCommentByAdmin(UUID commentId);
 }

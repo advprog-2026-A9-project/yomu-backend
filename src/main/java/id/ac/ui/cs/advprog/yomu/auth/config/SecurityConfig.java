@@ -62,6 +62,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/reading-texts/**").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.GET, "/api/reading-texts/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/seasons/end").hasRole(ROLE_ADMIN)
+                        
                         // Protected endpoints (harus autentikasi)
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/api/readings/**").authenticated()
@@ -69,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/clans/*/edit").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/clans/*/delete").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/clans/*/kick/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/discussion/all").hasRole("ADMIN")
                         .requestMatchers("/api/discussion/**").authenticated()
                         .anyRequest().authenticated())
                 .headers(headers -> headers
