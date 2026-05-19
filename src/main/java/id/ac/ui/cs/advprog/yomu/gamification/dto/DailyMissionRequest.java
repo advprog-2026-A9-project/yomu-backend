@@ -1,6 +1,9 @@
 package id.ac.ui.cs.advprog.yomu.gamification.dto;
 
+import java.time.LocalDate;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,13 +20,17 @@ public class DailyMissionRequest {
     @NotBlank(message = "Mission type is required")
     private String missionType;
 
-    @jakarta.validation.constraints.Positive(message = "Target count must be a positive integer")
-    private int targetCount;
+    private Integer targetCount;
 
-    @NotBlank(message = "Reward description is required")
-    private String rewardDescription;
+    private Integer accuracyThreshold;
 
-    private java.time.LocalDate activeFrom;
+    private Integer requiredCount;
 
-    private java.time.LocalDate activeUntil;
+    @NotNull(message = "Reward score is required")
+    @Min(value = 1, message = "Reward score must be a strictly positive integer")
+    private Integer rewardScore;
+
+    private LocalDate activeFrom;
+
+    private LocalDate activeUntil;
 }

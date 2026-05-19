@@ -27,6 +27,8 @@ public class GamificationValidatorImpl implements GamificationValidator {
         "achieve_accuracy"
     };
 
+    private static final String MISSION_TYPE_ACCURACY = "achieve_accuracy";
+
     private static final int MAX_NAME_LENGTH = 100;
     private static final int MAX_MILESTONE_LENGTH = 255;
     private static final String CHARACTERS_SUFFIX = " characters";
@@ -108,19 +110,28 @@ public class GamificationValidatorImpl implements GamificationValidator {
             throw new GamificationException("Daily mission type is invalid", "INVALID_MISSION_TYPE");
         }
 
-        if (request.getTargetCount() <= 0) {
-            throw new GamificationException("Daily mission target count must be positive", "INVALID_TARGET_COUNT");
+        if (MISSION_TYPE_ACCURACY.equalsIgnoreCase(request.getMissionType().trim())) {
+            if (request.getAccuracyThreshold() == null || request.getAccuracyThreshold() <= 0 || request.getAccuracyThreshold() > 100) {
+                throw new GamificationException("Accuracy threshold must be between 1 and 100", "INVALID_ACCURACY_THRESHOLD");
+            }
+            if (request.getRequiredCount() == null || request.getRequiredCount() <= 0) {
+                throw new GamificationException("Required count must be positive", "INVALID_REQUIRED_COUNT");
+            }
+        } else {
+            if (request.getTargetCount() == null || request.getTargetCount() <= 0) {
+                throw new GamificationException("Daily mission target count must be positive", "INVALID_TARGET_COUNT");
+            }
         }
 
-        if (request.getRewardDescription() == null || request.getRewardDescription().trim().isEmpty()) {
-            throw new GamificationException("Reward description cannot be empty", "INVALID_REWARD_DESCRIPTION");
+        if (request.getRewardScore() == null || request.getRewardScore() < 1) {
+            throw new GamificationException("Reward score must be a strictly positive integer", "INVALID_REWARD_SCORE");
         }
     }
 
     @Override
-    public void validateUserId(String userId) {
-        if (userId == null || userId.trim().isEmpty()) {
-            throw new GamificationException("User ID cannot be empty", "INVALID_USER_ID");
+    public void validateUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new GamificationException("Username cannot be empty", "INVALID_USERNAME");
         }
     }
 

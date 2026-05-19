@@ -22,8 +22,8 @@ public class AchievementShowcaseController {
     private final AchievementShowcaseService showcaseService;
 
     @GetMapping
-    public List<String> getShowcase(@RequestParam String userId) {
-        return showcaseService.getShowcaseByUserId(userId);
+    public List<String> getShowcase(@RequestParam String username) {
+        return showcaseService.getShowcaseByUsername(username);
     }
 
     @PutMapping

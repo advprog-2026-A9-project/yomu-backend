@@ -6,6 +6,7 @@ public record AchievementResponse(
     String milestone,
     String milestoneType,
     int milestoneThreshold,
+    Integer accuracyThreshold,
     String tier,
     long earnedCount,
     boolean active

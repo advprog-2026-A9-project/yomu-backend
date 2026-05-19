@@ -11,10 +11,10 @@ public interface ProgressTrackingService {
 
     DailyMissionProgressResponse upsertDailyMissionProgress(ProgressUpdateRequest request);
 
-    List<AchievementProgressResponse> getAchievementProgressByUserId(String userId);
+    List<AchievementProgressResponse> getAchievementProgressByUsername(String username);
 
-    List<DailyMissionProgressResponse> getTodayDailyMissionProgressByUserId(String userId);
-    List<DailyMissionProgressResponse> getTodayDailyMissionDashboard(String userId);
-    void handleQuizCompletion(String userId, int score);
-    void handleRankingAchieved(String userId, String rankingType, int rank);
+    List<DailyMissionProgressResponse> getTodayDailyMissionProgressByUsername(String username);
+    List<DailyMissionProgressResponse> getTodayDailyMissionDashboard(String username);
+    void handleQuizCompletion(String username, int score);
+    void handleRankingAchieved(String username, String rankingType, int rank);
 }

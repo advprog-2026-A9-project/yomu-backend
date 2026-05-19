@@ -5,12 +5,14 @@ import java.time.LocalDate;
 public record DailyMissionProgressResponse(
         String dailyMissionId,
         String dailyMissionName,
-        String userId,
+        String username,
         LocalDate progressDate,
         int progressValue,
         boolean completed,
         String milestone,
-        int targetCount,
-        String rewardDescription,
+        Integer targetCount,
+        Integer accuracyThreshold,
+        Integer requiredCount,
+        int rewardScore,
         String missionType) {
 }

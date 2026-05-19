@@ -23,7 +23,7 @@ import lombok.Setter;
 @Table(
     name = "user_achievement_progress",
     uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "user_id", "achievement_id" })
+        @UniqueConstraint(columnNames = { "username", "achievement_id" })
     }
 )
 @Getter
@@ -35,8 +35,8 @@ public class UserAchievementProgress {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    @Column(name = "username", nullable = false)
+    private String username;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "achievement_id", nullable = false)

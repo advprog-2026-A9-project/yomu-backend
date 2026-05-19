@@ -34,17 +34,17 @@ public class ProgressTrackingController {
     }
 
     @GetMapping("/achievements")
-    public List<AchievementProgressResponse> getAchievementProgress(@RequestParam String userId) {
-        return progressTrackingService.getAchievementProgressByUserId(userId);
+    public List<AchievementProgressResponse> getAchievementProgress(@RequestParam String username) {
+        return progressTrackingService.getAchievementProgressByUsername(username);
     }
 
     @GetMapping("/daily-missions")
-    public List<DailyMissionProgressResponse> getTodayDailyMissionProgress(@RequestParam String userId) {
-        return progressTrackingService.getTodayDailyMissionProgressByUserId(userId);
+    public List<DailyMissionProgressResponse> getTodayDailyMissionProgress(@RequestParam String username) {
+        return progressTrackingService.getTodayDailyMissionProgressByUsername(username);
     }
 
     @GetMapping("/daily-missions/today")
-    public List<DailyMissionProgressResponse> getTodayDailyMissionDashboard(@RequestParam String userId) {
-        return progressTrackingService.getTodayDailyMissionDashboard(userId);
+    public List<DailyMissionProgressResponse> getTodayDailyMissionDashboard(@RequestParam String username) {
+        return progressTrackingService.getTodayDailyMissionDashboard(username);
     }
 }

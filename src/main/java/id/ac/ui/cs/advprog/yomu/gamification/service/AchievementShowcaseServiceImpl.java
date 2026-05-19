@@ -24,8 +24,8 @@ public class AchievementShowcaseServiceImpl implements AchievementShowcaseServic
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public List<String> getShowcaseByUserId(String userId) {
-        return repository.findById(Objects.requireNonNull(userId, "User ID must not be null"))
+    public List<String> getShowcaseByUsername(String username) {
+        return repository.findById(Objects.requireNonNull(username, "Username must not be null"))
                 .map(UserAchievementShowcase::getAchievementIds)
                 .orElse(new ArrayList<>());
     }
@@ -33,10 +33,10 @@ public class AchievementShowcaseServiceImpl implements AchievementShowcaseServic
     @Override
     @Transactional
     public void updateShowcase(ShowcaseUpdateRequest request) {
-        String userId = Objects.requireNonNull(request.getUserId(), "User ID must not be null");
-        UserAchievementShowcase showcase = repository.findById(userId)
+        String username = Objects.requireNonNull(request.getUsername(), "Username must not be null");
+        UserAchievementShowcase showcase = repository.findById(username)
                 .orElse(UserAchievementShowcase.builder()
-                        .userId(userId)
+                        .username(username)
                         .build());
 
         showcase.setAchievementIds(request.getAchievementIds());
@@ -56,6 +56,6 @@ public class AchievementShowcaseServiceImpl implements AchievementShowcaseServic
             }
         }
 
-        eventPublisher.publishEvent(new UserShowcaseAchievementChangedEvent(userId, richAchievements));
+        eventPublisher.publishEvent(new UserShowcaseAchievementChangedEvent(username, richAchievements));
     }
 }

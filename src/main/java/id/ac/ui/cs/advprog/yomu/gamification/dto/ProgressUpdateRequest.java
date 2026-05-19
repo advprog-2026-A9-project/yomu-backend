@@ -9,8 +9,8 @@ import lombok.Setter;
 @Setter
 public class ProgressUpdateRequest {
 
-    @NotBlank(message = "User ID is required")
-    private String userId;
+    @NotBlank(message = "Username is required")
+    private String username;
 
     @NotBlank(message = "Master data ID is required")
     private String masterId;
