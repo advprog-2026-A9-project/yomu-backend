@@ -426,12 +426,20 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void testGetMeReturnsDisplayName() {
+    void testGetMeReturnsNotNull() {
         when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
 
-        AccountResponse response = authService.getMe(TEST_USERNAME);
+        final AccountResponse response = authService.getMe(TEST_USERNAME);
 
         assertNotNull(response, "Response tidak boleh null");
+    }
+
+    @Test
+    void testGetMeReturnsUsername() {
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
+
+        final AccountResponse response = authService.getMe(TEST_USERNAME);
+
         assertEquals(TEST_USERNAME, response.getUsername(), "Username harus sesuai");
     }
 
