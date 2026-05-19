@@ -22,7 +22,7 @@ public class Comment {
     private String content;
 
     @Column(name = "reading_id", nullable = false)
-    private UUID readingId;
+    private Long readingId;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;

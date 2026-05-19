@@ -37,7 +37,7 @@ public class DiscussionServiceImpl implements DiscussionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentResponse> getCommentsByReading(final UUID readingId) {
+    public List<CommentResponse> getCommentsByReading(final Long readingId) { 
         return commentRepository.findByReadingId(readingId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
