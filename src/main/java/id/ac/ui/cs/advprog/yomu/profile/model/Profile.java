@@ -14,9 +14,7 @@ import java.time.LocalDateTime;
 public class Profile {
 
     @Id
-    @Column(name = "user_id")
-    private String userId;
-
+    @Column(name = "username", length = 50)
     private String username;
 
     @Column(name = "display_name")

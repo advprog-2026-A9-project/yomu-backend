@@ -29,7 +29,6 @@ public class ProfileServiceImpl implements ProfileService {
         
         // Query strictly from our persistent read-only profile table
         Profile profile = profileRepository.findById(java.util.Objects.requireNonNull(identifier))
-                .or(() -> profileRepository.findByUsername(java.util.Objects.requireNonNull(identifier)))
                 .orElseThrow(() -> new IllegalArgumentException("Profil tidak ditemukan untuk user: " + identifier));
 
         // Map Reading Stats
@@ -49,13 +48,12 @@ public class ProfileServiceImpl implements ProfileService {
                 );
             } catch (Exception e) {
                 if (log.isErrorEnabled()) {
-                    log.error("Failed to deserialize showcase achievements JSON for user {}", profile.getUserId(), e);
+                    log.error("Failed to deserialize showcase achievements JSON for user {}", profile.getUsername(), e);
                 }
             }
         }
 
         return ProfileResponse.builder()
-                .userId(profile.getUserId())
                 .username(profile.getUsername())
                 .displayName(profile.getDisplayName())
                 .bio(profile.getBio())
@@ -85,21 +83,21 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    public ProfileResponse updateBio(String userId, String bio) {
+    public ProfileResponse updateBio(String username, String bio) {
         if (log.isInfoEnabled()) {
-            log.info("Updating bio for user: {} to: {}", userId, bio);
+            log.info("Updating bio for user: {} to: {}", username, bio);
         }
         
         if (bio != null && bio.length() > 100) {
             throw new IllegalArgumentException("Bio tidak boleh lebih dari 100 karakter");
         }
         
-        Profile profile = profileRepository.findById(java.util.Objects.requireNonNull(userId))
-                .orElseThrow(() -> new IllegalArgumentException("Profil tidak ditemukan untuk user: " + userId));
+        Profile profile = profileRepository.findById(java.util.Objects.requireNonNull(username))
+                .orElseThrow(() -> new IllegalArgumentException("Profil tidak ditemukan untuk user: " + username));
 
         profile.setBio(bio);
         profileRepository.save(profile);
 
-        return getProfileByUserIdOrUsername(userId);
+        return getProfileByUserIdOrUsername(username);
     }
 }
