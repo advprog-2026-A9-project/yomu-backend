@@ -26,7 +26,7 @@ public class DiscussionController {
     }
 
     @GetMapping("/reading/{readingId}")
-    public ResponseEntity<List<CommentResponse>> getCommentsByReading(@PathVariable UUID readingId) {
+    public ResponseEntity<List<CommentResponse>> getCommentsByReading(@PathVariable Long readingId) {
         return ResponseEntity.ok(discussionService.getCommentsByReading(readingId));
     }
 
@@ -59,5 +59,10 @@ public class DiscussionController {
     public ResponseEntity<Void> moderateCommentAdmin(@PathVariable UUID commentId) {
         discussionService.deleteCommentByAdmin(commentId);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/all")
+    public ResponseEntity<List<CommentResponse>> getAllCommentsAdmin() {
+        List<CommentResponse> allComments = discussionService.getAllComments();
+        return ResponseEntity.ok(allComments);
     }
 }

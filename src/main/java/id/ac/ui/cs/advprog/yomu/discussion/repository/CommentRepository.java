@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
-    List<Comment> findByReadingId(UUID readingId);
+    List<Comment> findByReadingId(Long readingId);
 }
