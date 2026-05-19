@@ -13,7 +13,7 @@ public class AllDailyMissionsCompletedEventPublisher {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    public void publish(String userId, LocalDate progressDate) {
-        eventPublisher.publishEvent(new AllDailyMissionsCompletedEvent(userId, progressDate));
+    public void publish(String username, LocalDate progressDate) {
+        eventPublisher.publishEvent(new AllDailyMissionsCompletedEvent(username, progressDate));
     }
 }

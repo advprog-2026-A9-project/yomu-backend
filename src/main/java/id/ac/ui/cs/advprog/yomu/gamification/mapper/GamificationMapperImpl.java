@@ -7,7 +7,11 @@ import id.ac.ui.cs.advprog.yomu.gamification.dto.AchievementResponse;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.DailyMissionProgressResponse;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.DailyMissionResponse;
 import id.ac.ui.cs.advprog.yomu.gamification.model.Achievement;
+import id.ac.ui.cs.advprog.yomu.gamification.model.AccuracyBasedAchievement;
+import id.ac.ui.cs.advprog.yomu.gamification.model.CountBasedAchievement;
 import id.ac.ui.cs.advprog.yomu.gamification.model.DailyMission;
+import id.ac.ui.cs.advprog.yomu.gamification.model.AccuracyDailyMission;
+import id.ac.ui.cs.advprog.yomu.gamification.model.CountBasedDailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementProgress;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserDailyMissionProgress;
 
@@ -20,12 +24,17 @@ public class GamificationMapperImpl implements GamificationMapper {
 
     @Override
     public AchievementResponse toAchievementResponse(Achievement achievement) {
+        Integer accuracyThreshold = null;
+        if (achievement instanceof AccuracyBasedAchievement accuracyAchievement) {
+            accuracyThreshold = accuracyAchievement.getAccuracyThreshold();
+        }
         return new AchievementResponse(
             achievement.getId(),
             achievement.getName(),
             achievement.getMilestone(),
             achievement.getMilestoneType(),
             achievement.getMilestoneThreshold(),
+            accuracyThreshold,
             achievement.getTier(),
             0L,
             achievement.isActive()
@@ -34,13 +43,26 @@ public class GamificationMapperImpl implements GamificationMapper {
 
     @Override
     public DailyMissionResponse toDailyMissionResponse(DailyMission mission) {
+        Integer targetCount = null;
+        Integer accuracyThreshold = null;
+        Integer requiredCount = null;
+
+        if (mission instanceof CountBasedDailyMission countMission) {
+            targetCount = countMission.getTargetCount();
+        } else if (mission instanceof AccuracyDailyMission accuracyMission) {
+            accuracyThreshold = accuracyMission.getAccuracyThreshold();
+            requiredCount = accuracyMission.getRequiredCount();
+        }
+
         return new DailyMissionResponse(
             mission.getId(),
             mission.getName(),
             mission.getMilestone(),
             mission.getMissionType(),
-            mission.getTargetCount(),
-            mission.getRewardDescription(),
+            targetCount,
+            accuracyThreshold,
+            requiredCount,
+            mission.getRewardScore(),
             mission.getActiveFrom(),
             mission.getActiveUntil(),
             mission.isActive()
@@ -49,32 +71,51 @@ public class GamificationMapperImpl implements GamificationMapper {
 
     @Override
     public AchievementProgressResponse toAchievementProgressResponse(UserAchievementProgress progress) {
+        Integer accuracyThreshold = null;
+        if (progress.getAchievement() instanceof AccuracyBasedAchievement accuracyAchievement) {
+            accuracyThreshold = accuracyAchievement.getAccuracyThreshold();
+        }
         return new AchievementProgressResponse(
             progress.getAchievement().getId(),
             progress.getAchievement().getName(),
-            progress.getUserId(),
+            progress.getUsername(),
             progress.getProgressValue(),
             progress.isUnlocked(),
             progress.getAchievement().getMilestone(),
             progress.getAchievement().getMilestoneType(),
             progress.getAchievement().getMilestoneThreshold(),
+            accuracyThreshold,
             progress.getAchievement().getTier()
         );
     }
 
     @Override
     public DailyMissionProgressResponse toDailyMissionProgressResponse(UserDailyMissionProgress progress) {
+        DailyMission mission = progress.getDailyMission();
+        Integer targetCount = null;
+        Integer accuracyThreshold = null;
+        Integer requiredCount = null;
+
+        if (mission instanceof CountBasedDailyMission countMission) {
+            targetCount = countMission.getTargetCount();
+        } else if (mission instanceof AccuracyDailyMission accuracyMission) {
+            accuracyThreshold = accuracyMission.getAccuracyThreshold();
+            requiredCount = accuracyMission.getRequiredCount();
+        }
+
         return new DailyMissionProgressResponse(
-            progress.getDailyMission().getId(),
-            progress.getDailyMission().getName(),
-            progress.getUserId(),
+            mission.getId(),
+            mission.getName(),
+            progress.getUsername(),
             progress.getProgressDate(),
             progress.getProgressValue(),
             progress.isCompleted(),
-            progress.getDailyMission().getMilestone(),
-            progress.getDailyMission().getTargetCount(),
-            progress.getDailyMission().getRewardDescription(),
-            progress.getDailyMission().getMissionType()
+            mission.getMilestone(),
+            targetCount,
+            accuracyThreshold,
+            requiredCount,
+            mission.getRewardScore(),
+            mission.getMissionType()
         );
     }
 }

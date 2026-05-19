@@ -46,24 +46,24 @@ class AchievementShowcaseServiceImplTest {
     }
 
     @Test
-    void getShowcaseByUserId_WhenShowcaseExists_ShouldReturnList() {
+    void getShowcaseByUsername_WhenShowcaseExists_ShouldReturnList() {
         UserAchievementShowcase showcase = UserAchievementShowcase.builder()
-                .userId(USER_ID)
+                .username(USER_ID)
                 .achievementIds(achievementIds)
                 .build();
 
         when(repository.findById(USER_ID)).thenReturn(Optional.of(showcase));
 
-        List<String> result = showcaseService.getShowcaseByUserId(USER_ID);
+        List<String> result = showcaseService.getShowcaseByUsername(USER_ID);
 
         assertEquals(achievementIds, result, "Should return the exact list of achievement IDs stored in user showcase");
     }
 
     @Test
-    void getShowcaseByUserId_WhenShowcaseDoesNotExist_ShouldReturnEmptyList() {
+    void getShowcaseByUsername_WhenShowcaseDoesNotExist_ShouldReturnEmptyList() {
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());
 
-        List<String> result = showcaseService.getShowcaseByUserId(USER_ID);
+        List<String> result = showcaseService.getShowcaseByUsername(USER_ID);
 
         assertEquals(List.of(), result, "Should return an empty list when user showcase does not exist");
     }
@@ -71,7 +71,7 @@ class AchievementShowcaseServiceImplTest {
     @Test
     void updateShowcase_ShouldSaveToRepository() {
         ShowcaseUpdateRequest request = new ShowcaseUpdateRequest();
-        request.setUserId(USER_ID);
+        request.setUsername(USER_ID);
         request.setAchievementIds(achievementIds);
 
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());
@@ -85,7 +85,7 @@ class AchievementShowcaseServiceImplTest {
     @Test
     void updateShowcase_ShouldPublishShowcaseChangedEvent() {
         ShowcaseUpdateRequest request = new ShowcaseUpdateRequest();
-        request.setUserId(USER_ID);
+        request.setUsername(USER_ID);
         request.setAchievementIds(achievementIds);
 
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());

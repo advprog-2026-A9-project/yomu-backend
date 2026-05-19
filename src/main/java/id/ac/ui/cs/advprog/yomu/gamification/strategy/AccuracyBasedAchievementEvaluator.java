@@ -2,6 +2,8 @@ package id.ac.ui.cs.advprog.yomu.gamification.strategy;
 
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Component;
+
+import id.ac.ui.cs.advprog.yomu.gamification.model.AccuracyBasedAchievement;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementProgress;
 
 @Component
@@ -18,11 +20,23 @@ public class AccuracyBasedAchievementEvaluator implements AchievementProgressEva
             return false;
         }
         int accuracy = (context instanceof Integer) ? (Integer) context : 0;
-        if (accuracy >= progress.getAchievement().getMilestoneThreshold()) {
-            progress.setProgressValue(1);
-            progress.setUnlocked(true);
-            progress.setUnlockedAt(LocalDateTime.now());
-            return true;
+        
+        if (progress.getAchievement() instanceof AccuracyBasedAchievement accuracyAchievement) {
+            if (accuracy >= accuracyAchievement.getAccuracyThreshold()) {
+                progress.setProgressValue(progress.getProgressValue() + 1);
+                if (progress.getProgressValue() >= accuracyAchievement.getMilestoneThreshold()) {
+                    progress.setUnlocked(true);
+                    progress.setUnlockedAt(LocalDateTime.now());
+                }
+                return true;
+            }
+        } else {
+            if (accuracy >= progress.getAchievement().getMilestoneThreshold()) {
+                progress.setProgressValue(1);
+                progress.setUnlocked(true);
+                progress.setUnlockedAt(LocalDateTime.now());
+                return true;
+            }
         }
         return false;
     }

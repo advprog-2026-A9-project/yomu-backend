@@ -13,6 +13,8 @@ import id.ac.ui.cs.advprog.yomu.gamification.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.DailyMissionResponse;
 import id.ac.ui.cs.advprog.yomu.gamification.exception.GamificationException;
 import id.ac.ui.cs.advprog.yomu.gamification.mapper.GamificationMapper;
+import id.ac.ui.cs.advprog.yomu.gamification.model.AccuracyDailyMission;
+import id.ac.ui.cs.advprog.yomu.gamification.model.CountBasedDailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.DailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.validation.GamificationValidator;
@@ -25,6 +27,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class DailyMissionServiceImpl implements DailyMissionService {
+
+    private static final String MISSION_TYPE_ACCURACY = "achieve_accuracy";
 
     private final DailyMissionRepository dailyMissionRepository;
     private final GamificationValidator validator;
@@ -42,12 +46,22 @@ public class DailyMissionServiceImpl implements DailyMissionService {
             );
         });
 
-        DailyMission mission = new DailyMission();
+        DailyMission mission;
+        if (MISSION_TYPE_ACCURACY.equalsIgnoreCase(request.getMissionType().trim())) {
+            AccuracyDailyMission accMission = new AccuracyDailyMission();
+            accMission.setAccuracyThreshold(request.getAccuracyThreshold() != null ? request.getAccuracyThreshold() : 0);
+            accMission.setRequiredCount(request.getRequiredCount() != null ? request.getRequiredCount() : 1);
+            mission = accMission;
+        } else {
+            CountBasedDailyMission countMission = new CountBasedDailyMission();
+            countMission.setTargetCount(request.getTargetCount() != null ? request.getTargetCount() : 1);
+            mission = countMission;
+        }
+
         mission.setName(request.getName().trim());
         mission.setMilestone(request.getMilestone().trim());
         mission.setMissionType(request.getMissionType().trim());
-        mission.setTargetCount(request.getTargetCount());
-        mission.setRewardDescription(request.getRewardDescription().trim());
+        mission.setRewardScore(request.getRewardScore());
         mission.setActiveFrom(request.getActiveFrom() != null ? request.getActiveFrom() : LocalDate.now());
         mission.setActiveUntil(request.getActiveUntil() != null ? request.getActiveUntil() : mission.getActiveFrom().plusDays(1));
 
@@ -78,13 +92,29 @@ public class DailyMissionServiceImpl implements DailyMissionService {
                 );
             });
 
+        boolean isRequestAccuracy = MISSION_TYPE_ACCURACY.equalsIgnoreCase(request.getMissionType().trim());
+        boolean isExistingAccuracy = mission instanceof AccuracyDailyMission;
+
+        if (isRequestAccuracy != isExistingAccuracy) {
+            throw new GamificationException(
+                "Cannot change daily mission category",
+                "INVALID_TYPE_CHANGE"
+            );
+        }
+
         mission.setName(request.getName().trim());
         mission.setMilestone(request.getMilestone().trim());
         mission.setMissionType(request.getMissionType().trim());
-        mission.setTargetCount(request.getTargetCount());
-        mission.setRewardDescription(request.getRewardDescription().trim());
+        mission.setRewardScore(request.getRewardScore());
         mission.setActiveFrom(request.getActiveFrom() != null ? request.getActiveFrom() : mission.getActiveFrom());
         mission.setActiveUntil(request.getActiveUntil() != null ? request.getActiveUntil() : mission.getActiveUntil());
+
+        if (mission instanceof AccuracyDailyMission accuracyMission) {
+            accuracyMission.setAccuracyThreshold(request.getAccuracyThreshold() != null ? request.getAccuracyThreshold() : 0);
+            accuracyMission.setRequiredCount(request.getRequiredCount() != null ? request.getRequiredCount() : 1);
+        } else if (mission instanceof CountBasedDailyMission countMission) {
+            countMission.setTargetCount(request.getTargetCount() != null ? request.getTargetCount() : 1);
+        }
 
         DailyMission saved = dailyMissionRepository.save(mission);
         return mapper.toDailyMissionResponse(saved);

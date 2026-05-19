@@ -20,9 +20,9 @@ public interface GamificationValidator {
     void validateDailyMissionRequest(DailyMissionRequest request);
 
     /**
-     * Validate user ID exists and is not empty
+     * Validate username exists and is not empty
      */
-    void validateUserId(String userId);
+    void validateUsername(String username);
 
     /**
      * Validate master data ID exists and is not empty

@@ -46,7 +46,7 @@ public class AllAchievementsSeeder implements CommandLineRunner {
             if (log.isInfoEnabled()) {
                 log.info("User 'champion' already exists. Unlocking any remaining achievements...");
             }
-            unlockAllAchievements(existingUser.getId());
+            unlockAllAchievements(existingUser.getUsername());
             return;
         }
 
@@ -65,24 +65,24 @@ public class AllAchievementsSeeder implements CommandLineRunner {
         // Publish UserCreatedEvent to trigger Profile creation in profile module
         eventPublisher.publishEvent(new UserCreatedEvent(this, savedUser.getId(), savedUser.getUsername(), savedUser.getDisplayName()));
 
-        unlockAllAchievements(savedUser.getId());
+        unlockAllAchievements(savedUser.getUsername());
         if (log.isInfoEnabled()) {
             log.info("All Achievements User Seeding completed successfully.");
         }
     }
 
-    private void unlockAllAchievements(String userId) {
+    private void unlockAllAchievements(String username) {
         List<Achievement> achievements = achievementRepository.findAll();
         int unlockedCount = 0;
 
         for (Achievement achievement : achievements) {
             boolean alreadyExists = userAchievementProgressRepository
-                    .findByUserIdAndAchievement(userId, achievement)
+                    .findByUsernameAndAchievement(username, achievement)
                     .isPresent();
 
             if (!alreadyExists) {
                 UserAchievementProgress progress = new UserAchievementProgress();
-                progress.setUserId(userId);
+                progress.setUsername(username);
                 progress.setAchievement(achievement);
                 progress.setProgressValue(achievement.getMilestoneThreshold());
                 progress.setUnlocked(true);
