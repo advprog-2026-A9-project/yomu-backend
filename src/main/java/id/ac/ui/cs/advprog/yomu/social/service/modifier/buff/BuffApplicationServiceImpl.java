@@ -28,21 +28,44 @@ public class BuffApplicationServiceImpl implements BuffApplicationService {
         }
 
         var existing = modifierRepository.findByClanIdAndKey(clanId, buffKey);
+        Instant now = Instant.now();
         if (existing.isPresent() && existing.get().isActive()) {
-            log.info("Buff {} already active for clan {}. Skipping.", buffKey, clanId);
-            return;
+            ClanModifier mod = existing.get();
+            boolean isExpired = mod.getEndAt() != null && mod.getEndAt().isBefore(now);
+            if (!isExpired) {
+                log.info("Buff {} already active and not expired for clan {}. Skipping.", buffKey, clanId);
+                return;
+            }
         }
 
         ClanModifier modifier = existing
                 .map(m -> {
                     m.setActive(true);
-                    m.setStartAt(Instant.now());
-                    m.setEndAt(null);
+                    m.setStartAt(now);
+                    m.setEndAt(definition.calculateEndAt(now));
                     return m;
                 })
                 .orElseGet(() -> definition.createModifier(clanId));
 
         modifierRepository.saveModifier(modifier);
         log.info("Applied buff {} for clan {}", buffKey, clanId);
+    }
+
+    @Override
+    @Transactional
+    public void deactivateBuff(String clanId, String buffKey) {
+        modifierRepository.findByClanIdAndKey(clanId, buffKey)
+                .ifPresentOrElse(
+                        modifier -> {
+                            if (!modifier.isActive()) {
+                                log.info("Buff {} for clan {} already inactive. Skipping.", buffKey, clanId);
+                                return;
+                            }
+                            modifier.setActive(false);
+                            modifier.setEndAt(Instant.now());
+                            modifierRepository.saveModifier(modifier);
+                            log.info("Deactivated buff {} for clan {}", buffKey, clanId);
+                        },
+                        () -> log.warn("Buff {} not found for clan {} during deactivation.", buffKey, clanId));
     }
 }

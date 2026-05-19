@@ -6,10 +6,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO;
+import id.ac.ui.cs.advprog.yomu.social.dto.ModifierSummary;
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
+import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -18,6 +22,7 @@ public class ClanModifierServiceImpl implements ClanModifierService {
 
     private final ClanModifierRepository modifierRepository;
     private final ModifierEvaluatorRegistryPort evaluatorRegistry;
+    private final SocialMapper socialMapper;
 
     @Override
     @Transactional
@@ -35,6 +40,31 @@ public class ClanModifierServiceImpl implements ClanModifierService {
                 .reduce(1.0, (a, b) -> a * b);
 
         return clampMultiplier(multiplier);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ModifierSummary getModifierSummary(String clanId) {
+        Instant now = Instant.now();
+        List<ClanModifier> all = modifierRepository.findByClanIdAndActiveTrue(clanId).stream()
+                .filter(m -> isCurrentlyValid(m, now))
+                .toList();
+
+        List<ClanModifierDTO> buffs = all.stream()
+                .filter(ClanModifier::isBuff)
+                .map(socialMapper::toClanModifierDTO)
+                .toList();
+
+        List<ClanModifierDTO> debuffs = all.stream()
+                .filter(ClanModifier::isDebuff)
+                .map(socialMapper::toClanModifierDTO)
+                .toList();
+
+        double multiplier = all.stream()
+                .mapToDouble(ClanModifier::getMultiplier)
+                .reduce(1.0, (a, b) -> a * b);
+
+        return new ModifierSummary(buffs, debuffs, clampMultiplier(multiplier));
     }
 
     private boolean isCurrentlyValid(ClanModifier modifier, Instant now) {

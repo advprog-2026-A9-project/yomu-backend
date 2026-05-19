@@ -10,6 +10,10 @@ public interface BuffDefinition {
     ModifierType getType();
     double getMultiplier();
 
+    default Instant calculateEndAt(Instant startAt) {
+        return null;
+    }
+
     default ClanModifier createModifier(String clanId) {
         ClanModifier m = new ClanModifier();
         m.setClanId(clanId);
@@ -17,8 +21,9 @@ public interface BuffDefinition {
         m.setType(getType());
         m.setMultiplier(getMultiplier());
         m.setActive(true);
-        m.setStartAt(Instant.now());
-        m.setEndAt(null);
+        Instant now = Instant.now();
+        m.setStartAt(now);
+        m.setEndAt(calculateEndAt(now));
         return m;
     }
 }
