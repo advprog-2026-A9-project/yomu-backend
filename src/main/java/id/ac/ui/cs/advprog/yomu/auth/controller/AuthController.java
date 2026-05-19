@@ -31,7 +31,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<AuthResponse> getMe(java.security.Principal principal) {
+    public ResponseEntity<AccountResponse> getMe(java.security.Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(401).build();
         }
