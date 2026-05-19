@@ -1,4 +1,4 @@
-package id.ac.ui.cs.advprog.yomu.social.service;
+package id.ac.ui.cs.advprog.yomu.social.service.score;
 
 import java.util.Optional;
 

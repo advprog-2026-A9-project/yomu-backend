@@ -6,21 +6,21 @@ public class UserJoinClanEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = 1L;
 
-    private final String userId;
+    private final String username;
     private final String clanId;
     private final String clanName;
     private final String clanTier;
 
-    public UserJoinClanEvent(Object source, String userId, String clanId, String clanName, String clanTier) {
+    public UserJoinClanEvent(Object source, String username, String clanId, String clanName, String clanTier) {
         super(source);
-        this.userId = userId;
+        this.username = username;
         this.clanId = clanId;
         this.clanName = clanName;
         this.clanTier = clanTier;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
     public String getClanId() {

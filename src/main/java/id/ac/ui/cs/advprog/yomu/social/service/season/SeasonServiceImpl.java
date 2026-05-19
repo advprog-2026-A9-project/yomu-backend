@@ -1,4 +1,4 @@
-package id.ac.ui.cs.advprog.yomu.social.service;
+package id.ac.ui.cs.advprog.yomu.social.service.season;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -19,10 +19,12 @@ import id.ac.ui.cs.advprog.yomu.social.dto.SeasonTierSummary;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
+import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.SeasonStateRepository;
 import id.ac.ui.cs.advprog.yomu.social.model.SeasonState;
 import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
+import id.ac.ui.cs.advprog.yomu.social.service.score.ClanQuizStatsService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -32,7 +34,7 @@ public class SeasonServiceImpl implements SeasonService {
     private final ClanRepository clanRepository;
     private final ClanMemberRepository memberRepository;
     private final ClanQuizStatsService statsService;
-    private final ClanModifierService modifierService;
+    private final ClanModifierRepository modifierRepository;
     private final SeasonStateRepository seasonStateRepository;
     private final SocialMapper socialMapper;
 
@@ -124,7 +126,7 @@ public class SeasonServiceImpl implements SeasonService {
 
         clanRepository.resetAllScores();
         statsService.resetSeasonStats();
-        modifierService.clearSeasonModifiers();
+        modifierRepository.deactivateAllActive(java.time.Instant.now());
 
         int newSeasonNumber = currentSeasonNumber + 1;
         var seasonState = seasonStateRepository.findTopByOrderByIdDesc().orElseGet(SeasonState::new);

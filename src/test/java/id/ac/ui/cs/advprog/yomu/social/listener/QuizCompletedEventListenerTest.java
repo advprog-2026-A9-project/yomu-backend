@@ -16,9 +16,9 @@ import id.ac.ui.cs.advprog.yomu.reading.event.QuizCompletedEvent;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanModifierService;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanQuizStatsService;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
+import id.ac.ui.cs.advprog.yomu.social.service.modifier.ClanModifierService;
+import id.ac.ui.cs.advprog.yomu.social.service.score.ClanQuizStatsService;
+import id.ac.ui.cs.advprog.yomu.social.service.score.ClanScoreService;
 
 @ExtendWith(MockitoExtension.class)
 class QuizCompletedEventListenerTest {
@@ -36,7 +36,7 @@ class QuizCompletedEventListenerTest {
     private ClanModifierService modifierService;
 
     @Mock
-    private ClanService clanService;
+    private ClanScoreService scoreService;
 
     @InjectMocks
     private QuizCompletedEventListener listener;
@@ -44,7 +44,7 @@ class QuizCompletedEventListenerTest {
     @Test
     void onQuizCompleted_WhenUserInClan_ShouldUpdateStatsModifierAndScore() {
         ClanMember member = new ClanMember();
-        member.setUserId(USER_ID);
+        member.setUsername(USER_ID);
         member.setClanId(CLAN_ID);
 
         ClanQuizStats stats = new ClanQuizStats();
@@ -52,7 +52,7 @@ class QuizCompletedEventListenerTest {
 
         QuizCompletedEvent event = new QuizCompletedEvent(USER_ID, 1L, 80, 8, 10);
 
-        when(memberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(member));
+        when(memberRepository.findByUsername(USER_ID)).thenReturn(Optional.of(member));
         when(statsService.recordQuizResult(CLAN_ID, 8, 10, 80)).thenReturn(stats);
 
         listener.onQuizCompleted(event);
@@ -60,32 +60,32 @@ class QuizCompletedEventListenerTest {
         assertAll("Verify interactions with services",
                 () -> verify(statsService).recordQuizResult(CLAN_ID, 8, 10, 80),
                 () -> verify(modifierService).evaluateModifiers(CLAN_ID, stats),
-                () -> verify(clanService).updateClanScore(CLAN_ID, 80));
+                () -> verify(scoreService).updateClanScore(CLAN_ID, 80));
     }
 
     @Test
     void onQuizCompleted_WhenNoClanMembership_ShouldDoNothing() {
         QuizCompletedEvent event = new QuizCompletedEvent("user-2", 2L, 60, 6, 10);
 
-        when(memberRepository.findByUserId("user-2")).thenReturn(Optional.empty());
+        when(memberRepository.findByUsername("user-2")).thenReturn(Optional.empty());
 
         listener.onQuizCompleted(event);
 
-        verifyNoInteractions(statsService, modifierService, clanService);
+        verifyNoInteractions(statsService, modifierService, scoreService);
     }
 
     @Test
     void onQuizCompleted_WhenClanIdBlank_ShouldDoNothing() {
         ClanMember member = new ClanMember();
-        member.setUserId("user-3");
+        member.setUsername("user-3");
         member.setClanId(" ");
 
         QuizCompletedEvent event = new QuizCompletedEvent("user-3", 3L, 70, 7, 10);
 
-        when(memberRepository.findByUserId("user-3")).thenReturn(Optional.of(member));
+        when(memberRepository.findByUsername("user-3")).thenReturn(Optional.of(member));
 
         listener.onQuizCompleted(event);
 
-        verifyNoInteractions(statsService, modifierService, clanService);
+        verifyNoInteractions(statsService, modifierService, scoreService);
     }
 }

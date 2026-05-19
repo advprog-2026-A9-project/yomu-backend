@@ -19,8 +19,6 @@ public class ClanJoinRequest {
     @Column(name = "clan_id", nullable = false)
     private String clanId;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
 
     @Column(nullable = false)
     private String username;

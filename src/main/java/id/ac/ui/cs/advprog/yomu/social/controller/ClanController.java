@@ -3,24 +3,26 @@ package id.ac.ui.cs.advprog.yomu.social.controller;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
-import id.ac.ui.cs.advprog.yomu.common.util.InputSanitizer;
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
-import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.lifecycle.ClanLifecycleService;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.membership.ClanMembershipService;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.query.ClanQueryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -28,102 +30,66 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ClanController {
 
-    private final ClanService clanService;
-    private final JwtUtil jwtUtil;
-    private final InputSanitizer inputSanitizer;
-    private final ClanValidator clanValidator;
-
-    private String getUserIdFromHeader(String authHeader) {
-        if (authHeader != null && authHeader.startsWith(SocialConstants.BEARER_PREFIX)) {
-            String token = authHeader.substring(SocialConstants.BEARER_PREFIX.length());
-            return jwtUtil.extractUserId(token);
-        }
-        return null;
-    }
-
-    private String getUsernameFromHeader(String authHeader) {
-        if (authHeader != null && authHeader.startsWith(SocialConstants.BEARER_PREFIX)) {
-            String token = authHeader.substring(SocialConstants.BEARER_PREFIX.length());
-            return jwtUtil.extractUsername(token);
-        }
-        return null;
-    }
+    private final ClanLifecycleService lifecycleService;
+    private final ClanQueryService queryService;
+    private final ClanMembershipService membershipService;
 
     @PostMapping
-    public ResponseEntity<Clan> create(@RequestBody final ClanRequest request,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        // Sanitize input to prevent XSS
-        request.setName(inputSanitizer.sanitize(request.getName()));
-        request.setDescription(inputSanitizer.sanitize(request.getDescription()));
-
-        // Validate input length and content
-        clanValidator.requireValidClanName(request.getName());
-        clanValidator.requireValidClanDescription(request.getDescription());
-
-        request.setUserId(getUserIdFromHeader(authHeader));
-        request.setUsername(getUsernameFromHeader(authHeader));
-        return ResponseEntity.ok(clanService.createClan(request));
+    public ResponseEntity<Clan> create(@RequestBody @Valid final ClanRequest request,
+            final Authentication authentication) {
+        final String username = authentication.getName();
+        request.setUsername(username);
+        return ResponseEntity.ok(lifecycleService.createClan(request));
     }
 
     @GetMapping
-    public ResponseEntity<List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse>> getAll(
-            @org.springframework.web.bind.annotation.RequestParam(value = "search", required = false) String search,
-            @org.springframework.web.bind.annotation.RequestParam(value = "random", defaultValue = "false") boolean random) {
+    public ResponseEntity<List<ClanSummaryResponse>> getAll(
+            @RequestParam(value = "search", required = false) final String search,
+            @RequestParam(value = "random", defaultValue = "false") final boolean random) {
         if (random && (search == null || search.isBlank())) {
-            return ResponseEntity.ok(clanService.findRandomClans(10));
+            return ResponseEntity.ok(queryService.findRandomClans(10));
         }
-        return ResponseEntity.ok(clanService.findAll(search));
+        return ResponseEntity.ok(queryService.findAll(search));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<MyClanResponse> getMyClan(
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String userId = getUserIdFromHeader(authHeader);
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        Optional<MyClanResponse> myClan = clanService.getMyClanByUserId(userId);
+    public ResponseEntity<MyClanResponse> getMyClan(final Authentication authentication) {
+        final String username = authentication.getName();
+        final Optional<MyClanResponse> myClan = queryService.getMyClanByUsername(username);
         return myClan.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.ok().build());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse> getClanDetail(
-            @PathVariable("id") String id) {
-        return ResponseEntity.ok(clanService.getClanDetail(id));
+    public ResponseEntity<ClanDetailResponse> getClanDetail(@PathVariable("id") final String id) {
+        return ResponseEntity.ok(queryService.getClanDetail(id));
     }
 
     @PostMapping("/{id}/edit")
-    public ResponseEntity<Clan> edit(@PathVariable("id") String id,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader,
-            @RequestBody final ClanRequest request) {
-        // Sanitize input to prevent XSS
-        request.setName(inputSanitizer.sanitize(request.getName()));
-        request.setDescription(inputSanitizer.sanitize(request.getDescription()));
-
-        // Validate input length and content
-        clanValidator.requireValidClanName(request.getName());
-        clanValidator.requireValidClanDescription(request.getDescription());
-
-        String userId = getUserIdFromHeader(authHeader);
-        return ResponseEntity.ok(clanService.editClan(id, userId, request));
+    public ResponseEntity<Clan> edit(
+            @PathVariable("id") final String id,
+            final Authentication authentication,
+            @RequestBody @Valid final ClanRequest request) {
+        final String username = authentication.getName();
+        return ResponseEntity.ok(lifecycleService.editClan(id, username, request));
     }
 
     @PostMapping("/{id}/delete")
-    public ResponseEntity<String> delete(@PathVariable("id") String id,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String userId = getUserIdFromHeader(authHeader);
-        clanService.deleteClan(id, userId);
+    public ResponseEntity<String> delete(
+            @PathVariable("id") final String id,
+            final Authentication authentication) {
+        final String username = authentication.getName();
+        lifecycleService.deleteClan(id, username);
         return ResponseEntity.ok(SocialConstants.DELETE_SUCCESS_MESSAGE);
     }
 
     @PostMapping("/{id}/kick/{memberId}")
-    public ResponseEntity<String> kick(@PathVariable("id") String id,
-            @PathVariable("memberId") String memberId,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String userId = getUserIdFromHeader(authHeader);
-        clanService.kickMember(id, userId, memberId);
+    public ResponseEntity<String> kick(
+            @PathVariable("id") final String id,
+            @PathVariable("memberId") final String memberId,
+            final Authentication authentication) {
+        final String username = authentication.getName();
+        membershipService.kickMember(id, username, memberId);
         return ResponseEntity.ok(SocialConstants.KICK_SUCCESS_MESSAGE);
     }
 }

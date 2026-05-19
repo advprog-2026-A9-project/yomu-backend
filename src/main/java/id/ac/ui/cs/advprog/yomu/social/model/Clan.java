@@ -26,7 +26,7 @@ public class Clan {
     private String description;
 
     @Column(nullable = false)
-    private String leaderUserId;
+    private String leaderUsername;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

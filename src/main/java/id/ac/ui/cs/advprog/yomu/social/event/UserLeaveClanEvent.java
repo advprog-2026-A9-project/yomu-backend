@@ -6,17 +6,17 @@ public class UserLeaveClanEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = 1L;
 
-    private final String userId;
+    private final String username;
     private final String clanId;
 
-    public UserLeaveClanEvent(Object source, String userId, String clanId) {
+    public UserLeaveClanEvent(Object source, String username, String clanId) {
         super(source);
-        this.userId = userId;
+        this.username = username;
         this.clanId = clanId;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
     public String getClanId() {

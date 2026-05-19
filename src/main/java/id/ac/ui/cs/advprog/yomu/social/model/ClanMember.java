@@ -18,6 +18,5 @@ public class ClanMember {
 
     private String username;
     private String clanId;
-    private String userId;
     private String role;
 }

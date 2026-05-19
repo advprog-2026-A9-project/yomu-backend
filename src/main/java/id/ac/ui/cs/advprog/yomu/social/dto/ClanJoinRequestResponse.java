@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 public record ClanJoinRequestResponse(
         Long id,
         String clanId,
-        String userId,
         String username,
         String status,
         LocalDateTime createdAt

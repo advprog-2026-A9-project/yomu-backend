@@ -16,8 +16,8 @@ import org.springframework.stereotype.Repository;
 public interface ClanJoinRequestRepository extends JpaRepository<ClanJoinRequest, Long> {
     Page<ClanJoinRequest> findByClanIdAndStatus(String clanId, String status, Pageable pageable);
     List<ClanJoinRequest> findByClanIdAndStatus(String clanId, String status);
-    Optional<ClanJoinRequest> findByClanIdAndUserIdAndStatus(String clanId, String userId, String status);
-    List<ClanJoinRequest> findByUserIdAndStatus(String userId, String status);
+    Optional<ClanJoinRequest> findByClanIdAndUsernameAndStatus(String clanId, String username, String status);
+    List<ClanJoinRequest> findByUsernameAndStatus(String username, String status);
 
     @Modifying
     @Query("UPDATE ClanJoinRequest c SET c.status = :newStatus WHERE c.clanId = :clanId AND c.status = :oldStatus")

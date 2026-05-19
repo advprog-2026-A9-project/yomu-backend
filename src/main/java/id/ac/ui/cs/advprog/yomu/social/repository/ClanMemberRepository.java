@@ -14,16 +14,16 @@ public interface ClanMemberRepository extends JpaRepository<ClanMember, Long> {
     
     List<ClanMember> findByClanId(String clanId);
     
-    Optional<ClanMember> findByClanIdAndUserId(String clanId, String userId);
+    Optional<ClanMember> findByClanIdAndUsername(String clanId, String username);
     
-    Optional<ClanMember> findByUserId(String userId);
+    Optional<ClanMember> findByUsername(String username);
 
     List<ClanMember> getClanMembersByClanId(String clanId);
     
     long countByClanId(String clanId);
 
     @Transactional
-    void deleteByClanIdAndUserId(String clanId, String userId);
+    void deleteByClanIdAndUsername(String clanId, String username);
 
     @Transactional
     void deleteByClanId(String clanId);
