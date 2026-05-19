@@ -66,4 +66,12 @@ public class AuthController {
         }
         return ResponseEntity.ok(authService.linkLoginMethod(userDetails.getUsername(), request));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<AuthResponse> logout(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(new AuthResponse(null, null, null, null, "Logout berhasil"));
+    }
 }
