@@ -10,29 +10,22 @@ import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 @Component
 public class ScoringStrategyFactory implements ScoringStrategyResolver {
 
-    private final BronzeScoringStrategy bronzeStrategy;
-    private final SilverScoringStrategy silverStrategy;
-    private final GoldScoringStrategy goldStrategy;
-    private final DiamondScoringStrategy diamondStrategy;
+    private final java.util.Map<Tier, ScoringStrategy> strategyMap;
 
-    public ScoringStrategyFactory(
-            BronzeScoringStrategy bronzeStrategy,
-            SilverScoringStrategy silverStrategy,
-            GoldScoringStrategy goldStrategy,
-            DiamondScoringStrategy diamondStrategy) {
-        this.bronzeStrategy = bronzeStrategy;
-        this.silverStrategy = silverStrategy;
-        this.goldStrategy = goldStrategy;
-        this.diamondStrategy = diamondStrategy;
+    public ScoringStrategyFactory(java.util.List<ScoringStrategy> strategies) {
+        strategyMap = strategies.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        ScoringStrategy::getSupportedTier,
+                        strategy -> strategy
+                ));
     }
 
     @Override
     public ScoringStrategy getStrategy(Tier tier) {
-        return switch (tier) {
-            case BRONZE -> bronzeStrategy;
-            case SILVER -> silverStrategy;
-            case GOLD -> goldStrategy;
-            case DIAMOND -> diamondStrategy;
-        };
+        ScoringStrategy strategy = strategyMap.get(tier);
+        if (strategy == null) {
+            throw new IllegalArgumentException("No scoring strategy found for tier: " + tier);
+        }
+        return strategy;
     }
 }
