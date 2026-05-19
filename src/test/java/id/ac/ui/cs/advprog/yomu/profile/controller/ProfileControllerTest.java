@@ -25,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class ProfileControllerTest {
 
-    private static final String TEST_USER_ID = "user-123";
     private static final String TEST_USERNAME = "prasetya";
     private static final String TEST_BIO = "New bio!";
     private static final String ERROR_MOCKMVC_NULL = "MockMvc instance must be autowired and not null";
@@ -44,7 +43,6 @@ class ProfileControllerTest {
     @BeforeEach
     void setUp() {
         mockResponse = ProfileResponse.builder()
-                .userId(TEST_USER_ID)
                 .username(TEST_USERNAME)
                 .displayName("Prasetya")
                 .bio(TEST_BIO)
@@ -60,7 +58,6 @@ class ProfileControllerTest {
 
         mockMvc.perform(get("/api/profile/me"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(TEST_USER_ID))
                 .andExpect(jsonPath("$.username").value(TEST_USERNAME))
                 .andExpect(jsonPath("$.bio").value(TEST_BIO));
 
@@ -82,7 +79,6 @@ class ProfileControllerTest {
 
         mockMvc.perform(get("/api/profile/prasetya"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(TEST_USER_ID))
                 .andExpect(jsonPath("$.username").value(TEST_USERNAME));
 
         assertNotNull(mockMvc, ERROR_MOCKMVC_NULL);
@@ -92,13 +88,13 @@ class ProfileControllerTest {
     @WithMockUser(username = TEST_USERNAME)
     void updateBioShouldReturnUpdatedProfile() throws Exception {
         UpdateBioRequest request = new UpdateBioRequest(TEST_BIO);
-        
+
         when(profileService.getProfileByUserIdOrUsername(TEST_USERNAME)).thenReturn(mockResponse);
-        when(profileService.updateBio(TEST_USER_ID, TEST_BIO)).thenReturn(mockResponse);
+        when(profileService.updateBio(TEST_USERNAME, TEST_BIO)).thenReturn(mockResponse);
 
         mockMvc.perform(put("/api/profile/bio")
-                        .contentType(java.util.Objects.requireNonNull(MediaType.APPLICATION_JSON))
-                        .content(java.util.Objects.requireNonNull(objectMapper.writeValueAsString(request))))
+                .contentType(java.util.Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                .content(java.util.Objects.requireNonNull(objectMapper.writeValueAsString(request))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bio").value(TEST_BIO));
 
@@ -110,8 +106,8 @@ class ProfileControllerTest {
         UpdateBioRequest request = new UpdateBioRequest(TEST_BIO);
 
         mockMvc.perform(put("/api/profile/bio")
-                        .contentType(java.util.Objects.requireNonNull(MediaType.APPLICATION_JSON))
-                        .content(java.util.Objects.requireNonNull(objectMapper.writeValueAsString(request))))
+                .contentType(java.util.Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                .content(java.util.Objects.requireNonNull(objectMapper.writeValueAsString(request))))
                 .andExpect(status().isUnauthorized());
 
         assertNotNull(mockMvc, ERROR_MOCKMVC_NULL);

@@ -29,9 +29,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class ProfileEventListenerTest {
 
-    private static final String TEST_USER_ID = "user-123";
+    private static final String TEST_USER_ID = "prasetya";
     private static final String TEST_USERNAME = "prasetya";
     private static final String TEST_CLAN_ID = "clan-456";
     private static final String TEST_CLAN_NAME = "Great Clan";
@@ -51,7 +52,6 @@ class ProfileEventListenerTest {
     @BeforeEach
     void setUp() {
         sampleProfile = Profile.builder()
-                .userId(TEST_USER_ID)
                 .username(TEST_USERNAME)
                 .displayName("Prasetya")
                 .bio("Existing bio text")
@@ -81,13 +81,14 @@ class ProfileEventListenerTest {
         when(profileRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(sampleProfile));
         when(profileRepository.save(any(Profile.class))).thenReturn(sampleProfile);
 
-        UserUpdatedEvent event = new UserUpdatedEvent(this, TEST_USER_ID, "newusername", "New Name");
+        UserUpdatedEvent event = new UserUpdatedEvent(this, TEST_USER_ID, TEST_USERNAME, "New Name");
         profileEventListener.onUserUpdated(event);
 
         assertAll("profile update properties",
-            () -> assertEquals("newusername", sampleProfile.getUsername(), "Username should match updated username"),
-            () -> assertEquals("New Name", sampleProfile.getDisplayName(), "Display name should match updated display name")
-        );
+                () -> assertEquals(TEST_USERNAME, sampleProfile.getUsername(),
+                        "Username should match updated username"),
+                () -> assertEquals("New Name", sampleProfile.getDisplayName(),
+                        "Display name should match updated display name"));
     }
 
     @Test
@@ -99,12 +100,11 @@ class ProfileEventListenerTest {
         profileEventListener.onQuizCompleted(event);
 
         assertAll("quiz completed stats",
-            () -> assertEquals(1, sampleProfile.getCompletedTexts(), "Completed texts count should increment by 1"),
-            () -> assertEquals(8, sampleProfile.getTotalMinutes(), "Total minutes should increment by 8"),
-            () -> assertEquals(80, sampleProfile.getQuizAccuracy(), "Quiz accuracy should be 80%"),
-            () -> assertEquals(4, sampleProfile.getCorrectAnswersSum(), "Correct answers sum should match"),
-            () -> assertEquals(5, sampleProfile.getTotalQuestionsSum(), "Total questions sum should match")
-        );
+                () -> assertEquals(1, sampleProfile.getCompletedTexts(), "Completed texts count should increment by 1"),
+                () -> assertEquals(8, sampleProfile.getTotalMinutes(), "Total minutes should increment by 8"),
+                () -> assertEquals(80, sampleProfile.getQuizAccuracy(), "Quiz accuracy should be 80%"),
+                () -> assertEquals(4, sampleProfile.getCorrectAnswersSum(), "Correct answers sum should match"),
+                () -> assertEquals(5, sampleProfile.getTotalQuestionsSum(), "Total questions sum should match"));
     }
 
     @Test
@@ -112,14 +112,14 @@ class ProfileEventListenerTest {
         when(profileRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(sampleProfile));
         when(profileRepository.save(any(Profile.class))).thenReturn(sampleProfile);
 
-        UserJoinClanEvent event = new UserJoinClanEvent(this, TEST_USER_ID, TEST_CLAN_ID, TEST_CLAN_NAME, TEST_CLAN_TIER);
+        UserJoinClanEvent event = new UserJoinClanEvent(this, TEST_USER_ID, TEST_CLAN_ID, TEST_CLAN_NAME,
+                TEST_CLAN_TIER);
         profileEventListener.onUserJoinClan(event);
 
         assertAll("clan join properties",
-            () -> assertEquals(TEST_CLAN_ID, sampleProfile.getClanId(), "Clan ID should be set correctly"),
-            () -> assertEquals(TEST_CLAN_NAME, sampleProfile.getClanName(), "Clan name should be set correctly"),
-            () -> assertEquals(TEST_CLAN_TIER, sampleProfile.getClanTier(), "Clan tier should be set correctly")
-        );
+                () -> assertEquals(TEST_CLAN_ID, sampleProfile.getClanId(), "Clan ID should be set correctly"),
+                () -> assertEquals(TEST_CLAN_NAME, sampleProfile.getClanName(), "Clan name should be set correctly"),
+                () -> assertEquals(TEST_CLAN_TIER, sampleProfile.getClanTier(), "Clan tier should be set correctly"));
     }
 
     @Test
@@ -135,10 +135,9 @@ class ProfileEventListenerTest {
         profileEventListener.onUserLeaveClan(event);
 
         assertAll("clan leave properties",
-            () -> assertNull(sampleProfile.getClanId(), "Clan ID should be cleared"),
-            () -> assertNull(sampleProfile.getClanName(), "Clan name should be cleared"),
-            () -> assertNull(sampleProfile.getClanTier(), "Clan tier should be cleared")
-        );
+                () -> assertNull(sampleProfile.getClanId(), "Clan ID should be cleared"),
+                () -> assertNull(sampleProfile.getClanName(), "Clan name should be cleared"),
+                () -> assertNull(sampleProfile.getClanTier(), "Clan tier should be cleared"));
     }
 
     @Test
@@ -155,10 +154,9 @@ class ProfileEventListenerTest {
         profileEventListener.onUserDeleteClan(event);
 
         assertAll("clan delete properties",
-            () -> assertNull(sampleProfile.getClanId(), "Clan ID should be cleared on delete"),
-            () -> assertNull(sampleProfile.getClanName(), "Clan name should be cleared on delete"),
-            () -> assertNull(sampleProfile.getClanTier(), "Clan tier should be cleared on delete")
-        );
+                () -> assertNull(sampleProfile.getClanId(), "Clan ID should be cleared on delete"),
+                () -> assertNull(sampleProfile.getClanName(), "Clan name should be cleared on delete"),
+                () -> assertNull(sampleProfile.getClanTier(), "Clan tier should be cleared on delete"));
     }
 
     @Test
@@ -183,12 +181,12 @@ class ProfileEventListenerTest {
 
         List<UserShowcaseAchievementChangedEvent.ShowcaseAchievementInfo> achievements = new ArrayList<>();
         achievements.add(new UserShowcaseAchievementChangedEvent.ShowcaseAchievementInfo(
-            "ach-1", "First Quiz", "Complete a quiz", "GOLD"
-        ));
+                "ach-1", "First Quiz", "Complete a quiz", "GOLD"));
 
         UserShowcaseAchievementChangedEvent event = new UserShowcaseAchievementChangedEvent(TEST_USER_ID, achievements);
         profileEventListener.onUserShowcaseAchievementChanged(event);
 
-        assertTrue(sampleProfile.getShowcaseAchievementsJson().contains("First Quiz"), "Showcase JSON should contain the achievement name");
+        assertTrue(sampleProfile.getShowcaseAchievementsJson().contains("First Quiz"),
+                "Showcase JSON should contain the achievement name");
     }
 }
