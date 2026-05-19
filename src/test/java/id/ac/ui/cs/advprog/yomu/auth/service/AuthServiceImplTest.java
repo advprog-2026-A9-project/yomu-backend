@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import id.ac.ui.cs.advprog.yomu.auth.event.UserCreatedEvent;
@@ -422,5 +423,24 @@ class AuthServiceImplTest {
         assertThrows(IllegalArgumentException.class,
             () -> authService.register(registerRequest),
             "Harus throw exception jika username mengandung karakter spesial");
+    }
+
+    @Test
+    void testGetMeReturnsDisplayName() {
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
+
+        AccountResponse response = authService.getMe(TEST_USERNAME);
+
+        assertNotNull(response, "Response tidak boleh null");
+        assertEquals(TEST_USERNAME, response.getUsername(), "Username harus sesuai");
+    }
+
+    @Test
+    void testGetMeFailUserNotFound() {
+        when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+            () -> authService.getMe("unknown"),
+            "Harus throw exception jika user tidak ditemukan");
     }
 }
