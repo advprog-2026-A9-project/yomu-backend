@@ -45,9 +45,6 @@ class ClanJoinRequestServiceImplTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private java.time.Clock clock;
-
     @InjectMocks
     private ClanJoinRequestServiceImpl joinRequestService;
 

@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.yomu.social.service.clan.joinrequest;
 
-import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -31,7 +30,6 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
     private final ClanJoinRequestRepository joinRequestRepository;
     private final ClanValidator clanValidator;
     private final ApplicationEventPublisher eventPublisher;
-    private final Clock clock;
 
     @Override
     @Transactional
@@ -60,7 +58,7 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
         req.setClanId(validClanId);
         req.setUsername(username);
         req.setStatus(SocialConstants.REQUEST_STATUS_PENDING);
-        req.setCreatedAt(LocalDateTime.now(clock));
+        req.setCreatedAt(LocalDateTime.now());
         joinRequestRepository.save(req);
     }
 
