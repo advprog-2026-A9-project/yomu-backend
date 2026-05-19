@@ -45,19 +45,20 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse register(RegisterRequest request) {
         final String email = normalize(request.getEmail());
         final String phoneNumber = normalize(request.getPhoneNumber());
+        final String username = request.getUsername();
 
         if (email == null && phoneNumber == null) {
             throw new IllegalArgumentException("Email atau nomor HP harus diisi");
         }
-        if (userRepository.existsByUsername(request.getUsername())) {
+        if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username sudah dipakai");
         }
 
-        if (request.getUsername().length() < MIN_USERNAME_LENGTH || 
-            request.getUsername().length() > MAX_USERNAME_LENGTH) {
+        if (username.length() < MIN_USERNAME_LENGTH || 
+            username.length() > MAX_USERNAME_LENGTH) {
             throw new IllegalArgumentException("Username harus antara 3-20 karakter");
         }
-        if (!USERNAME_PATTERN.matcher(request.getUsername()).matches()) {
+        if (!USERNAME_PATTERN.matcher(username).matches()) {
             throw new IllegalArgumentException("Username hanya boleh mengandung huruf, angka, dan underscore");
         }
         if (request.getPassword().length() < MIN_PASSWORD_LENGTH) {
@@ -75,7 +76,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         final User user = new User();
-        user.setUsername(request.getUsername());
+        user.setUsername(username);
         user.setEmail(email);
         user.setPhoneNumber(phoneNumber);
         user.setDisplayName(request.getDisplayName());
