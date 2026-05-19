@@ -5,26 +5,31 @@ import org.springframework.stereotype.Component;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 
-import id.ac.ui.cs.advprog.yomu.social.port.ClanMemberValidationPort;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats;
+import id.ac.ui.cs.advprog.yomu.social.repository.ClanQuizStatsRepository;
 
 // Tier Silver: penjumlahan dengan bonus member aktif
-// semakin banyak anggota berkontribusi, semakin besar bonus
+// semakin banyak kontribusi dari anggota, semakin besar bonus
+@SuppressWarnings("null")
 @Component
 public class SilverScoringStrategy implements ScoringStrategy {
 
-    private final ClanMemberValidationPort memberValidationPort;
+    private final ClanQuizStatsRepository quizStatsRepository;
 
-    public SilverScoringStrategy(ClanMemberValidationPort memberValidationPort) {
-        this.memberValidationPort = memberValidationPort;
+    public SilverScoringStrategy(ClanQuizStatsRepository quizStatsRepository) {
+        this.quizStatsRepository = quizStatsRepository;
     }
 
     @Override
     public int calculateScore(Clan clan, int basePoints) {
-        long memberCount = memberValidationPort.countByClanId(clan.getId());
-        double bonusMultiplier = 1.0 + (memberCount * 0.05); // +5% per member
+        ClanQuizStats stats = quizStatsRepository.findById(clan.getId()).orElse(new ClanQuizStats());
+        long contributionCount = stats.getTotalQuizAttempts();
+        double bonusMultiplier = 1.0 + (contributionCount * 0.05); // +5% per kontribusi
         return (int) Math.round(basePoints * bonusMultiplier);
     }
 
     @Override
-    public Tier getSupportedTier() { return Tier.SILVER; }
+    public Tier getSupportedTier() {
+        return Tier.SILVER;
+    }
 }
