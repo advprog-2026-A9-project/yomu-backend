@@ -6,6 +6,7 @@ import id.ac.ui.cs.advprog.yomu.social.model.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class SocialMapperImpl implements SocialMapper {
@@ -89,7 +90,7 @@ public class SocialMapperImpl implements SocialMapper {
         return new ClanModifierDTO(
                 displayName,
                 "x" + String.format("%.2f", modifier.getMultiplier()),
-                modifier.getType().name().toLowerCase(java.util.Locale.ROOT),
+                modifier.getType().name().toLowerCase(Locale.ROOT),
                 modifier.getEndAt() == null ? "Active" : "Until " + modifier.getEndAt().toString(),
                 description);
     }

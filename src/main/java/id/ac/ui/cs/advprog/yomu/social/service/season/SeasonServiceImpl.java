@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.social.service.season;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +24,9 @@ import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanModifierRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.SeasonStateRepository;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
 import id.ac.ui.cs.advprog.yomu.social.model.SeasonState;
+import id.ac.ui.cs.advprog.yomu.social.event.SeasonRankingEvent;
 import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
 import id.ac.ui.cs.advprog.yomu.social.service.score.ClanQuizStatsService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +41,7 @@ public class SeasonServiceImpl implements SeasonService {
     private final ClanModifierRepository modifierRepository;
     private final SeasonStateRepository seasonStateRepository;
     private final SocialMapper socialMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -62,6 +67,18 @@ public class SeasonServiceImpl implements SeasonService {
             long totalClans = clans.size();
             if (totalClans <= 0) {
                 continue;
+            }
+
+            // Publish ranking events for all clans in this tier
+            for (int rank = 0; rank < clans.size(); rank++) {
+                Clan rankedClan = clans.get(rank);
+                List<String> memberUsernames = memberRepository.findByClanId(rankedClan.getId())
+                        .stream().map(ClanMember::getUsername).toList();
+                if (!memberUsernames.isEmpty()) {
+                    eventPublisher.publishEvent(new SeasonRankingEvent(
+                            this, memberUsernames, rankedClan.getName(),
+                            tier.name(), rank + 1));
+                }
             }
 
             int changeCount = (int) Math.ceil(totalClans * SocialConstants.SEASON_CHANGE_RATIO);
@@ -126,7 +143,7 @@ public class SeasonServiceImpl implements SeasonService {
 
         clanRepository.resetAllScores();
         statsService.resetSeasonStats();
-        modifierRepository.deactivateAllActive(java.time.Instant.now());
+        modifierRepository.deactivateAllActive(Instant.now());
 
         int newSeasonNumber = currentSeasonNumber + 1;
         var seasonState = seasonStateRepository.findTopByOrderByIdDesc().orElseGet(SeasonState::new);

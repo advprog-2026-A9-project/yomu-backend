@@ -1,5 +1,9 @@
 package id.ac.ui.cs.advprog.yomu.social.strategy;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
 
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
@@ -10,11 +14,11 @@ import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 @Component
 public class ScoringStrategyFactory implements ScoringStrategyResolver {
 
-    private final java.util.Map<Tier, ScoringStrategy> strategyMap;
+    private final Map<Tier, ScoringStrategy> strategyMap;
 
-    public ScoringStrategyFactory(java.util.List<ScoringStrategy> strategies) {
+    public ScoringStrategyFactory(List<ScoringStrategy> strategies) {
         strategyMap = strategies.stream()
-                .collect(java.util.stream.Collectors.toMap(
+                .collect(Collectors.toMap(
                         ScoringStrategy::getSupportedTier,
                         strategy -> strategy
                 ));
