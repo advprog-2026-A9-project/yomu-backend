@@ -3,7 +3,7 @@ package id.ac.ui.cs.advprog.yomu.gamification.event;
 import java.util.List;
 
 public record UserShowcaseAchievementChangedEvent(
-    String userId,
+    String username,
     List<ShowcaseAchievementInfo> achievements
 ) {
     public record ShowcaseAchievementInfo(

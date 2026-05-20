@@ -22,10 +22,11 @@ public class Clan {
     @Column(unique = true, nullable = false)
     private String name;
 
+    @Column(length = 255)
     private String description;
 
     @Column(nullable = false)
-    private String leaderUserId;
+    private String leaderUsername;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -3,39 +3,28 @@ package id.ac.ui.cs.advprog.yomu.social.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.query.ClanQueryService;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.RequestHeader;
-import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
-import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 
 @RestController
 @RequestMapping("/api/clans/leaderboard")
 @RequiredArgsConstructor
 public class ClanLeaderboardController {
 
-    private final ClanService clanService;
-    private final JwtUtil jwtUtil;
+    private final ClanQueryService queryService;
 
     @GetMapping
     public ResponseEntity<List<LeaderboardResponse>> getLeaderboard(
-            @RequestHeader(value = SocialConstants.AUTHORIZATION_HEADER, required = false) String authHeader,
-            @org.springframework.web.bind.annotation.RequestParam(value = "search", required = false) String search) {
-        String userId = getUserIdFromHeader(authHeader);
-        return ResponseEntity.ok(clanService.getLeaderboardByTier(userId, search));
-    }
-
-    private String getUserIdFromHeader(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return null;
-        }
-        String token = authHeader.substring(7);
-        return jwtUtil.extractUserId(token);
+            final Authentication authentication,
+            @RequestParam(value = "search", required = false) final String search) {
+        final String username = (authentication != null) ? authentication.getName() : null;
+        return ResponseEntity.ok(queryService.getLeaderboardByTier(username, search));
     }
 }

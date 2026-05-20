@@ -9,9 +9,9 @@ import id.ac.ui.cs.advprog.yomu.gamification.model.Achievement;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementProgress;
 
 public interface UserAchievementProgressRepository extends JpaRepository<UserAchievementProgress, String> {
-    List<UserAchievementProgress> findByUserId(String userId);
+    List<UserAchievementProgress> findByUsername(String username);
 
-    Optional<UserAchievementProgress> findByUserIdAndAchievement(String userId, Achievement achievement);
+    Optional<UserAchievementProgress> findByUsernameAndAchievement(String username, Achievement achievement);
 
     long countByAchievement(Achievement achievement);
 }

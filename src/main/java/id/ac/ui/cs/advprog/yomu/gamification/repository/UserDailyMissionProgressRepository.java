@@ -10,10 +10,10 @@ import id.ac.ui.cs.advprog.yomu.gamification.model.DailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserDailyMissionProgress;
 
 public interface UserDailyMissionProgressRepository extends JpaRepository<UserDailyMissionProgress, String> {
-    List<UserDailyMissionProgress> findByUserIdAndProgressDate(String userId, LocalDate progressDate);
+    List<UserDailyMissionProgress> findByUsernameAndProgressDate(String username, LocalDate progressDate);
 
-    Optional<UserDailyMissionProgress> findByUserIdAndDailyMissionAndProgressDate(
-        String userId,
+    Optional<UserDailyMissionProgress> findByUsernameAndDailyMissionAndProgressDate(
+        String username,
         DailyMission dailyMission,
         LocalDate progressDate
     );

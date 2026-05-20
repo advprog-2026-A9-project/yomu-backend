@@ -33,7 +33,7 @@ class ClanRepositoryTest {
 
         dummyClan = new Clan();
         dummyClan.setName(clanNameSobat);
-        dummyClan.setLeaderUserId(leaderId);
+        dummyClan.setLeaderUsername(leaderId);
     }
 
     @Test

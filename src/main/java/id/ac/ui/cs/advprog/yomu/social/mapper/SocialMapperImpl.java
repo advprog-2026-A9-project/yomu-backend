@@ -1,11 +1,27 @@
 package id.ac.ui.cs.advprog.yomu.social.mapper;
 
-import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
-import id.ac.ui.cs.advprog.yomu.social.dto.*;
-import id.ac.ui.cs.advprog.yomu.social.model.*;
+import java.util.List;
+import java.util.Locale;
+
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanMemberDTO;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow;
+import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonClanSummary;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonEndResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonStatusResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonTierSummary;
+import id.ac.ui.cs.advprog.yomu.social.model.Clan;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
+import id.ac.ui.cs.advprog.yomu.social.model.SeasonState;
 
 @Component
 public class SocialMapperImpl implements SocialMapper {
@@ -17,7 +33,7 @@ public class SocialMapperImpl implements SocialMapper {
                 row.getClanId(),
                 row.getClanName(),
                 row.getDescription(),
-                row.getLeaderUserId(),
+                row.getLeaderUsername(),
                 row.getTier().name(),
                 row.getScore(),
                 effectiveScore,
@@ -33,7 +49,7 @@ public class SocialMapperImpl implements SocialMapper {
                 clan.getId(),
                 clan.getName(),
                 clan.getDescription() == null ? "" : clan.getDescription(),
-                clan.getLeaderUserId(),
+                clan.getLeaderUsername(),
                 clan.getTier().name(),
                 rank,
                 clan.getScore(),
@@ -51,7 +67,7 @@ public class SocialMapperImpl implements SocialMapper {
                 clan.getId(),
                 clan.getName(),
                 clan.getDescription(),
-                clan.getLeaderUserId(),
+                clan.getLeaderUsername(),
                 role,
                 clan.getTier().getDisplayName(),
                 clan.getScore(),
@@ -62,23 +78,36 @@ public class SocialMapperImpl implements SocialMapper {
     @Override
     public ClanMemberDTO toClanMemberDTO(ClanMember member) {
         return new ClanMemberDTO(
-                member.getUserId(),
                 member.getUsername(),
-                member.getRole(),
-                0, // Default weekly contribution
-                0, // Default total contribution
+                member.getRole().toString(),
+                0, // Default contribution
+                0, // Default streak
                 true // Default online status
         );
     }
 
     @Override
     public ClanModifierDTO toClanModifierDTO(ClanModifier modifier) {
+        String displayName = modifier.getKey();
+        if (SocialConstants.DAILY_MISSION_BUFF_KEY.equals(modifier.getKey())) {
+            displayName = "Daily Mission Buff";
+        } else if (SocialConstants.LOW_ACCURACY_PENALTY_KEY.equals(modifier.getKey())) {
+            displayName = "Low Accuracy Penalty";
+        }
+
+        String description = modifier.getType().name() + " modifier";
+        if (SocialConstants.DAILY_MISSION_BUFF_KEY.equals(modifier.getKey())) {
+            description = "+20% Points Multiplier";
+        } else if (SocialConstants.LOW_ACCURACY_PENALTY_KEY.equals(modifier.getKey())) {
+            description = "-20% Points Multiplier";
+        }
+
         return new ClanModifierDTO(
-                modifier.getKey(),
+                displayName,
                 "x" + String.format("%.2f", modifier.getMultiplier()),
-                modifier.getType().name(),
+                modifier.getType().name().toLowerCase(Locale.ROOT),
                 modifier.getEndAt() == null ? "Active" : "Until " + modifier.getEndAt().toString(),
-                modifier.getType().name() + " modifier");
+                description);
     }
 
     @Override
