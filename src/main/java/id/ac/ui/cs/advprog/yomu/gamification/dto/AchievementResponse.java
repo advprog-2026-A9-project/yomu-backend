@@ -8,6 +8,7 @@ public record AchievementResponse(
     int milestoneThreshold,
     Integer accuracyThreshold,
     String tier,
+    String targetTier,
     long earnedCount,
     boolean active
 ) {

@@ -18,8 +18,9 @@ import id.ac.ui.cs.advprog.yomu.gamification.dto.AchievementRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.AchievementResponse;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.DailyMissionResponse;
-import id.ac.ui.cs.advprog.yomu.gamification.service.AchievementService;
-import id.ac.ui.cs.advprog.yomu.gamification.service.DailyMissionService;
+import id.ac.ui.cs.advprog.yomu.gamification.service.achievement.AchievementService;
+import id.ac.ui.cs.advprog.yomu.gamification.service.mission.DailyMissionService;
+import id.ac.ui.cs.advprog.yomu.gamification.service.mission.DailyMissionRotationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +32,7 @@ public class GamificationAdminController {
 
     private final AchievementService achievementService;
     private final DailyMissionService dailyMissionService;
+    private final DailyMissionRotationService dailyMissionRotationService;
 
     @PostMapping("/achievements")
     @ResponseStatus(HttpStatus.CREATED)
@@ -85,12 +87,12 @@ public class GamificationAdminController {
     @PostMapping("/daily-missions/select")
     @ResponseStatus(HttpStatus.OK)
     public void setTodayMissions(@RequestBody List<String> missionIds) {
-        dailyMissionService.setTodayMissions(missionIds);
+        dailyMissionRotationService.setTodayMissions(missionIds);
     }
 
     @PostMapping("/daily-missions/randomize")
     @ResponseStatus(HttpStatus.OK)
     public void randomizeTodayMissions() {
-        dailyMissionService.forceRotateMissions();
+        dailyMissionRotationService.forceRotateMissions();
     }
 }

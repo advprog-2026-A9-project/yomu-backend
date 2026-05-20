@@ -8,12 +8,12 @@ import id.ac.ui.cs.advprog.yomu.gamification.dto.DailyMissionProgressResponse;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.DailyMissionResponse;
 import id.ac.ui.cs.advprog.yomu.gamification.model.Achievement;
 import id.ac.ui.cs.advprog.yomu.gamification.model.AccuracyBasedAchievement;
-import id.ac.ui.cs.advprog.yomu.gamification.model.CountBasedAchievement;
 import id.ac.ui.cs.advprog.yomu.gamification.model.DailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.AccuracyDailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.CountBasedDailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementProgress;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserDailyMissionProgress;
+import id.ac.ui.cs.advprog.yomu.gamification.model.RankingBasedAchievement;
 
 /**
  * Implementation of gamification mapper
@@ -28,17 +28,21 @@ public class GamificationMapperImpl implements GamificationMapper {
         if (achievement instanceof AccuracyBasedAchievement accuracyAchievement) {
             accuracyThreshold = accuracyAchievement.getAccuracyThreshold();
         }
+        String targetTier = null;
+        if (achievement instanceof RankingBasedAchievement rankingAchievement) {
+            targetTier = rankingAchievement.getTargetTier();
+        }
         return new AchievementResponse(
-            achievement.getId(),
-            achievement.getName(),
-            achievement.getMilestone(),
-            achievement.getMilestoneType(),
-            achievement.getMilestoneThreshold(),
-            accuracyThreshold,
-            achievement.getTier(),
-            0L,
-            achievement.isActive()
-        );
+                achievement.getId(),
+                achievement.getName(),
+                achievement.getMilestone(),
+                achievement.getMilestoneType(),
+                achievement.getMilestoneThreshold(),
+                accuracyThreshold,
+                achievement.getTier(),
+                targetTier,
+                0L,
+                achievement.isActive());
     }
 
     @Override
@@ -55,18 +59,17 @@ public class GamificationMapperImpl implements GamificationMapper {
         }
 
         return new DailyMissionResponse(
-            mission.getId(),
-            mission.getName(),
-            mission.getMilestone(),
-            mission.getMissionType(),
-            targetCount,
-            accuracyThreshold,
-            requiredCount,
-            mission.getRewardScore(),
-            mission.getActiveFrom(),
-            mission.getActiveUntil(),
-            mission.isActive()
-        );
+                mission.getId(),
+                mission.getName(),
+                mission.getMilestone(),
+                mission.getMissionType(),
+                targetCount,
+                accuracyThreshold,
+                requiredCount,
+                mission.getRewardScore(),
+                mission.getActiveFrom(),
+                mission.getActiveUntil(),
+                mission.isActive());
     }
 
     @Override
@@ -75,18 +78,22 @@ public class GamificationMapperImpl implements GamificationMapper {
         if (progress.getAchievement() instanceof AccuracyBasedAchievement accuracyAchievement) {
             accuracyThreshold = accuracyAchievement.getAccuracyThreshold();
         }
+        String targetTier = null;
+        if (progress.getAchievement() instanceof RankingBasedAchievement rankingAchievement) {
+            targetTier = rankingAchievement.getTargetTier();
+        }
         return new AchievementProgressResponse(
-            progress.getAchievement().getId(),
-            progress.getAchievement().getName(),
-            progress.getUsername(),
-            progress.getProgressValue(),
-            progress.isUnlocked(),
-            progress.getAchievement().getMilestone(),
-            progress.getAchievement().getMilestoneType(),
-            progress.getAchievement().getMilestoneThreshold(),
-            accuracyThreshold,
-            progress.getAchievement().getTier()
-        );
+                progress.getAchievement().getId(),
+                progress.getAchievement().getName(),
+                progress.getUsername(),
+                progress.getProgressValue(),
+                progress.isUnlocked(),
+                progress.getAchievement().getMilestone(),
+                progress.getAchievement().getMilestoneType(),
+                progress.getAchievement().getMilestoneThreshold(),
+                accuracyThreshold,
+                progress.getAchievement().getTier(),
+                targetTier);
     }
 
     @Override
@@ -104,18 +111,17 @@ public class GamificationMapperImpl implements GamificationMapper {
         }
 
         return new DailyMissionProgressResponse(
-            mission.getId(),
-            mission.getName(),
-            progress.getUsername(),
-            progress.getProgressDate(),
-            progress.getProgressValue(),
-            progress.isCompleted(),
-            mission.getMilestone(),
-            targetCount,
-            accuracyThreshold,
-            requiredCount,
-            mission.getRewardScore(),
-            mission.getMissionType()
-        );
+                mission.getId(),
+                mission.getName(),
+                progress.getUsername(),
+                progress.getProgressDate(),
+                progress.getProgressValue(),
+                progress.isCompleted(),
+                mission.getMilestone(),
+                targetCount,
+                accuracyThreshold,
+                requiredCount,
+                mission.getRewardScore(),
+                mission.getMissionType());
     }
 }
