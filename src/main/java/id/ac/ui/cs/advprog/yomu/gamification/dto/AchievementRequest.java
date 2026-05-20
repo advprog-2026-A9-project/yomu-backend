@@ -22,5 +22,7 @@ public class AchievementRequest {
 
     private String tier;
 
+    private String targetTier;
+
     private Integer accuracyThreshold;
 }

@@ -3,7 +3,7 @@ package id.ac.ui.cs.advprog.yomu.gamification.scheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import id.ac.ui.cs.advprog.yomu.gamification.service.DailyMissionService;
+import id.ac.ui.cs.advprog.yomu.gamification.service.mission.DailyMissionRotationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DailyMissionScheduler {
 
-    private final DailyMissionService dailyMissionService;
+    private final DailyMissionRotationService dailyMissionRotationService;
 
     /**
      * Rotates daily missions at midnight every day
@@ -24,7 +24,7 @@ public class DailyMissionScheduler {
     @Scheduled(cron = "0 0 0 * * *")
     public void rotateMissions() {
         log.info("Starting daily mission rotation...");
-        dailyMissionService.rotateMissions();
+        dailyMissionRotationService.rotateMissions();
         log.info("Daily mission rotation completed.");
     }
 }

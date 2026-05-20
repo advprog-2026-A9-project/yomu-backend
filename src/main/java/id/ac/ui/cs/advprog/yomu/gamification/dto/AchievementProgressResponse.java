@@ -10,6 +10,7 @@ public record AchievementProgressResponse(
     String milestoneType,
     int milestoneThreshold,
     Integer accuracyThreshold,
-    String tier
+    String tier,
+    String targetTier
 ) {
 }

@@ -68,4 +68,18 @@ public abstract class DailyMission {
     public abstract boolean isEligibleForUpdate(int score);
 
     public abstract int calculateNewProgressValue(int currentProgress);
+
+    public enum EventType {
+        QUIZ_COMPLETED,
+        READING_COMPLETED
+    }
+
+    public boolean isEligibleForEvent(EventType eventType) {
+        if (eventType == EventType.QUIZ_COMPLETED) {
+            return !"read_n_articles".equals(missionType);
+        } else if (eventType == EventType.READING_COMPLETED) {
+            return "read_n_articles".equals(missionType);
+        }
+        return false;
+    }
 }
