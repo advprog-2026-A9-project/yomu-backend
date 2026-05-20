@@ -40,36 +40,36 @@ public class AuthController {
 
    @PutMapping("/account")
     public ResponseEntity<AccountResponse> updateAccount(
-            @AuthenticationPrincipal UserDetails userDetails,
+            java.security.Principal principal,
             @RequestBody UpdateAccountRequest request) {
-        if (userDetails == null) {
+        if (principal == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(authService.updateAccount(userDetails.getUsername(), request));
+        return ResponseEntity.ok(authService.updateAccount(principal.getName(), request));
     }
 
     @DeleteMapping("/account")
-    public ResponseEntity<Void> deleteAccount(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
+    public ResponseEntity<Void> deleteAccount(java.security.Principal principal) {
+        if (principal == null) {
             return ResponseEntity.status(401).build();
         }
-        authService.deleteAccount(userDetails.getUsername());
+        authService.deleteAccount(principal.getName());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/account/link")
     public ResponseEntity<AccountResponse> linkLoginMethod(
-            @AuthenticationPrincipal UserDetails userDetails,
+            java.security.Principal principal,
             @RequestBody LinkLoginMethodRequest request) {
-        if (userDetails == null) {
+        if (principal == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(authService.linkLoginMethod(userDetails.getUsername(), request));
+        return ResponseEntity.ok(authService.linkLoginMethod(principal.getName(), request));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<AuthResponse> logout(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
+    public ResponseEntity<AuthResponse> logout(java.security.Principal principal) {
+        if (principal == null) {
             return ResponseEntity.status(401).build();
         }
         return ResponseEntity.ok(new AuthResponse(null, null, null, null, "Logout berhasil"));
