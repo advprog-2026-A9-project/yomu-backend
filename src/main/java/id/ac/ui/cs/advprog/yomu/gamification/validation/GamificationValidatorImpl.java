@@ -13,12 +13,14 @@ import id.ac.ui.cs.advprog.yomu.gamification.exception.GamificationException;
 @Component
 public class GamificationValidatorImpl implements GamificationValidator {
 
+    private static final String RANKING_ACHIEVED = "ranking_achieved";
+
     private static final String[] ACHIEVEMENT_TYPES = {
         "readings_completed",
         "quizzes_passed",
         "accuracy_above",
         "clan_promoted",
-        "ranking_achieved"
+        RANKING_ACHIEVED
     };
 
     private static final String[] DAILY_MISSION_TYPES = {
@@ -71,6 +73,23 @@ public class GamificationValidatorImpl implements GamificationValidator {
 
         if (request.getMilestoneThreshold() <= 0) {
             throw new GamificationException("Achievement threshold must be positive", "INVALID_MILESTONE_THRESHOLD");
+        }
+
+        if (RANKING_ACHIEVED.equalsIgnoreCase(request.getMilestoneType().trim())) {
+            if (request.getTargetTier() == null || request.getTargetTier().trim().isEmpty()) {
+                throw new GamificationException("Target tier is required for ranking achieved achievements", "INVALID_TARGET_TIER");
+            }
+            String targetTierTrimmed = request.getTargetTier().trim();
+            boolean isValidTier = false;
+            for (String allowedTier : new String[]{"BRONZE", "SILVER", "GOLD", "DIAMOND", "MYTHIC", "GODLIKE"}) {
+                if (allowedTier.equalsIgnoreCase(targetTierTrimmed)) {
+                    isValidTier = true;
+                    break;
+                }
+            }
+            if (!isValidTier) {
+                throw new GamificationException("Invalid target tier", "INVALID_TARGET_TIER");
+            }
         }
     }
 

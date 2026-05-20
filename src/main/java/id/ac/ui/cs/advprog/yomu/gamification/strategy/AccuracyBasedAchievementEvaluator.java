@@ -19,7 +19,12 @@ public class AccuracyBasedAchievementEvaluator implements AchievementProgressEva
         if (progress.isUnlocked()) {
             return false;
         }
-        int accuracy = (context instanceof Integer) ? (Integer) context : 0;
+        int accuracy = 0;
+        if (context instanceof QuizCompletionContext quizCtx) {
+            accuracy = quizCtx.score();
+        } else if (context instanceof Integer integer) {
+            accuracy = integer;
+        }
         
         if (progress.getAchievement() instanceof AccuracyBasedAchievement accuracyAchievement) {
             if (accuracy >= accuracyAchievement.getAccuracyThreshold()) {
