@@ -1,10 +1,8 @@
-package id.ac.ui.cs.advprog.yomu.gamification.service;
+package id.ac.ui.cs.advprog.yomu.gamification.service.mission;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +18,6 @@ import id.ac.ui.cs.advprog.yomu.gamification.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.validation.GamificationValidator;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Daily mission service implementation
- * Dependency Inversion: depends on GamificationValidator and GamificationMapper interfaces
- */
 @Service
 @RequiredArgsConstructor
 public class DailyMissionServiceImpl implements DailyMissionService {
@@ -41,15 +35,15 @@ public class DailyMissionServiceImpl implements DailyMissionService {
 
         dailyMissionRepository.findByNameIgnoreCase(request.getName()).ifPresent(existing -> {
             throw new GamificationException(
-                "Daily mission with this name already exists",
-                "DUPLICATE_NAME"
-            );
+                    "Daily mission with this name already exists",
+                    "DUPLICATE_NAME");
         });
 
         DailyMission mission;
         if (MISSION_TYPE_ACCURACY.equalsIgnoreCase(request.getMissionType().trim())) {
             AccuracyDailyMission accMission = new AccuracyDailyMission();
-            accMission.setAccuracyThreshold(request.getAccuracyThreshold() != null ? request.getAccuracyThreshold() : 0);
+            accMission
+                    .setAccuracyThreshold(request.getAccuracyThreshold() != null ? request.getAccuracyThreshold() : 0);
             accMission.setRequiredCount(request.getRequiredCount() != null ? request.getRequiredCount() : 1);
             mission = accMission;
         } else {
@@ -63,7 +57,8 @@ public class DailyMissionServiceImpl implements DailyMissionService {
         mission.setMissionType(request.getMissionType().trim());
         mission.setRewardScore(request.getRewardScore());
         mission.setActiveFrom(request.getActiveFrom() != null ? request.getActiveFrom() : LocalDate.now());
-        mission.setActiveUntil(request.getActiveUntil() != null ? request.getActiveUntil() : mission.getActiveFrom().plusDays(1));
+        mission.setActiveUntil(
+                request.getActiveUntil() != null ? request.getActiveUntil() : mission.getActiveFrom().plusDays(1));
 
         DailyMission saved = dailyMissionRepository.save(mission);
         return mapper.toDailyMissionResponse(saved);
@@ -78,28 +73,25 @@ public class DailyMissionServiceImpl implements DailyMissionService {
         String safeMissionId = Objects.requireNonNull(missionId);
 
         DailyMission mission = dailyMissionRepository.findById(safeMissionId)
-            .orElseThrow(() -> new GamificationException(
-                "Daily mission not found",
-                "NOT_FOUND"
-            ));
+                .orElseThrow(() -> new GamificationException(
+                        "Daily mission not found",
+                        "NOT_FOUND"));
 
         dailyMissionRepository.findByNameIgnoreCase(request.getName())
-            .filter(existing -> !existing.getId().equals(safeMissionId))
-            .ifPresent(existing -> {
-                throw new GamificationException(
-                    "Daily mission with this name already exists",
-                    "DUPLICATE_NAME"
-                );
-            });
+                .filter(existing -> !existing.getId().equals(safeMissionId))
+                .ifPresent(existing -> {
+                    throw new GamificationException(
+                            "Daily mission with this name already exists",
+                            "DUPLICATE_NAME");
+                });
 
         boolean isRequestAccuracy = MISSION_TYPE_ACCURACY.equalsIgnoreCase(request.getMissionType().trim());
         boolean isExistingAccuracy = mission instanceof AccuracyDailyMission;
 
         if (isRequestAccuracy != isExistingAccuracy) {
             throw new GamificationException(
-                "Cannot change daily mission category",
-                "INVALID_TYPE_CHANGE"
-            );
+                    "Cannot change daily mission category",
+                    "INVALID_TYPE_CHANGE");
         }
 
         mission.setName(request.getName().trim());
@@ -110,7 +102,8 @@ public class DailyMissionServiceImpl implements DailyMissionService {
         mission.setActiveUntil(request.getActiveUntil() != null ? request.getActiveUntil() : mission.getActiveUntil());
 
         if (mission instanceof AccuracyDailyMission accuracyMission) {
-            accuracyMission.setAccuracyThreshold(request.getAccuracyThreshold() != null ? request.getAccuracyThreshold() : 0);
+            accuracyMission
+                    .setAccuracyThreshold(request.getAccuracyThreshold() != null ? request.getAccuracyThreshold() : 0);
             accuracyMission.setRequiredCount(request.getRequiredCount() != null ? request.getRequiredCount() : 1);
         } else if (mission instanceof CountBasedDailyMission countMission) {
             countMission.setTargetCount(request.getTargetCount() != null ? request.getTargetCount() : 1);
@@ -128,10 +121,9 @@ public class DailyMissionServiceImpl implements DailyMissionService {
         String safeMissionId = Objects.requireNonNull(missionId);
 
         DailyMission mission = dailyMissionRepository.findById(safeMissionId)
-            .orElseThrow(() -> new GamificationException(
-                "Daily mission not found",
-                "NOT_FOUND"
-            ));
+                .orElseThrow(() -> new GamificationException(
+                        "Daily mission not found",
+                        "NOT_FOUND"));
 
         dailyMissionRepository.delete(Objects.requireNonNull(mission));
     }
@@ -140,92 +132,8 @@ public class DailyMissionServiceImpl implements DailyMissionService {
     @Transactional(readOnly = true)
     public List<DailyMissionResponse> findAll() {
         return dailyMissionRepository.findAll()
-            .stream()
-            .map(mapper::toDailyMissionResponse)
-            .toList();
-    }
-
-    @Override
-    @Transactional
-    public List<DailyMissionResponse> getTodayMissions() {
-        rotateMissions();
-        LocalDate today = LocalDate.now();
-        return dailyMissionRepository
-            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today)
-            .stream()
-            .map(mapper::toDailyMissionResponse)
-            .toList();
-    }
-
-    @Override
-    @Transactional
-    public void rotateMissions() {
-        LocalDate today = LocalDate.now();
-        List<DailyMission> existing = dailyMissionRepository
-            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
-
-        if (!existing.isEmpty()) {
-            return;
-        }
-
-        List<DailyMission> pool = dailyMissionRepository.findAll().stream()
-            .filter(DailyMission::isActive)
-            .collect(Collectors.toList());
-
-        if (pool.isEmpty()) {
-            return;
-        }
-
-        Collections.shuffle(pool);
-        List<DailyMission> selected = pool.stream().limit(3).toList();
-
-        for (DailyMission mission : selected) {
-            mission.setActiveFrom(today);
-            mission.setActiveUntil(today);
-            dailyMissionRepository.save(mission);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void forceRotateMissions() {
-        LocalDate today = LocalDate.now();
-        List<DailyMission> existing = dailyMissionRepository
-            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
-
-        for (DailyMission m : existing) {
-            m.setActiveUntil(today.minusDays(1));
-            dailyMissionRepository.save(m);
-        }
-
-        rotateMissions();
-    }
-
-    @Override
-    @Transactional
-    public void setTodayMissions(List<String> missionIds) {
-        if (missionIds == null || missionIds.size() != 3) {
-            throw new GamificationException("Exactly 3 daily missions must be selected", "INVALID_REQUEST");
-        }
-
-        LocalDate today = LocalDate.now();
-
-        // Deactivate current missions for today
-        List<DailyMission> existing = dailyMissionRepository
-            .findByActiveTrueAndActiveFromLessThanEqualAndActiveUntilGreaterThanEqual(today, today);
-        for (DailyMission m : existing) {
-            m.setActiveUntil(today.minusDays(1));
-            dailyMissionRepository.save(m);
-        }
-
-        // Activate new selected missions
-        for (String id : missionIds) {
-            validator.validateMasterId(id);
-            DailyMission mission = dailyMissionRepository.findById(Objects.requireNonNull(id))
-                .orElseThrow(() -> new GamificationException("Daily mission not found: " + id, "NOT_FOUND"));
-            mission.setActiveFrom(today);
-            mission.setActiveUntil(today);
-            dailyMissionRepository.save(mission);
-        }
+                .stream()
+                .map(mapper::toDailyMissionResponse)
+                .toList();
     }
 }

@@ -1,4 +1,4 @@
-package id.ac.ui.cs.advprog.yomu.gamification.service;
+package id.ac.ui.cs.advprog.yomu.gamification.service.achievement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +10,8 @@ import id.ac.ui.cs.advprog.yomu.gamification.dto.ShowcaseUpdateRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.model.Achievement;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementShowcase;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserAchievementShowcaseRepository;
-import id.ac.ui.cs.advprog.yomu.gamification.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.event.UserShowcaseAchievementChangedEvent;
+import id.ac.ui.cs.advprog.yomu.gamification.event.UserShowcaseAchievementChangedEvent.ShowcaseAchievementInfo;
 import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class AchievementShowcaseServiceImpl implements AchievementShowcaseService {
 
     private final UserAchievementShowcaseRepository repository;
-    private final AchievementRepository achievementRepository;
+    private final AchievementService achievementService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -39,23 +39,20 @@ public class AchievementShowcaseServiceImpl implements AchievementShowcaseServic
                         .username(username)
                         .build());
 
-        showcase.setAchievementIds(request.getAchievementIds());
+        List<String> achievementIds = request.getAchievementIds() != null ? request.getAchievementIds() : new ArrayList<>();
+        showcase.setAchievementIds(achievementIds);
         repository.save(showcase);
 
-        List<UserShowcaseAchievementChangedEvent.ShowcaseAchievementInfo> richAchievements = new ArrayList<>();
-        if (request.getAchievementIds() != null && !request.getAchievementIds().isEmpty()) {
-            @SuppressWarnings("null")
-            Iterable<Achievement> achievements = achievementRepository.findAllById(Objects.requireNonNull(request.getAchievementIds()));
-            for (Achievement ach : achievements) {
-                richAchievements.add(new UserShowcaseAchievementChangedEvent.ShowcaseAchievementInfo(
+        List<Achievement> selected = achievementService.getAchievementsByIds(achievementIds);
+        List<ShowcaseAchievementInfo> rich = selected.stream()
+                .map(ach -> new ShowcaseAchievementInfo(
                         ach.getId(),
                         ach.getName(),
                         ach.getMilestone(),
                         ach.getTier()
-                ));
-            }
-        }
+                ))
+                .toList();
 
-        eventPublisher.publishEvent(new UserShowcaseAchievementChangedEvent(username, richAchievements));
+        eventPublisher.publishEvent(new UserShowcaseAchievementChangedEvent(username, rich));
     }
 }
