@@ -17,14 +17,34 @@ public class CountBasedAchievementEvaluator implements AchievementProgressEvalua
         if (progress.isUnlocked()) {
             return false;
         }
-        int increment = (context instanceof Integer) ? (Integer) context : 1;
+
+        String milestoneType = progress.getAchievement().getMilestoneType();
+        int increment = 0;
+
+        if ("readings_completed".equals(milestoneType)) {
+            if (context instanceof ReadingCompletionContext) {
+                increment = 1;
+            } else if (context instanceof Integer integerVal) {
+                increment = integerVal;
+            }
+        } else if ("quizzes_passed".equals(milestoneType)) {
+            if (context instanceof QuizCompletionContext) {
+                increment = 1;
+            } else if (context instanceof Integer integerVal) {
+                increment = integerVal;
+            }
+        }
+
+        if (increment <= 0) {
+            return false;
+        }
+
         progress.setProgressValue(progress.getProgressValue() + increment);
 
         if (progress.getProgressValue() >= progress.getAchievement().getMilestoneThreshold()) {
             progress.setUnlocked(true);
             progress.setUnlockedAt(LocalDateTime.now());
-            return true;
         }
-        return false;
+        return true;
     }
 }
