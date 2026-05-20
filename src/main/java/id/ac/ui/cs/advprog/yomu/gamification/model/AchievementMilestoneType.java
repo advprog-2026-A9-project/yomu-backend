@@ -6,7 +6,6 @@ public enum AchievementMilestoneType {
     READINGS_COMPLETED("readings_completed"),
     QUIZZES_PASSED("quizzes_passed"),
     ACCURACY_ABOVE("accuracy_above"),
-    CLAN_PROMOTED("clan_promoted"),
     RANKING_ACHIEVED("ranking_achieved");
 
     private final String value;
