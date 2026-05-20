@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.yomu.gamification.bootstrap;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
@@ -55,7 +54,8 @@ public class GamificationDataSeeder implements CommandLineRunner {
                 createMission("Academic Excellence", "Complete 5 quizzes in a single day", COMPLETE_N_QUIZZES, 5, 400),
                 createMission("Sharpshooter", "Achieve 80% accuracy in a quiz", ACHIEVE_ACCURACY, 80, 100),
                 createMission("Perfect Score", "Achieve 100% accuracy in any quiz", ACHIEVE_ACCURACY, 100, 250),
-                createMission("Consistent Scholar", "Achieve at least 70% accuracy in 2 quizzes", ACHIEVE_ACCURACY, 70, 150),
+                createMission("Consistent Scholar", "Achieve at least 70% accuracy in 2 quizzes", ACHIEVE_ACCURACY, 70,
+                        150),
                 createMission("Elite Mind", "Achieve 95% accuracy in a challenging quiz", ACHIEVE_ACCURACY, 95, 200));
 
         int count = 0;
@@ -93,12 +93,14 @@ public class GamificationDataSeeder implements CommandLineRunner {
                         "DIAMOND"),
                 createAchievement("Sovereign of Scores", "Pass 500 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 500,
                         "MYTHIC"),
-                createAchievement("Quiz Deity", "Pass 1000 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 1000, GODLIKE_TIER),
+                createAchievement("Quiz Deity", "Pass 1000 quizzes", ACHIEVEMENT_TYPE_QUIZZES_PASSED, 1000,
+                        GODLIKE_TIER),
 
                 // --- ACCURACY MILESTONES (NEW) ---
                 createAccuracyAchievement("Perfect Score Rookie", "Get 100% accuracy 10 times", 100, 10, "SILVER"),
                 createAccuracyAchievement("Perfect Score Master", "Get 100% accuracy 100 times", 100, 100, "DIAMOND"),
-                createAccuracyAchievement("Perfect Score Legend", "Get 100% accuracy 1000 times", 100, 1000, GODLIKE_TIER),
+                createAccuracyAchievement("Perfect Score Legend", "Get 100% accuracy 1000 times", 100, 1000,
+                        GODLIKE_TIER),
 
                 // --- CONTOH MANUAL OVERRIDE (Top 1 Clan in Season) ---
                 // Threshold diset ke 0 karena ini bukan achievement berbasis progres numerik,
@@ -139,7 +141,8 @@ public class GamificationDataSeeder implements CommandLineRunner {
         mission.setMissionType(type);
         mission.setRewardScore(rewardScore);
         mission.setActive(true);
-        // Make seeded missions active by default but let the system rotate and select them dynamically
+        // Make seeded missions active by default but let the system rotate and select
+        // them dynamically
         mission.setActiveFrom(null);
         mission.setActiveUntil(null);
         return mission;
