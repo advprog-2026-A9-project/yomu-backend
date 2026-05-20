@@ -23,11 +23,9 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
-        "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
-    );
+            "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     private static final String USER_NOT_FOUND = "Akun tidak ditemukan";
 
@@ -38,9 +36,9 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil; 
+    private final JwtUtil jwtUtil;
     private final ApplicationEventPublisher eventPublisher;
-    
+
     @Override
     public AuthResponse register(RegisterRequest request) {
         final String email = normalize(request.getEmail());
@@ -54,8 +52,8 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Username sudah dipakai");
         }
 
-        if (username.length() < MIN_USERNAME_LENGTH || 
-            username.length() > MAX_USERNAME_LENGTH) {
+        if (username.length() < MIN_USERNAME_LENGTH ||
+                username.length() > MAX_USERNAME_LENGTH) {
             throw new IllegalArgumentException("Username harus antara 3-20 karakter");
         }
         if (!USERNAME_PATTERN.matcher(username).matches()) {
@@ -84,7 +82,8 @@ public class AuthServiceImpl implements AuthService {
         user.setRole("PELAJAR");
 
         final User saved = userRepository.save(user);
-        eventPublisher.publishEvent(new UserCreatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
+        eventPublisher
+                .publishEvent(new UserCreatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
         final String token = jwtUtil.generateToken(saved.getId(), saved.getUsername(), saved.getRole());
         return new AuthResponse(saved.getId(), saved.getUsername(), saved.getRole(), token, "Registrasi berhasil");
     }
@@ -103,9 +102,9 @@ public class AuthServiceImpl implements AuthService {
         final String identifier = normalize(request.getIdentifier());
 
         final User user = userRepository.findByUsername(identifier)
-            .or(() -> userRepository.findByEmail(identifier))
-            .or(() -> userRepository.findByEmailIgnoreCase(identifier))
-            .or(() -> userRepository.findByPhoneNumber(identifier))
+                .or(() -> userRepository.findByEmail(identifier))
+                .or(() -> userRepository.findByEmailIgnoreCase(identifier))
+                .or(() -> userRepository.findByPhoneNumber(identifier))
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -127,8 +126,7 @@ public class AuthServiceImpl implements AuthService {
                 user.getEmail(),
                 user.getPhoneNumber(),
                 user.getRole(),
-                "OK"
-        );
+                "OK");
     }
 
     @Override
@@ -154,7 +152,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         final User saved = userRepository.save(user);
-        eventPublisher.publishEvent(new UserUpdatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
+        eventPublisher
+                .publishEvent(new UserUpdatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
         return new AccountResponse(
                 saved.getId(),
                 saved.getUsername(),
@@ -162,8 +161,7 @@ public class AuthServiceImpl implements AuthService {
                 saved.getEmail(),
                 saved.getPhoneNumber(),
                 saved.getRole(),
-                "Akun berhasil diperbarui"
-        );
+                "Akun berhasil diperbarui");
     }
 
     @Override
@@ -172,7 +170,8 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         userRepository.delete(user);
-        eventPublisher.publishEvent(new UserDeletedEvent(this, user.getId()));
+        eventPublisher.publishEvent(new UserDeletedEvent(this, user.getId(), user.getUsername()));
+
     }
 
     @Override
@@ -208,7 +207,6 @@ public class AuthServiceImpl implements AuthService {
                 saved.getEmail(),
                 saved.getPhoneNumber(),
                 saved.getRole(),
-                "Metode login berhasil ditautkan"
-        );
+                "Metode login berhasil ditautkan");
     }
 }

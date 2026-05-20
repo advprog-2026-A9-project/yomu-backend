@@ -27,4 +27,7 @@ public class ClanQuizStats {
 
     @Column(nullable = false)
     private long totalScore = 0;
+
+    @Column(nullable = true, length = 1000)
+    private String rollingQuizHistory = "";
 }

@@ -26,10 +26,10 @@ import lombok.Setter;
 public class UserAchievementShowcase {
 
     @Id
-    private String userId;
+    private String username;
 
     @ElementCollection
-    @CollectionTable(name = "user_showcase_achievements", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(name = "user_showcase_achievements", joinColumns = @JoinColumn(name = "username"))
     @Column(name = "achievement_id")
     @Builder.Default
     private List<String> achievementIds = new ArrayList<>();

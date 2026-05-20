@@ -38,11 +38,11 @@ class ClanMemberRepositoryTest {
         // Setup objek dummy
         member123 = new ClanMember();
         member123.setClanId(clanId123);
-        member123.setUserId(userId456);
+        member123.setUsername(userId456);
 
         member1 = new ClanMember();
         member1.setClanId(clanId1);
-        member1.setUserId(userId1);
+        member1.setUsername(userId1);
     }
 
     @Test
@@ -53,30 +53,31 @@ class ClanMemberRepositoryTest {
         List<ClanMember> result = clanMemberRepository.findByClanId(clanId123);
 
         assertAll("Verify findByClanId results and interaction",
+                // Ganti getUserId() -> getUsername()
                 () -> assertEquals(1, result.size(), "Find One Clan"),
-                () -> assertEquals(userId456, result.get(0).getUserId(), "Verify member Id"),
+                () -> assertEquals(userId456, result.get(0).getUsername(), "Verify member Username"),
                 () -> verify(clanMemberRepository, times(1)).findByClanId(clanId123));
     }
 
     @Test
-    void testMockFindByClanIdAndUserId() {
-        when(clanMemberRepository.findByClanIdAndUserId(clanId1, userId1))
+    void testMockFindByClanIdAndUsername() {
+        when(clanMemberRepository.findByClanIdAndUsername(clanId1, userId1))
                 .thenReturn(Optional.of(member1));
 
-        Optional<ClanMember> result = clanMemberRepository.findByClanIdAndUserId(clanId1, userId1);
+        Optional<ClanMember> result = clanMemberRepository.findByClanIdAndUsername(clanId1, userId1);
 
-        assertAll("Verify findByClanIdAndUserId results",
+        assertAll("Verify findByClanIdAndUsername results",
                 () -> assertTrue(result.isPresent(), "Verify member exists"),
                 () -> assertEquals(clanId1, result.get().getClanId(), "Verify Clan Match"),
-                () -> verify(clanMemberRepository, times(1)).findByClanIdAndUserId(clanId1, userId1));
+                () -> verify(clanMemberRepository, times(1)).findByClanIdAndUsername(clanId1, userId1));
     }
 
     @Test
-    void testMockDeleteByClanIdAndUserId() {
-        doNothing().when(clanMemberRepository).deleteByClanIdAndUserId(clanId1, userId1);
+    void testMockDeleteByClanIdAndUsername() {
+        doNothing().when(clanMemberRepository).deleteByClanIdAndUsername(clanId1, userId1);
 
-        clanMemberRepository.deleteByClanIdAndUserId(clanId1, userId1);
+        clanMemberRepository.deleteByClanIdAndUsername(clanId1, userId1);
 
-        verify(clanMemberRepository, times(1)).deleteByClanIdAndUserId(clanId1, userId1);
+        verify(clanMemberRepository, times(1)).deleteByClanIdAndUsername(clanId1, userId1);
     }
 }

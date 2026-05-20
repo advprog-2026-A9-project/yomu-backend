@@ -1,15 +1,19 @@
 package id.ac.ui.cs.advprog.yomu.social.controller;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanJoinRequestResponse;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.joinrequest.ClanJoinRequestService;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.membership.ClanMembershipService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -17,79 +21,59 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ClanMemberController {
 
-    private final ClanService clanService;
-    private final JwtUtil jwtUtil;
-
-    private String getUserIdFromHeader(String authHeader) {
-        if (authHeader != null && authHeader.startsWith(SocialConstants.BEARER_PREFIX)) {
-            String token = authHeader.substring(SocialConstants.BEARER_PREFIX.length());
-            return jwtUtil.extractUserId(token);
-        }
-        return null;
-    }
-
-    private String getUsernameFromHeader(String authHeader) {
-        if (authHeader != null && authHeader.startsWith(SocialConstants.BEARER_PREFIX)) {
-            String token = authHeader.substring(SocialConstants.BEARER_PREFIX.length());
-            return jwtUtil.extractUsername(token);
-        }
-        return null;
-    }
+    private final ClanJoinRequestService joinRequestService;
+    private final ClanMembershipService membershipService;
 
     @PostMapping("/join")
-    public ResponseEntity<String> join(@PathVariable("id") String id,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String userId = getUserIdFromHeader(authHeader);
-        String username = getUsernameFromHeader(authHeader);
-        clanService.requestJoin(id, userId, username);
+    public ResponseEntity<String> join(@PathVariable("id") final String id, final Authentication authentication) {
+        final String username = authentication.getName();
+        joinRequestService.requestJoin(id, username);
         return ResponseEntity.ok("Permintaan bergabung berhasil dikirim.");
     }
 
-    @org.springframework.web.bind.annotation.GetMapping("/requests")
-    public ResponseEntity<org.springframework.data.domain.Page<id.ac.ui.cs.advprog.yomu.social.dto.ClanJoinRequestResponse>> getRequests(
-            @PathVariable("id") String id,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int size) {
-        String leaderId = getUserIdFromHeader(authHeader);
-        return ResponseEntity.ok(clanService.getJoinRequests(id, leaderId, page, size));
+    @GetMapping("/requests")
+    public ResponseEntity<Page<ClanJoinRequestResponse>> getRequests(
+            @PathVariable("id") final String id,
+            final Authentication authentication,
+            @RequestParam(defaultValue = "0") final int page,
+            @RequestParam(defaultValue = "10") final int size) {
+        final String leaderUsername = authentication.getName();
+        return ResponseEntity.ok(joinRequestService.getJoinRequests(id, leaderUsername, page, size));
     }
 
     @PostMapping("/requests/{requestId}/accept")
     public ResponseEntity<String> acceptRequest(
-            @PathVariable("id") String id,
-            @PathVariable("requestId") Long requestId,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String leaderId = getUserIdFromHeader(authHeader);
-        clanService.acceptJoinRequest(id, requestId, leaderId);
+            @PathVariable("id") final String id,
+            @PathVariable("requestId") final Long requestId,
+            final Authentication authentication) {
+        final String leaderUsername = authentication.getName();
+        joinRequestService.acceptJoinRequest(id, requestId, leaderUsername);
         return ResponseEntity.ok("Request diterima.");
     }
 
     @PostMapping("/requests/{requestId}/reject")
     public ResponseEntity<String> rejectRequest(
-            @PathVariable("id") String id,
-            @PathVariable("requestId") Long requestId,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String leaderId = getUserIdFromHeader(authHeader);
-        clanService.rejectJoinRequest(id, requestId, leaderId);
+            @PathVariable("id") final String id,
+            @PathVariable("requestId") final Long requestId,
+            final Authentication authentication) {
+        final String leaderUsername = authentication.getName();
+        joinRequestService.rejectJoinRequest(id, requestId, leaderUsername);
         return ResponseEntity.ok("Request ditolak.");
     }
 
     @PostMapping("/requests/reject-all")
     public ResponseEntity<String> rejectAllRequests(
-            @PathVariable("id") String id,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String leaderId = getUserIdFromHeader(authHeader);
-        clanService.rejectAllJoinRequests(id, leaderId);
+            @PathVariable("id") final String id,
+            final Authentication authentication) {
+        final String leaderUsername = authentication.getName();
+        joinRequestService.rejectAllJoinRequests(id, leaderUsername);
         return ResponseEntity.ok("Semua request berhasil ditolak.");
     }
 
-
     @PostMapping("/leave")
-    public ResponseEntity<String> leave(@PathVariable("id") String id,
-            @RequestHeader(SocialConstants.AUTHORIZATION_HEADER) String authHeader) {
-        String userId = getUserIdFromHeader(authHeader);
-        clanService.leaveClan(id, userId);
+    public ResponseEntity<String> leave(@PathVariable("id") final String id, final Authentication authentication) {
+        final String username = authentication.getName();
+        membershipService.leaveClan(id, username);
         return ResponseEntity.ok(SocialConstants.LEAVE_SUCCESS_MESSAGE);
     }
 }

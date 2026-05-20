@@ -19,7 +19,8 @@ import id.ac.ui.cs.advprog.yomu.gamification.dto.ShowcaseUpdateRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.event.UserShowcaseAchievementChangedEvent;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementShowcase;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserAchievementShowcaseRepository;
-import id.ac.ui.cs.advprog.yomu.gamification.repository.AchievementRepository;
+import id.ac.ui.cs.advprog.yomu.gamification.service.achievement.AchievementService;
+import id.ac.ui.cs.advprog.yomu.gamification.service.achievement.AchievementShowcaseServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
@@ -32,7 +33,7 @@ class AchievementShowcaseServiceImplTest {
     private UserAchievementShowcaseRepository repository;
 
     @Mock
-    private AchievementRepository achievementRepository;
+    private AchievementService achievementService;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -46,24 +47,24 @@ class AchievementShowcaseServiceImplTest {
     }
 
     @Test
-    void getShowcaseByUserId_WhenShowcaseExists_ShouldReturnList() {
+    void getShowcaseByUsername_WhenShowcaseExists_ShouldReturnList() {
         UserAchievementShowcase showcase = UserAchievementShowcase.builder()
-                .userId(USER_ID)
+                .username(USER_ID)
                 .achievementIds(achievementIds)
                 .build();
 
         when(repository.findById(USER_ID)).thenReturn(Optional.of(showcase));
 
-        List<String> result = showcaseService.getShowcaseByUserId(USER_ID);
+        List<String> result = showcaseService.getShowcaseByUsername(USER_ID);
 
         assertEquals(achievementIds, result, "Should return the exact list of achievement IDs stored in user showcase");
     }
 
     @Test
-    void getShowcaseByUserId_WhenShowcaseDoesNotExist_ShouldReturnEmptyList() {
+    void getShowcaseByUsername_WhenShowcaseDoesNotExist_ShouldReturnEmptyList() {
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());
 
-        List<String> result = showcaseService.getShowcaseByUserId(USER_ID);
+        List<String> result = showcaseService.getShowcaseByUsername(USER_ID);
 
         assertEquals(List.of(), result, "Should return an empty list when user showcase does not exist");
     }
@@ -71,11 +72,12 @@ class AchievementShowcaseServiceImplTest {
     @Test
     void updateShowcase_ShouldSaveToRepository() {
         ShowcaseUpdateRequest request = new ShowcaseUpdateRequest();
-        request.setUserId(USER_ID);
+        request.setUsername(USER_ID);
         request.setAchievementIds(achievementIds);
 
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());
         when(repository.save(any(UserAchievementShowcase.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(achievementService.getAchievementsByIds(achievementIds)).thenReturn(List.of());
 
         showcaseService.updateShowcase(request);
 
@@ -85,11 +87,12 @@ class AchievementShowcaseServiceImplTest {
     @Test
     void updateShowcase_ShouldPublishShowcaseChangedEvent() {
         ShowcaseUpdateRequest request = new ShowcaseUpdateRequest();
-        request.setUserId(USER_ID);
+        request.setUsername(USER_ID);
         request.setAchievementIds(achievementIds);
 
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());
         when(repository.save(any(UserAchievementShowcase.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(achievementService.getAchievementsByIds(achievementIds)).thenReturn(List.of());
 
         showcaseService.updateShowcase(request);
 

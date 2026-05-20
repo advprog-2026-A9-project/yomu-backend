@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,14 +28,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
-import id.ac.ui.cs.advprog.yomu.common.util.InputSanitizer;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
-import id.ac.ui.cs.advprog.yomu.social.service.ClanService;
-import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanRole;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.lifecycle.ClanLifecycleService;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.membership.ClanMembershipService;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.query.ClanQueryService;
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
@@ -44,16 +45,16 @@ class ClanControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private ClanService clanService;
+    private ClanLifecycleService lifecycleService;
 
     @Mock
-    private JwtUtil jwtUtil;
+    private ClanQueryService queryService;
 
     @Mock
-    private InputSanitizer inputSanitizer;
+    private ClanMembershipService membershipService;
 
     @Mock
-    private ClanValidator clanValidation;
+    private Authentication authentication;
 
     @InjectMocks
     private ClanController clanController;
@@ -61,14 +62,11 @@ class ClanControllerTest {
     private ObjectMapper objectMapper;
     private Clan dummyClan;
 
-    private static final String AUTHORIZATION_HEADER = "Authorization";
     private String clanId;
     private String leaderId;
     private String memberId;
     private String username;
     private String clanName;
-    private String authHeader;
-    private String token;
 
     private String deleteSuccessMsg;
     private List<ClanMember> members;
@@ -81,28 +79,22 @@ class ClanControllerTest {
         // Setup MockMvc secara standalone
         mockMvc = MockMvcBuilders.standaloneSetup(clanController).build();
 
-        // Setup InputSanitizer mock - return input as-is for testing
-        when(inputSanitizer.sanitize(any(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
         clanId = "clan-123";
         leaderId = "user-456";
         memberId = "user-789";
         username = "wibu";
         clanName = "Wibu Elite";
-        token = "dummy-token";
-        authHeader = "Bearer " + token;
 
         deleteSuccessMsg = "Clan berhasil dihapus";
         ClanMember dummyMember = new ClanMember();
-        dummyMember.setUserId(leaderId);
         dummyMember.setUsername("LeaderUser");
-        dummyMember.setRole("KETUA");
+        dummyMember.setRole(ClanRole.LEADER);
         members = List.of(dummyMember);
 
         dummyClan = new Clan();
         dummyClan.setId(clanId);
         dummyClan.setName(clanName);
-        dummyClan.setLeaderUserId(leaderId);
+        dummyClan.setLeaderUsername(leaderId);
         dummyClan.setDescription("Clan untuk pecinta buku");
     }
 
@@ -111,33 +103,32 @@ class ClanControllerTest {
         ClanRequest request = new ClanRequest();
         request.setName(clanName);
 
-        when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
-        when(jwtUtil.extractUsername(token)).thenReturn(username);
-        when(clanService.createClan(any(ClanRequest.class))).thenReturn(dummyClan);
+        when(authentication.getName()).thenReturn(username);
+        when(lifecycleService.createClan(any(ClanRequest.class))).thenReturn(dummyClan);
 
         mockMvc.perform(post(BASE_API)
-                .header(AUTHORIZATION_HEADER, authHeader)
+                .principal(authentication)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(clanName))
                 .andExpect(jsonPath("$.id").value(clanId));
 
-        verify(clanService, times(1)).createClan(any(ClanRequest.class));
+        verify(lifecycleService, times(1)).createClan(any(ClanRequest.class));
     }
 
     @Test
     void testGetAllClans() throws Exception {
         id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse summary = new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
                 clanId, clanName, "Description", leaderId, "Bronze", 0, 1, 0L, List.of(), List.of());
-        when(clanService.findAll(null)).thenReturn(List.of(summary));
+        when(queryService.findAll(null)).thenReturn(List.of(summary));
 
         mockMvc.perform(get(BASE_API))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value(clanName));
 
-        verify(clanService, times(1)).findAll(null);
+        verify(queryService, times(1)).findAll(null);
     }
 
     @Test
@@ -146,36 +137,36 @@ class ClanControllerTest {
                 dummyClan.getId(),
                 dummyClan.getName(),
                 dummyClan.getDescription(),
-                dummyClan.getLeaderUserId(),
+                dummyClan.getLeaderUsername(),
                 "KETUA",
                 "Bronze",
                 100,
                 1,
                 members);
 
-        when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
-        when(clanService.getMyClanByUserId(leaderId)).thenReturn(Optional.of(response));
+        when(authentication.getName()).thenReturn(leaderId);
+        when(queryService.getMyClanByUsername(leaderId)).thenReturn(Optional.of(response));
 
         mockMvc.perform(get("/api/clans/me")
-                .header(AUTHORIZATION_HEADER, authHeader))
+                .principal(authentication))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(clanId))
                 .andExpect(jsonPath("$.role").value("KETUA"))
                 .andExpect(jsonPath("$.members[0].username").value("LeaderUser"));
 
-        verify(clanService, times(1)).getMyClanByUserId(leaderId);
+        verify(queryService, times(1)).getMyClanByUsername(leaderId);
     }
 
     @Test
     void testGetMyClan_WhenUserHasNoClan() throws Exception {
-        when(jwtUtil.extractUserId(token)).thenReturn(memberId);
-        when(clanService.getMyClanByUserId(memberId)).thenReturn(Optional.empty());
+        when(authentication.getName()).thenReturn(memberId);
+        when(queryService.getMyClanByUsername(memberId)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/clans/me")
-                .header(AUTHORIZATION_HEADER, authHeader))
+                .principal(authentication))
                 .andExpect(status().is(200));
 
-        verify(clanService, times(1)).getMyClanByUserId(memberId);
+        verify(queryService, times(1)).getMyClanByUsername(memberId);
     }
 
     @Test
@@ -184,27 +175,27 @@ class ClanControllerTest {
         request.setName("New Name");
         request.setDescription("New Description");
 
-        when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
-        when(clanService.editClan(eq(clanId), eq(leaderId), any(ClanRequest.class))).thenReturn(dummyClan);
+        when(authentication.getName()).thenReturn(leaderId);
+        when(lifecycleService.editClan(eq(clanId), eq(leaderId), any(ClanRequest.class))).thenReturn(dummyClan);
 
         mockMvc.perform(post("/api/clans/" + clanId + "/edit")
-                .header(AUTHORIZATION_HEADER, authHeader)
+                .principal(authentication)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        verify(clanService, times(1)).editClan(eq(clanId), eq(leaderId), any(ClanRequest.class));
+        verify(lifecycleService, times(1)).editClan(eq(clanId), eq(leaderId), any(ClanRequest.class));
     }
 
     @Test
     void testDeleteClan() throws Exception {
-        when(jwtUtil.extractUserId(token)).thenReturn(leaderId);
+        when(authentication.getName()).thenReturn(leaderId);
 
         mockMvc.perform(post("/api/clans/" + clanId + "/delete")
-                .header(AUTHORIZATION_HEADER, authHeader))
+                .principal(authentication))
                 .andExpect(status().isOk())
                 .andExpect(content().string(deleteSuccessMsg));
 
-        verify(clanService, times(1)).deleteClan(eq(clanId), eq(leaderId));
+        verify(lifecycleService, times(1)).deleteClan(eq(clanId), eq(leaderId));
     }
 }

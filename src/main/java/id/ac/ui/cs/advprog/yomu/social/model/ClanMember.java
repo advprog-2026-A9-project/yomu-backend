@@ -1,6 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.social.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,6 +20,7 @@ public class ClanMember {
 
     private String username;
     private String clanId;
-    private String userId;
-    private String role;
+    
+    @Enumerated(EnumType.STRING)
+    private ClanRole role;
 }

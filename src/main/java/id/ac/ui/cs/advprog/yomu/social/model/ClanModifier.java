@@ -42,4 +42,12 @@ public class ClanModifier {
     private Instant startAt;
 
     private Instant endAt;
+
+    public boolean isBuff() {
+        return this.type == ModifierType.BUFF;
+    }
+
+    public boolean isDebuff() {
+        return this.type == ModifierType.DEBUFF;
+    }
 }

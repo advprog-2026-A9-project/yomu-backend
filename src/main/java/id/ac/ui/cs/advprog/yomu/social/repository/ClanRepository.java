@@ -13,10 +13,14 @@ import org.springframework.stereotype.Repository;
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
+import id.ac.ui.cs.advprog.yomu.social.port.ClanLookupPort;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @Repository
-public interface ClanRepository extends JpaRepository<Clan, String> {
+public interface ClanRepository extends JpaRepository<Clan, String>, ClanLookupPort {
+
+        @Override
+        Optional<Clan> findClanById(String id);
 
         Optional<Clan> findByName(String name);
 
@@ -49,13 +53,13 @@ public interface ClanRepository extends JpaRepository<Clan, String> {
                         SELECT c.id as clanId,
                                c.name as clanName,
                                c.description as description,
-                               c.leaderUserId as leaderUserId,
+                               c.leaderUsername as leaderUsername,
                                c.tier as tier,
                                c.score as score,
                                COUNT(m) as memberCount
                         FROM Clan c
                         LEFT JOIN ClanMember m ON m.clanId = c.id
-                        GROUP BY c.id, c.name, c.description, c.leaderUserId, c.tier, c.score
+                        GROUP BY c.id, c.name, c.description, c.leaderUsername, c.tier, c.score
                         ORDER BY c.score DESC, c.id ASC
                         """)
         List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow> findAllClanSummaries();
@@ -64,13 +68,13 @@ public interface ClanRepository extends JpaRepository<Clan, String> {
                         SELECT c.id as clanId,
                                c.name as clanName,
                                c.description as description,
-                               c.leader_user_id as leaderUserId,
+                               c.leader_username as leaderUsername,
                                c.tier as tier,
                                c.score as score,
-                               COUNT(m.user_id) as memberCount
+                               COUNT(m.username) as memberCount
                         FROM clans c
                         LEFT JOIN clan_members m ON m.clan_id = c.id
-                        GROUP BY c.id, c.name, c.description, c.leader_user_id, c.tier, c.score
+                        GROUP BY c.id, c.name, c.description, c.leader_username, c.tier, c.score
                         ORDER BY RAND()
                         LIMIT :limit
                         """, nativeQuery = true)
@@ -80,7 +84,7 @@ public interface ClanRepository extends JpaRepository<Clan, String> {
                         SELECT c.id as clanId,
                                c.name as clanName,
                                c.description as description,
-                               c.leaderUserId as leaderUserId,
+                               c.leaderUsername as leaderUsername,
                                c.tier as tier,
                                c.score as score,
                                COUNT(m) as memberCount
@@ -88,7 +92,7 @@ public interface ClanRepository extends JpaRepository<Clan, String> {
                         LEFT JOIN ClanMember m ON m.clanId = c.id
                         WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(c.description) LIKE LOWER(CONCAT('%', :query, '%'))
-                        GROUP BY c.id, c.name, c.description, c.leaderUserId, c.tier, c.score
+                        GROUP BY c.id, c.name, c.description, c.leaderUsername, c.tier, c.score
                         ORDER BY c.score DESC, c.id ASC
                         """)
         List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow> findClanSummariesByQuery(@Param("query") String query);
@@ -111,8 +115,8 @@ public interface ClanRepository extends JpaRepository<Clan, String> {
         @Query("SELECT COUNT(c) + 1 FROM Clan c WHERE c.tier = :tier AND (c.score > :score OR (c.score = :score AND c.id < :id))")
         long findRankByTierAndScore(@Param("tier") Tier tier, @Param("score") int score, @Param("id") String id);
 
-        @Query("SELECT COUNT(c) FROM Clan c WHERE c.tier = :tier AND c.leaderUserId = :leaderUserId")
-        long countByTierAndLeaderUserId(@Param("tier") Tier tier, @Param("leaderUserId") String leaderUserId);
+        @Query("SELECT COUNT(c) FROM Clan c WHERE c.tier = :tier AND c.leaderUsername = :leaderUsername")
+        long countByTierAndLeaderUsername(@Param("tier") Tier tier, @Param("leaderUsername") String leaderUsername);
 
         @Modifying(clearAutomatically = true, flushAutomatically = true)
         @Query("UPDATE Clan c SET c.score = 0")

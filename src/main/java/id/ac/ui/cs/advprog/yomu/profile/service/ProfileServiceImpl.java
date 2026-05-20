@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -26,10 +27,8 @@ public class ProfileServiceImpl implements ProfileService {
     @Transactional(readOnly = true)
     public ProfileResponse getProfileByUserIdOrUsername(String identifier) {
         log.info("Querying read-model profile for identifier: {}", identifier);
-        
-        // Query strictly from our persistent read-only profile table
-        Profile profile = profileRepository.findById(java.util.Objects.requireNonNull(identifier))
-                .or(() -> profileRepository.findByUsername(java.util.Objects.requireNonNull(identifier)))
+
+        Profile profile = profileRepository.findById(Objects.requireNonNull(identifier))
                 .orElseThrow(() -> new IllegalArgumentException("Profil tidak ditemukan untuk user: " + identifier));
 
         // Map Reading Stats
@@ -45,17 +44,16 @@ public class ProfileServiceImpl implements ProfileService {
             try {
                 showcaseAchievements = objectMapper.readValue(
                         profile.getShowcaseAchievementsJson(),
-                        new TypeReference<List<ProfileResponse.ShowcaseAchievementDto>>() {}
-                );
+                        new TypeReference<List<ProfileResponse.ShowcaseAchievementDto>>() {
+                        });
             } catch (Exception e) {
                 if (log.isErrorEnabled()) {
-                    log.error("Failed to deserialize showcase achievements JSON for user {}", profile.getUserId(), e);
+                    log.error("Failed to deserialize showcase achievements JSON for user {}", profile.getUsername(), e);
                 }
             }
         }
 
         return ProfileResponse.builder()
-                .userId(profile.getUserId())
                 .username(profile.getUsername())
                 .displayName(profile.getDisplayName())
                 .bio(profile.getBio())
@@ -85,21 +83,48 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    public ProfileResponse updateBio(String userId, String bio) {
+    public ProfileResponse updateBio(String username, String bio) {
         if (log.isInfoEnabled()) {
-            log.info("Updating bio for user: {} to: {}", userId, bio);
+            log.info("Updating bio for user: {} to: {}", username, bio);
         }
-        
+
         if (bio != null && bio.length() > 100) {
             throw new IllegalArgumentException("Bio tidak boleh lebih dari 100 karakter");
         }
-        
-        Profile profile = profileRepository.findById(java.util.Objects.requireNonNull(userId))
-                .orElseThrow(() -> new IllegalArgumentException("Profil tidak ditemukan untuk user: " + userId));
+
+        Profile profile = profileRepository.findById(Objects.requireNonNull(username))
+                .orElseThrow(() -> new IllegalArgumentException("Profil tidak ditemukan untuk user: " + username));
 
         profile.setBio(bio);
         profileRepository.save(profile);
 
-        return getProfileByUserIdOrUsername(userId);
+        return getProfileByUserIdOrUsername(username);
+    }
+
+    @Override
+    @Transactional
+    public Profile getOrCreateProfile(String username) {
+        return getOrCreateProfile(username, "User " + username);
+    }
+
+    @Override
+    @Transactional
+    public Profile getOrCreateProfile(String username, String defaultDisplayName) {
+        return profileRepository.findById(Objects.requireNonNull(username))
+                .orElseGet(() -> {
+                    Profile profile = Profile.builder()
+                            .username(username)
+                            .displayName(defaultDisplayName)
+                            .bio("📖 Yomu avid reader | Seeking knowledge every single day.")
+                            .joinedAt(LocalDateTime.now())
+                            .completedTexts(0)
+                            .totalMinutes(0)
+                            .quizAccuracy(0)
+                            .correctAnswersSum(0)
+                            .totalQuestionsSum(0)
+                            .showcaseAchievementsJson("[]")
+                            .build();
+                    return profileRepository.save(Objects.requireNonNull(profile));
+                });
     }
 }

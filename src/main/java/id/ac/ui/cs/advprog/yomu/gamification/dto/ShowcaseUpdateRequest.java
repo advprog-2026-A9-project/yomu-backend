@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ShowcaseUpdateRequest {
-    @NotBlank(message = "User ID is required")
-    private String userId;
+    @NotBlank(message = "Username is required")
+    private String username;
 
     @Size(max = 3, message = "Showcase cannot exceed 3 achievements")
     private List<String> achievementIds;
