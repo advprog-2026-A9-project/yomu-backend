@@ -247,29 +247,26 @@ class AuthServiceImplTest {
         assertEquals(TEST_USERNAME, response.getUsername(), "Login email harus tidak sensitif huruf besar/kecil");
     }
 
-    @Test
-    void testUpdateAccountSuccessUsername() {
+   @Test
+    void testUpdateAccountSuccessDisplayName() {
         when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
-        when(userRepository.existsByUsername(TEST_NEW_USERNAME)).thenReturn(false);
         when(userRepository.save(any())).thenReturn(mockUser);
 
         UpdateAccountRequest request = new UpdateAccountRequest();
-        request.setUsername(TEST_NEW_USERNAME);
+        request.setDisplayName("New Display Name");
 
         AccountResponse response = authService.updateAccount(TEST_USERNAME, request);
 
         assertNotNull(response, "Response tidak boleh null");
     }
 
-
     @Test
     void testUpdateAccountPublishesUpdatedEvent() {
         when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
-        when(userRepository.existsByUsername(TEST_NEW_USERNAME)).thenReturn(false);
         when(userRepository.save(any())).thenReturn(mockUser);
 
         UpdateAccountRequest request = new UpdateAccountRequest();
-        request.setUsername(TEST_NEW_USERNAME);
+        request.setDisplayName("New Display Name");
 
         authService.updateAccount(TEST_USERNAME, request);
 
@@ -277,30 +274,17 @@ class AuthServiceImplTest {
                 event instanceof UserUpdatedEvent
                         && TEST_USER_ID.equals(((UserUpdatedEvent) event).getUserId())));
     }
-    
+
     @Test
     void testUpdateAccountFailUserNotFound() {
         when(userRepository.findByUsername(UNKNOWN_STRING)).thenReturn(Optional.empty());
 
         UpdateAccountRequest request = new UpdateAccountRequest();
-        request.setUsername(TEST_NEW_USERNAME);
+        request.setDisplayName("New Display Name");
 
         assertThrows(IllegalArgumentException.class,
             () -> authService.updateAccount(UNKNOWN_STRING, request),
             "Harus throw exception jika user tidak ditemukan");
-    }
-    
-    @Test
-    void testUpdateAccountFailUsernameAlreadyTaken() {
-        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
-        when(userRepository.existsByUsername("takenusername")).thenReturn(true);
-
-        UpdateAccountRequest request = new UpdateAccountRequest();
-        request.setUsername("takenusername");
-
-        assertThrows(IllegalArgumentException.class,
-            () -> authService.updateAccount(TEST_USERNAME, request),
-            "Harus throw exception jika username sudah dipakai");
     }
 
     @Test
