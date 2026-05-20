@@ -142,7 +142,10 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (newPassword != null) {
-            if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            final boolean hasNoPassword = user.getPassword() == null || 
+                    user.getPassword().isEmpty() ||
+                    passwordEncoder.matches("", user.getPassword());
+            if (!hasNoPassword && !passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
                 throw new IllegalArgumentException("Password lama salah");
             }
             user.setPassword(passwordEncoder.encode(newPassword));
