@@ -19,7 +19,8 @@ import id.ac.ui.cs.advprog.yomu.gamification.dto.ShowcaseUpdateRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.event.UserShowcaseAchievementChangedEvent;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementShowcase;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.UserAchievementShowcaseRepository;
-import id.ac.ui.cs.advprog.yomu.gamification.repository.AchievementRepository;
+import id.ac.ui.cs.advprog.yomu.gamification.service.achievement.AchievementService;
+import id.ac.ui.cs.advprog.yomu.gamification.service.achievement.AchievementShowcaseServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
@@ -32,7 +33,7 @@ class AchievementShowcaseServiceImplTest {
     private UserAchievementShowcaseRepository repository;
 
     @Mock
-    private AchievementRepository achievementRepository;
+    private AchievementService achievementService;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -76,6 +77,7 @@ class AchievementShowcaseServiceImplTest {
 
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());
         when(repository.save(any(UserAchievementShowcase.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(achievementService.getAchievementsByIds(achievementIds)).thenReturn(List.of());
 
         showcaseService.updateShowcase(request);
 
@@ -90,6 +92,7 @@ class AchievementShowcaseServiceImplTest {
 
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());
         when(repository.save(any(UserAchievementShowcase.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(achievementService.getAchievementsByIds(achievementIds)).thenReturn(List.of());
 
         showcaseService.updateShowcase(request);
 
