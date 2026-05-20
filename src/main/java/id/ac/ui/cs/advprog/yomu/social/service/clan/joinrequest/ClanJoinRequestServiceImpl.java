@@ -15,6 +15,7 @@ import id.ac.ui.cs.advprog.yomu.social.dto.ClanJoinRequestResponse;
 import id.ac.ui.cs.advprog.yomu.social.event.JoinRequestAcceptedEvent;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanJoinRequest;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanJoinRequestStatus;
 import id.ac.ui.cs.advprog.yomu.social.port.ClanLookupPort;
 import id.ac.ui.cs.advprog.yomu.social.port.ClanMemberValidationPort;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanJoinRequestRepository;
@@ -48,7 +49,7 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
                 memberValidation.existsByUsername(username));
 
         boolean hasPending = joinRequestRepository
-                .findByClanIdAndUsernameAndStatus(validClanId, username, SocialConstants.REQUEST_STATUS_PENDING)
+                .findByClanIdAndUsernameAndStatus(validClanId, username, ClanJoinRequestStatus.PENDING.toString())
                 .isPresent();
         if (hasPending) {
             throw new IllegalArgumentException(SocialConstants.ALREADY_REQUESTED_JOIN_MESSAGE);
@@ -57,7 +58,7 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
         ClanJoinRequest req = new ClanJoinRequest();
         req.setClanId(validClanId);
         req.setUsername(username);
-        req.setStatus(SocialConstants.REQUEST_STATUS_PENDING);
+        req.setStatus(ClanJoinRequestStatus.PENDING);
         req.setCreatedAt(LocalDateTime.now());
         joinRequestRepository.save(req);
     }
@@ -70,9 +71,9 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
 
         Pageable pageable = PageRequest.of(page, size);
         return joinRequestRepository
-                .findByClanIdAndStatus(validClanId, SocialConstants.REQUEST_STATUS_PENDING, pageable)
+                .findByClanIdAndStatus(validClanId, ClanJoinRequestStatus.PENDING.toString(), pageable)
                 .map(r -> new ClanJoinRequestResponse(
-                        r.getId(), r.getClanId(), r.getUsername(), r.getStatus(), r.getCreatedAt()));
+                        r.getId(), r.getClanId(), r.getUsername(), r.getStatus().toString(), r.getCreatedAt()));
     }
 
     @Override
@@ -111,8 +112,8 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
         Clan clan = requireLeaderAccess(clanId, leaderId, SocialConstants.ONLY_LEADER_CAN_REJECT_REQUEST_MESSAGE);
         final String validClanId = clan.getId();
 
-        joinRequestRepository.updateStatusByClanIdAndStatus(validClanId, SocialConstants.REQUEST_STATUS_PENDING,
-                SocialConstants.REQUEST_STATUS_REJECTED);
+        joinRequestRepository.updateStatusByClanIdAndStatus(validClanId, ClanJoinRequestStatus.PENDING.toString(),
+                ClanJoinRequestStatus.REJECTED.toString());
     }
 
     private Clan requireLeaderAccess(String clanId, String leaderId, String message) {
@@ -127,7 +128,7 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
         ClanJoinRequest req = joinRequestRepository
                 .findById(Objects.requireNonNull(requestId, "Request ID cannot be null"))
                 .orElseThrow(() -> new IllegalArgumentException(SocialConstants.REQUEST_NOT_FOUND_MESSAGE));
-        if (!req.getClanId().equals(clanId) || !SocialConstants.REQUEST_STATUS_PENDING.equals(req.getStatus())) {
+        if (!req.getClanId().equals(clanId) || req.getStatus() != ClanJoinRequestStatus.PENDING) {
             throw new IllegalArgumentException(SocialConstants.REQUEST_INVALID_MESSAGE);
         }
         return req;

@@ -4,18 +4,16 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 
+import id.ac.ui.cs.advprog.yomu.gamification.model.AchievementMilestoneType;
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementProgress;
 
 @Component
 public class CountBasedAchievementEvaluator implements AchievementProgressEvaluator {
 
-    private static final String MILESTONE_READINGS_COMPLETED = "readings_completed";
-    private static final String MILESTONE_QUIZZES_PASSED = "quizzes_passed";
-
     @Override
     public boolean supports(String milestoneType) {
-        return MILESTONE_READINGS_COMPLETED.equals(milestoneType)
-                || MILESTONE_QUIZZES_PASSED.equals(milestoneType);
+        AchievementMilestoneType t = AchievementMilestoneType.from(milestoneType);
+        return t == AchievementMilestoneType.READINGS_COMPLETED || t == AchievementMilestoneType.QUIZZES_PASSED;
     }
 
     @Override
@@ -25,15 +23,15 @@ public class CountBasedAchievementEvaluator implements AchievementProgressEvalua
         }
 
         String milestoneType = progress.getAchievement().getMilestoneType();
+        AchievementMilestoneType milestone = AchievementMilestoneType.from(milestoneType);
         int increment = 0;
-
-        if (MILESTONE_READINGS_COMPLETED.equals(milestoneType)) {
+        if (milestone == AchievementMilestoneType.READINGS_COMPLETED) {
             if (context instanceof ReadingCompletionContext) {
                 increment = 1;
             } else if (context instanceof Integer integerVal) {
                 increment = integerVal;
             }
-        } else if (MILESTONE_QUIZZES_PASSED.equals(milestoneType)) {
+        } else if (milestone == AchievementMilestoneType.QUIZZES_PASSED) {
             if (context instanceof QuizCompletionContext) {
                 increment = 1;
             } else if (context instanceof Integer integerVal) {

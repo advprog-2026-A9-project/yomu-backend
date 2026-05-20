@@ -64,7 +64,7 @@ public class SocialMapperImpl implements SocialMapper {
     public ClanMemberDTO toClanMemberDTO(ClanMember member) {
         return new ClanMemberDTO(
                 member.getUsername(),
-                member.getRole(),
+                member.getRole().toString(),
                 0, // Default contribution
                 0, // Default streak
                 true // Default online status

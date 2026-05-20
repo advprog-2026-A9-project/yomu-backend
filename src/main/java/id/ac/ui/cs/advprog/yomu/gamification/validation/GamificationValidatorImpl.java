@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.AchievementRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.yomu.gamification.exception.GamificationException;
+import id.ac.ui.cs.advprog.yomu.gamification.model.AchievementMilestoneType;
+import id.ac.ui.cs.advprog.yomu.gamification.model.DailyMissionType;
 
 /**
  * Implementation of gamification validator
@@ -12,24 +14,6 @@ import id.ac.ui.cs.advprog.yomu.gamification.exception.GamificationException;
  */
 @Component
 public class GamificationValidatorImpl implements GamificationValidator {
-
-    private static final String RANKING_ACHIEVED = "ranking_achieved";
-
-    private static final String[] ACHIEVEMENT_TYPES = {
-        "readings_completed",
-        "quizzes_passed",
-        "accuracy_above",
-        "clan_promoted",
-        RANKING_ACHIEVED
-    };
-
-    private static final String[] DAILY_MISSION_TYPES = {
-        "read_n_articles",
-        "complete_n_quizzes",
-        "achieve_accuracy"
-    };
-
-    private static final String MISSION_TYPE_ACCURACY = "achieve_accuracy";
 
     private static final int MAX_NAME_LENGTH = 100;
     private static final int MAX_MILESTONE_LENGTH = 255;
@@ -67,7 +51,8 @@ public class GamificationValidatorImpl implements GamificationValidator {
             throw new GamificationException("Achievement milestone type cannot be empty", "INVALID_MILESTONE_TYPE");
         }
 
-        if (!isAllowedType(request.getMilestoneType(), ACHIEVEMENT_TYPES)) {
+        AchievementMilestoneType milestoneType = AchievementMilestoneType.from(request.getMilestoneType());
+        if (milestoneType == null) {
             throw new GamificationException("Achievement milestone type is invalid", "INVALID_MILESTONE_TYPE");
         }
 
@@ -75,7 +60,7 @@ public class GamificationValidatorImpl implements GamificationValidator {
             throw new GamificationException("Achievement threshold must be positive", "INVALID_MILESTONE_THRESHOLD");
         }
 
-        if (RANKING_ACHIEVED.equalsIgnoreCase(request.getMilestoneType().trim())) {
+        if (milestoneType == AchievementMilestoneType.RANKING_ACHIEVED) {
             if (request.getTargetTier() == null || request.getTargetTier().trim().isEmpty()) {
                 throw new GamificationException("Target tier is required for ranking achieved achievements", "INVALID_TARGET_TIER");
             }
@@ -125,11 +110,12 @@ public class GamificationValidatorImpl implements GamificationValidator {
             throw new GamificationException("Daily mission type cannot be empty", "INVALID_MISSION_TYPE");
         }
 
-        if (!isAllowedType(request.getMissionType(), DAILY_MISSION_TYPES)) {
+        DailyMissionType missionType = DailyMissionType.from(request.getMissionType());
+        if (missionType == null) {
             throw new GamificationException("Daily mission type is invalid", "INVALID_MISSION_TYPE");
         }
 
-        if (MISSION_TYPE_ACCURACY.equalsIgnoreCase(request.getMissionType().trim())) {
+        if (missionType == DailyMissionType.ACHIEVE_ACCURACY) {
             if (request.getAccuracyThreshold() == null || request.getAccuracyThreshold() <= 0 || request.getAccuracyThreshold() > 100) {
                 throw new GamificationException("Accuracy threshold must be between 1 and 100", "INVALID_ACCURACY_THRESHOLD");
             }
@@ -159,14 +145,5 @@ public class GamificationValidatorImpl implements GamificationValidator {
         if (masterId == null || masterId.trim().isEmpty()) {
             throw new GamificationException("Master data ID cannot be empty", "INVALID_MASTER_ID");
         }
-    }
-
-    private boolean isAllowedType(String value, String... allowedTypes) {
-        for (String allowedType : allowedTypes) {
-            if (allowedType.equalsIgnoreCase(value.trim())) {
-                return true;
-            }
-        }
-        return false;
     }
 }

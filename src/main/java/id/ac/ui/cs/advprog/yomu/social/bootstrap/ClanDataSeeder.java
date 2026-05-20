@@ -19,7 +19,9 @@ import id.ac.ui.cs.advprog.yomu.reading.repository.QuizQuestionRepository;
 import id.ac.ui.cs.advprog.yomu.reading.repository.ReadingTextRepository;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanJoinRequest;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanJoinRequestStatus;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanRole;
 import id.ac.ui.cs.advprog.yomu.social.model.SeasonState;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanJoinRequestRepository;
@@ -37,9 +39,9 @@ public class ClanDataSeeder implements CommandLineRunner {
 
     private static final String FULL_CAPACITY_CLAN_NAME = "Full Capacity Silver";
     private static final String JOIN_REQUEST_TEST_CLAN_NAME = "Join Request Test Clan";
-    private static final String ROLE_MEMBER = "MEMBER";
-    private static final String ROLE_LEADER = "LEADER";
-    private static final String STATUS_PENDING = "PENDING";
+    private static final ClanRole ROLE_MEMBER = ClanRole.MEMBER;
+    private static final ClanRole ROLE_LEADER = ClanRole.LEADER;
+    private static final ClanJoinRequestStatus STATUS_PENDING = ClanJoinRequestStatus.PENDING;
 
     private final ClanRepository clanRepository;
     private final ClanMemberRepository clanMemberRepository;
@@ -218,7 +220,7 @@ public class ClanDataSeeder implements CommandLineRunner {
         }
     }
 
-    private ClanMember createMember(Clan clan, String username, String role) {
+    private ClanMember createMember(Clan clan, String username, ClanRole role) {
         ClanMember member = new ClanMember();
         member.setClanId(clan.getId());
         member.setUsername(username);

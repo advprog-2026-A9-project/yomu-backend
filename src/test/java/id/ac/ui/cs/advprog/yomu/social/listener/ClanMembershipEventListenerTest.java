@@ -32,7 +32,7 @@ class ClanMembershipEventListenerTest {
 
         listener.onJoinRequestAccepted(event);
 
-        verify(clanMembershipService).joinClan(CLAN_ID, USERNAME, SocialConstants.ROLE_MEMBER);
+        verify(clanMembershipService).joinClan(CLAN_ID, USERNAME, id.ac.ui.cs.advprog.yomu.social.model.ClanRole.MEMBER.toString());
     }
 
     @Test
@@ -41,7 +41,7 @@ class ClanMembershipEventListenerTest {
 
         listener.onClanCreated(event);
 
-        verify(clanMembershipService).joinClan(CLAN_ID, USERNAME, SocialConstants.ROLE_LEADER);
+        verify(clanMembershipService).joinClan(CLAN_ID, USERNAME, id.ac.ui.cs.advprog.yomu.social.model.ClanRole.LEADER.toString());
     }
 
     @Test
