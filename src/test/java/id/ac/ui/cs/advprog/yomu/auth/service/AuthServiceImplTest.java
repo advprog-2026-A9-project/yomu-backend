@@ -290,6 +290,7 @@ class AuthServiceImplTest {
     @Test
     void testUpdateAccountSuccessPassword() {
         when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches("", TEST_ENCODED_PASSWORD)).thenReturn(false);
         when(passwordEncoder.matches(TEST_PASSWORD, TEST_ENCODED_PASSWORD)).thenReturn(true);
         when(passwordEncoder.encode("newpassword")).thenReturn("encoded_newpassword");
         when(userRepository.save(any())).thenReturn(mockUser);
@@ -300,7 +301,7 @@ class AuthServiceImplTest {
 
         assertDoesNotThrow(() -> authService.updateAccount(TEST_USERNAME, request));
     }
-
+    
     @Test
     void testUpdateAccountFailWrongOldPassword() {
         when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(mockUser));
