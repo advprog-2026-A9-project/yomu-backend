@@ -11,7 +11,7 @@ public interface AuthService {
     AuthResponse register(RegisterRequest request);
     AuthResponse login(LoginRequest request);
     AccountResponse getMe(String username);
-    AccountResponse updateAccount(String userId, UpdateAccountRequest request);
+    AccountResponse updateAccount(String username, UpdateAccountRequest request);
     void deleteAccount(String userId);
     AccountResponse linkLoginMethod(String userId, LinkLoginMethodRequest request);
 
