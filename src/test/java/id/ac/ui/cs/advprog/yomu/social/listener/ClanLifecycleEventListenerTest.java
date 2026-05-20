@@ -1,8 +1,5 @@
 package id.ac.ui.cs.advprog.yomu.social.listener;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

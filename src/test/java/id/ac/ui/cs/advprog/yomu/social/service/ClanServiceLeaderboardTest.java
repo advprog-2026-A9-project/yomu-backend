@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -80,10 +79,13 @@ class ClanServiceLeaderboardTest {
         silverClan.setTier(Tier.SILVER);
         silverClan.setScore(200);
 
-        lenient().when(socialMapper.toLeaderboardEntryResponse(any(), anyInt())).thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
-        lenient().when(socialMapper.toLeaderboardEntryResponse(any(Clan.class), anyInt(), anyInt())).thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
+        lenient().when(socialMapper.toLeaderboardEntryResponse(any(), anyInt()))
+                .thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
+        lenient().when(socialMapper.toLeaderboardEntryResponse(any(Clan.class), anyInt(), anyInt()))
+                .thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
 
-        queryService = new ClanQueryServiceImpl(clanRepository, memberRepository, clanValidation, socialMapper, modifierService);
+        queryService = new ClanQueryServiceImpl(clanRepository, memberRepository, clanValidation, socialMapper,
+                modifierService);
     }
 
     @Test

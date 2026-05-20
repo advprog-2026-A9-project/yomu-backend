@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -112,11 +111,14 @@ class ClanServiceImplTest {
                     String role = invocation.getArgument(1);
                     int rank = invocation.getArgument(2);
                     List<ClanMember> members = invocation.getArgument(3);
-                    return new MyClanResponse(c.getId(), c.getName(), c.getDescription(), c.getLeaderUsername(), role, "Bronze", 0, rank, members);
+                    return new MyClanResponse(c.getId(), c.getName(), c.getDescription(), c.getLeaderUsername(), role,
+                            "Bronze", 0, rank, members);
                 });
 
-        lifecycleService = new ClanLifecycleServiceImpl(clanRepository, memberRepository, clanValidation, eventPublisher);
-        membershipService = new ClanMembershipServiceImpl(clanRepository, memberRepository, clanValidation, eventPublisher);
+        lifecycleService = new ClanLifecycleServiceImpl(clanRepository, memberRepository, clanValidation,
+                eventPublisher);
+        membershipService = new ClanMembershipServiceImpl(clanRepository, memberRepository, clanValidation,
+                eventPublisher);
         queryService = new ClanQueryServiceImpl(clanRepository, memberRepository, clanValidation, socialMapper, null);
     }
 
@@ -216,7 +218,8 @@ class ClanServiceImplTest {
 
         assertAll("Verify clan deletion triggered via event",
                 () -> verify(memberRepository).deleteByClanIdAndUsername(clanId, leaderId),
-                () -> verify(eventPublisher).publishEvent(any(id.ac.ui.cs.advprog.yomu.social.event.ClanShouldBeDeletedEvent.class)));
+                () -> verify(eventPublisher)
+                        .publishEvent(any(id.ac.ui.cs.advprog.yomu.social.event.ClanShouldBeDeletedEvent.class)));
     }
 
     @Test
