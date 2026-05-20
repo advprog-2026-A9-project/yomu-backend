@@ -100,9 +100,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        final User user = userRepository.findByUsername(request.getIdentifier())
-                .or(() -> userRepository.findByEmail(request.getIdentifier()))
-                .or(() -> userRepository.findByPhoneNumber(request.getIdentifier()))
+        final String identifier = normalize(request.getIdentifier());
+
+        final User user = userRepository.findByUsername(identifier)
+            .or(() -> userRepository.findByEmail(identifier))
+            .or(() -> userRepository.findByEmailIgnoreCase(identifier))
+            .or(() -> userRepository.findByPhoneNumber(identifier))
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -128,9 +131,9 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-   @Override
-    public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
-        final User user = userRepository.findById(userId)
+    @Override
+    public AccountResponse updateAccount(String username, UpdateAccountRequest request) {
+        final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         final String newUsername = normalize(request.getUsername());
@@ -169,19 +172,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void deleteAccount(String userId) {
-
-        final User user = userRepository.findById(userId)
+    public void deleteAccount(String username) {
+        final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         userRepository.delete(user);
-        eventPublisher.publishEvent(new UserDeletedEvent(this, userId));
-
+        eventPublisher.publishEvent(new UserDeletedEvent(this, user.getId()));
     }
 
     @Override
-    public AccountResponse linkLoginMethod(String userId, LinkLoginMethodRequest request) {
-        final User user = userRepository.findById(userId)
+    public AccountResponse linkLoginMethod(String username, LinkLoginMethodRequest request) {
+        final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         final String email = normalize(request.getEmail());
