@@ -65,6 +65,7 @@ class ClanJoinRequestServiceImplTest {
         dummyRequest.setStatus(SocialConstants.REQUEST_STATUS_PENDING);
     }
 
+    @SuppressWarnings("null")
     @Test
     void acceptJoinRequest_WhenValid_ShouldSetStatusAcceptedAndPublishEvent() {
         when(clanLookup.findClanById(CLAN_ID)).thenReturn(Optional.of(dummyClan));
@@ -79,7 +80,6 @@ class ClanJoinRequestServiceImplTest {
                 () -> assertEquals(SocialConstants.REQUEST_STATUS_ACCEPTED, dummyRequest.getStatus(),
                         "Request status should be updated to accepted"),
                 () -> verify(joinRequestRepository).save(dummyRequest),
-                () -> verify(eventPublisher).publishEvent(any(JoinRequestAcceptedEvent.class))
-        );
+                () -> verify(eventPublisher).publishEvent(any(JoinRequestAcceptedEvent.class)));
     }
 }
