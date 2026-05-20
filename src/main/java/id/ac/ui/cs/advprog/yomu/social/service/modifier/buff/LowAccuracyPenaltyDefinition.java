@@ -1,5 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.social.service.modifier.buff;
 
+import java.time.Duration;
+import java.time.Instant;
+
 import org.springframework.stereotype.Component;
 
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
@@ -23,7 +26,7 @@ public class LowAccuracyPenaltyDefinition implements BuffDefinition {
     }
 
     @Override
-    public java.time.Instant calculateEndAt(java.time.Instant startAt) {
-        return startAt.plus(java.time.Duration.ofHours(3));
+    public Instant calculateEndAt(Instant startAt) {
+        return startAt.plus(Duration.ofHours(3));
     }
 }
