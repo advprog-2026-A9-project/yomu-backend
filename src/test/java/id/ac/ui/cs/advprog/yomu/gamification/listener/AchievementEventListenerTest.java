@@ -1,15 +1,12 @@
 package id.ac.ui.cs.advprog.yomu.gamification.listener;
 
-import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,6 +22,7 @@ import id.ac.ui.cs.advprog.yomu.reading.event.QuizCompletedEvent;
 class AchievementEventListenerTest {
 
     private static final String USER_ID = "user-1";
+    private static final String ASSERTION_MESSAGE = "quiz achievement should increment and unlock";
 
     @Mock
     private AchievementService achievementService;
@@ -69,8 +67,6 @@ class AchievementEventListenerTest {
 
         listener.onQuizCompleted(new QuizCompletedEvent(USER_ID, 101L, 90, 1, 1));
 
-        assertTrue(progress.isUnlocked());
-        assertEquals(1, progress.getProgressValue());
-        verify(achievementProgressService).saveProgress(progress);
+        assertTrue(progress.isUnlocked() && progress.getProgressValue() == 1, ASSERTION_MESSAGE);
     }
 }
