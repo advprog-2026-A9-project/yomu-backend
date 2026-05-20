@@ -52,8 +52,8 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Username sudah dipakai");
         }
 
-        if (username.length() < MIN_USERNAME_LENGTH || 
-            username.length() > MAX_USERNAME_LENGTH) {
+        if (username.length() < MIN_USERNAME_LENGTH ||
+                username.length() > MAX_USERNAME_LENGTH) {
             throw new IllegalArgumentException("Username harus antara 3-20 karakter");
         }
         if (!USERNAME_PATTERN.matcher(username).matches()) {
@@ -99,9 +99,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        final User user = userRepository.findByUsername(request.getIdentifier())
-                .or(() -> userRepository.findByEmail(request.getIdentifier()))
-                .or(() -> userRepository.findByPhoneNumber(request.getIdentifier()))
+        final String identifier = normalize(request.getIdentifier());
+
+        final User user = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier))
+                .or(() -> userRepository.findByEmailIgnoreCase(identifier))
+                .or(() -> userRepository.findByPhoneNumber(identifier))
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -123,13 +126,12 @@ public class AuthServiceImpl implements AuthService {
                 user.getEmail(),
                 user.getPhoneNumber(),
                 user.getRole(),
-                "OK"
-        );
+                "OK");
     }
 
     @Override
-    public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
-        final User user = userRepository.findById(userId)
+    public AccountResponse updateAccount(String username, UpdateAccountRequest request) {
+        final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         final String newUsername = normalize(request.getUsername());
@@ -168,19 +170,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void deleteAccount(String userId) {
-
-        final User user = userRepository.findById(userId)
+    public void deleteAccount(String username) {
+        final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         userRepository.delete(user);
-        eventPublisher.publishEvent(new UserDeletedEvent(this, userId, user.getUsername()));
+        eventPublisher.publishEvent(new UserDeletedEvent(this, user.getId(), user.getUsername()));
 
     }
 
     @Override
-    public AccountResponse linkLoginMethod(String userId, LinkLoginMethodRequest request) {
-        final User user = userRepository.findById(userId)
+    public AccountResponse linkLoginMethod(String username, LinkLoginMethodRequest request) {
+        final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         final String email = normalize(request.getEmail());
