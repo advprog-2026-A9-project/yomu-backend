@@ -1,12 +1,27 @@
 package id.ac.ui.cs.advprog.yomu.social.mapper;
 
-import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
-import id.ac.ui.cs.advprog.yomu.social.dto.*;
-import id.ac.ui.cs.advprog.yomu.social.model.*;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Locale;
+
+import org.springframework.stereotype.Component;
+
+import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanLeaderboardRow;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanMemberDTO;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanModifierDTO;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow;
+import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonClanSummary;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonEndResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonStatusResponse;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonTierSummary;
+import id.ac.ui.cs.advprog.yomu.social.model.Clan;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
+import id.ac.ui.cs.advprog.yomu.social.model.SeasonState;
 
 @Component
 public class SocialMapperImpl implements SocialMapper {

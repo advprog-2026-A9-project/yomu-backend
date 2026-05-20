@@ -49,7 +49,7 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
                 memberValidation.existsByUsername(username));
 
         boolean hasPending = joinRequestRepository
-                .findByClanIdAndUsernameAndStatus(validClanId, username, ClanJoinRequestStatus.PENDING.toString())
+                .findByClanIdAndUsernameAndStatus(validClanId, username, ClanJoinRequestStatus.PENDING)
                 .isPresent();
         if (hasPending) {
             throw new IllegalArgumentException(SocialConstants.ALREADY_REQUESTED_JOIN_MESSAGE);
@@ -71,7 +71,7 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
 
         Pageable pageable = PageRequest.of(page, size);
         return joinRequestRepository
-                .findByClanIdAndStatus(validClanId, ClanJoinRequestStatus.PENDING.toString(), pageable)
+                .findByClanIdAndStatus(validClanId, ClanJoinRequestStatus.PENDING, pageable)
                 .map(r -> new ClanJoinRequestResponse(
                         r.getId(), r.getClanId(), r.getUsername(), r.getStatus().toString(), r.getCreatedAt()));
     }
@@ -112,8 +112,8 @@ public class ClanJoinRequestServiceImpl implements ClanJoinRequestService {
         Clan clan = requireLeaderAccess(clanId, leaderId, SocialConstants.ONLY_LEADER_CAN_REJECT_REQUEST_MESSAGE);
         final String validClanId = clan.getId();
 
-        joinRequestRepository.updateStatusByClanIdAndStatus(validClanId, ClanJoinRequestStatus.PENDING.toString(),
-                ClanJoinRequestStatus.REJECTED.toString());
+        joinRequestRepository.updateStatusByClanIdAndStatus(validClanId, ClanJoinRequestStatus.PENDING,
+                ClanJoinRequestStatus.REJECTED);
     }
 
     private Clan requireLeaderAccess(String clanId, String leaderId, String message) {
