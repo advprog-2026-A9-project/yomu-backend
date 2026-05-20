@@ -32,6 +32,7 @@ import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanRole;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.lifecycle.ClanLifecycleService;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.membership.ClanMembershipService;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.query.ClanQueryService;
@@ -87,7 +88,7 @@ class ClanControllerTest {
         deleteSuccessMsg = "Clan berhasil dihapus";
         ClanMember dummyMember = new ClanMember();
         dummyMember.setUsername("LeaderUser");
-        dummyMember.setRole("KETUA");
+        dummyMember.setRole(ClanRole.LEADER);
         members = List.of(dummyMember);
 
         dummyClan = new Clan();

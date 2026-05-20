@@ -13,6 +13,7 @@ import id.ac.ui.cs.advprog.yomu.social.event.UserJoinClanEvent;
 import id.ac.ui.cs.advprog.yomu.social.event.UserLeaveClanEvent;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanRole;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
 import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
@@ -29,7 +30,7 @@ public class ClanMembershipServiceImpl implements ClanMembershipService {
 
     @Override
     @Transactional
-    public void joinClan(final String clanId, final String username, final String role) {
+    public void joinClan(final String clanId, final String username, final String roleStr) {
         clanValidator.requireClanId(clanId);
         clanValidator.requireUsername(username);
 
@@ -47,7 +48,7 @@ public class ClanMembershipServiceImpl implements ClanMembershipService {
         final ClanMember member = new ClanMember();
         member.setUsername(username);
         member.setClanId(validClanId);
-        member.setRole(role);
+        member.setRole(ClanRole.valueOf(roleStr));
         memberRepository.save(member);
 
         eventPublisher.publishEvent(new UserJoinClanEvent(this, username, validClanId, clan.getName(),
@@ -69,7 +70,7 @@ public class ClanMembershipServiceImpl implements ClanMembershipService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Member tidak ditemukan."));
 
-        if (SocialConstants.ROLE_LEADER.equals(member.getRole())) {
+        if (member.getRole() == ClanRole.LEADER) {
             handleLeaderLeave(clan, username);
         } else {
             memberRepository.deleteByClanIdAndUsername(validClanId, username);

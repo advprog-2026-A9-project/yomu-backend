@@ -7,16 +7,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
-import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.event.JoinRequestAcceptedEvent;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanJoinRequest;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanJoinRequestStatus;
 import id.ac.ui.cs.advprog.yomu.social.port.ClanLookupPort;
 import id.ac.ui.cs.advprog.yomu.social.port.ClanMemberValidationPort;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanJoinRequestRepository;
@@ -62,7 +64,7 @@ class ClanJoinRequestServiceImplTest {
         dummyRequest.setId(REQUEST_ID);
         dummyRequest.setClanId(CLAN_ID);
         dummyRequest.setUsername(REQUESTER_USERNAME);
-        dummyRequest.setStatus(SocialConstants.REQUEST_STATUS_PENDING);
+        dummyRequest.setStatus(ClanJoinRequestStatus.PENDING);
     }
 
     @SuppressWarnings("null")
@@ -77,7 +79,7 @@ class ClanJoinRequestServiceImplTest {
         joinRequestService.acceptJoinRequest(CLAN_ID, REQUEST_ID, LEADER_ID);
 
         assertAll("Verify accept request behavior",
-                () -> assertEquals(SocialConstants.REQUEST_STATUS_ACCEPTED, dummyRequest.getStatus(),
+                () -> assertEquals(ClanJoinRequestStatus.ACCEPTED, dummyRequest.getStatus(),
                         "Request status should be updated to accepted"),
                 () -> verify(joinRequestRepository).save(dummyRequest),
                 () -> verify(eventPublisher).publishEvent(any(JoinRequestAcceptedEvent.class)));

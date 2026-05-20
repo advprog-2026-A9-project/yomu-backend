@@ -1,21 +1,44 @@
-2026-05-19T16:27:52.732+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Starting YomuBackendApplication using Java 21.0.10 with PID 68100 (C:\Users\Prasetya\Documents\yomu\yomu-backend\build\classes\java\main started by Prasetya in C:\Users\Prasetya\Documents\yomu\yomu-backend)
-2026-05-19T16:27:52.734+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : The following 1 profile is active: "dev"
-2026-05-19T16:27:54.054+07:00  INFO 68100 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-05-19T16:27:54.258+07:00  INFO 68100 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 194 ms. Found 20 JPA repository interfaces.
-2026-05-19T16:27:54.920+07:00  INFO 68100 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
-2026-05-19T16:27:54.936+07:00  INFO 68100 --- [yomu] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-05-19T16:27:54.937+07:00  INFO 68100 --- [yomu] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
-2026-05-19T16:27:55.003+07:00  INFO 68100 --- [yomu] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-05-19T16:27:55.004+07:00  INFO 68100 --- [yomu] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2231 ms
-2026-05-19T16:27:55.344+07:00  INFO 68100 --- [yomu] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-05-19T16:27:55.410+07:00  INFO 68100 --- [yomu] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.41.Final
-2026-05-19T16:27:55.483+07:00  INFO 68100 --- [yomu] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-05-19T16:27:55.805+07:00  INFO 68100 --- [yomu] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-05-19T16:27:55.846+07:00  INFO 68100 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-05-19T16:27:56.069+07:00  INFO 68100 --- [yomu] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:yomudb user=SA
-2026-05-19T16:27:56.072+07:00  INFO 68100 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-05-19T16:27:56.101+07:00  WARN 68100 --- [yomu] [main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-05-19T16:27:56.124+07:00  INFO 68100 --- [yomu] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+2026-05-20T01:09:16.188+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-1] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T01:09:16.217+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-9] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T01:09:17.384+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-5] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T01:09:17.384+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-4] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T01:09:57.550+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-4] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T01:09:57.552+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-9] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T01:10:55.917+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-2] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T01:10:55.917+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-5] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T01:10:58.607+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-4] i.a.u.c.a.y.p.l.ProfileEventListener     : Handling UserShowcaseAchievementChangedEvent for user: champion
+2026-05-20T01:10:59.527+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-2] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T01:10:59.527+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-5] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T01:17:24.762+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-4] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T01:17:24.762+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-10] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T01:17:56.769+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-9] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T01:17:56.769+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-6] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T01:18:17.230+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-1] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T01:18:17.230+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-5] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T02:04:06.954+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-8] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T02:04:06.967+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-7] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T02:06:20.135+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-9] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T02:06:20.146+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-4] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T02:06:28.614+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-9] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T02:06:28.614+07:00  INFO 38060 --- [yomu] [http-nio-8080-exec-4] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: champion
+2026-05-20T14:11:19.545+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Starting YomuBackendApplication using Java 21.0.10 with PID 19448 (C:\Users\Prasetya\Documents\yomu\yomu-backend\build\classes\java\main started by Prasetya in C:\Users\Prasetya\Documents\yomu\yomu-backend)
+2026-05-20T14:11:19.547+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : The following 1 profile is active: "dev"
+2026-05-20T14:11:20.702+07:00  INFO 19448 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-20T14:11:20.864+07:00  INFO 19448 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 152 ms. Found 20 JPA repository interfaces.
+2026-05-20T14:11:21.415+07:00  INFO 19448 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-20T14:11:21.430+07:00  INFO 19448 --- [yomu] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-20T14:11:21.431+07:00  INFO 19448 --- [yomu] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-05-20T14:11:21.491+07:00  INFO 19448 --- [yomu] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-20T14:11:21.491+07:00  INFO 19448 --- [yomu] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1906 ms
+2026-05-20T14:11:21.822+07:00  INFO 19448 --- [yomu] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-20T14:11:21.877+07:00  INFO 19448 --- [yomu] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.41.Final
+2026-05-20T14:11:21.913+07:00  INFO 19448 --- [yomu] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-20T14:11:22.185+07:00  INFO 19448 --- [yomu] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-20T14:11:22.214+07:00  INFO 19448 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-20T14:11:22.412+07:00  INFO 19448 --- [yomu] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:yomudb user=SA
+2026-05-20T14:11:22.414+07:00  INFO 19448 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-20T14:11:22.446+07:00  WARN 19448 --- [yomu] [main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-20T14:11:22.472+07:00  INFO 19448 --- [yomu] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 2.3.232
@@ -23,28 +46,259 @@
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-05-19T16:27:57.519+07:00  INFO 68100 --- [yomu] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-05-19T16:27:57.606+07:00  INFO 68100 --- [yomu] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-05-19T16:27:58.465+07:00  INFO 68100 --- [yomu] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-05-19T16:27:59.456+07:00  WARN 68100 --- [yomu] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-05-19T16:27:59.715+07:00  INFO 68100 --- [yomu] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
-2026-05-19T16:28:00.194+07:00  INFO 68100 --- [yomu] [main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:yomudb'
-2026-05-19T16:28:00.306+07:00  INFO 68100 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
-2026-05-19T16:28:00.321+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Started YomuBackendApplication in 8.098 seconds (process running for 8.547)
-2026-05-19T16:28:00.394+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Starting Gamification Data Seeding...
-2026-05-19T16:28:00.610+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 10 new daily missions.
-2026-05-19T16:28:00.664+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 16 new achievements.
-2026-05-19T16:28:00.664+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Gamification Data Seeding completed.
-2026-05-19T16:28:00.665+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Starting All Achievements User Seeding...
-2026-05-19T16:28:00.765+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Seeded user 'champion' successfully with ID: aa587d81-5b58-4327-87f0-ec888d4b334b
-2026-05-19T16:28:00.765+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.p.l.ProfileEventListener     : Handling UserCreatedEvent for username: champion
-2026-05-19T16:28:00.852+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Unlocked 16 achievements for user 'champion'.
-2026-05-19T16:28:00.853+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : All Achievements User Seeding completed successfully.
-2026-05-19T16:28:00.875+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 68 dummy clans (including 2 special QA test clans).
-2026-05-19T16:28:01.053+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 pending join requests for 'Join Request Test Clan' clan.
-2026-05-19T16:28:01.058+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded dummy clan data for end-season simulation.
-2026-05-19T16:28:01.065+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded initial season state for social module.
-2026-05-19T16:28:01.071+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 categories.
-2026-05-19T16:28:01.089+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 10 reading texts.
-2026-05-19T16:28:01.126+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded quiz questions with options.
-2026-05-19T16:28:01.126+07:00  INFO 68100 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded reading and quiz data.
+2026-05-20T14:11:23.763+07:00  INFO 19448 --- [yomu] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-20T14:11:23.845+07:00  INFO 19448 --- [yomu] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-20T14:11:24.640+07:00  INFO 19448 --- [yomu] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-20T14:11:25.557+07:00  WARN 19448 --- [yomu] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-20T14:11:25.797+07:00  INFO 19448 --- [yomu] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-05-20T14:11:26.299+07:00  INFO 19448 --- [yomu] [main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:yomudb'
+2026-05-20T14:11:26.390+07:00  INFO 19448 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-05-20T14:11:26.402+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Started YomuBackendApplication in 7.396 seconds (process running for 7.784)
+2026-05-20T14:11:26.460+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Starting Gamification Data Seeding...
+2026-05-20T14:11:26.705+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 10 new daily missions.
+2026-05-20T14:11:26.777+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 16 new achievements.
+2026-05-20T14:11:26.778+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Gamification Data Seeding completed.
+2026-05-20T14:11:26.779+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Starting All Achievements User Seeding...
+2026-05-20T14:11:26.860+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Seeded user 'champion' successfully with ID: 39c132db-4ec1-4379-8193-c1c9df98fcba
+2026-05-20T14:11:26.861+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.p.l.ProfileEventListener     : Handling UserCreatedEvent for username: champion
+2026-05-20T14:11:26.961+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Unlocked 16 achievements for user 'champion'.
+2026-05-20T14:11:26.961+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : All Achievements User Seeding completed successfully.
+2026-05-20T14:11:27.061+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 68 dummy clans (including 2 special QA test clans).
+2026-05-20T14:11:27.272+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 pending join requests for 'Join Request Test Clan' clan.
+2026-05-20T14:11:27.272+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded dummy clan data for end-season simulation.
+2026-05-20T14:11:27.277+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded initial season state for social module.
+2026-05-20T14:11:27.282+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 categories.
+2026-05-20T14:11:27.299+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 10 reading texts.
+2026-05-20T14:11:27.338+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded quiz questions with options.
+2026-05-20T14:11:27.339+07:00  INFO 19448 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded reading and quiz data.
+2026-05-20T14:11:42.500+07:00  INFO 19448 --- [yomu] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-20T14:11:42.502+07:00  INFO 19448 --- [yomu] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-20T14:11:42.503+07:00  INFO 19448 --- [yomu] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-05-20T15:52:40.932+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Starting YomuBackendApplication using Java 21.0.10 with PID 11204 (C:\Users\Prasetya\Documents\yomu\yomu-backend\build\classes\java\main started by Prasetya in C:\Users\Prasetya\Documents\yomu\yomu-backend)
+2026-05-20T15:52:40.934+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : The following 1 profile is active: "dev"
+2026-05-20T15:52:41.990+07:00  INFO 11204 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-20T15:52:42.146+07:00  INFO 11204 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 148 ms. Found 20 JPA repository interfaces.
+2026-05-20T15:52:42.631+07:00  INFO 11204 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-20T15:52:42.643+07:00  INFO 11204 --- [yomu] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-20T15:52:42.643+07:00  INFO 11204 --- [yomu] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-05-20T15:52:42.693+07:00  INFO 11204 --- [yomu] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-20T15:52:42.693+07:00  INFO 11204 --- [yomu] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1730 ms
+2026-05-20T15:52:42.977+07:00  INFO 11204 --- [yomu] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-20T15:52:43.036+07:00  INFO 11204 --- [yomu] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.41.Final
+2026-05-20T15:52:43.069+07:00  INFO 11204 --- [yomu] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-20T15:52:43.321+07:00  INFO 11204 --- [yomu] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-20T15:52:43.347+07:00  INFO 11204 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-20T15:52:43.506+07:00  INFO 11204 --- [yomu] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:yomudb user=SA
+2026-05-20T15:52:43.509+07:00  INFO 11204 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-20T15:52:43.530+07:00  WARN 11204 --- [yomu] [main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-20T15:52:43.545+07:00  INFO 11204 --- [yomu] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-20T15:52:44.757+07:00  INFO 11204 --- [yomu] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-20T15:52:44.834+07:00  INFO 11204 --- [yomu] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-20T15:52:45.799+07:00  INFO 11204 --- [yomu] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-20T15:52:47.345+07:00  WARN 11204 --- [yomu] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-20T15:52:47.696+07:00  INFO 11204 --- [yomu] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-05-20T15:52:48.335+07:00  INFO 11204 --- [yomu] [main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:yomudb'
+2026-05-20T15:52:48.465+07:00  INFO 11204 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-05-20T15:52:48.477+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Started YomuBackendApplication in 7.951 seconds (process running for 8.39)
+2026-05-20T15:52:48.557+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Starting Gamification Data Seeding...
+2026-05-20T15:52:48.803+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 10 new daily missions.
+2026-05-20T15:52:48.864+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 16 new achievements.
+2026-05-20T15:52:48.864+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Gamification Data Seeding completed.
+2026-05-20T15:52:48.865+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Starting All Achievements User Seeding...
+2026-05-20T15:52:48.951+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Seeded user 'champion' successfully with ID: ff6272b6-5105-4675-a98b-c62fef525f29
+2026-05-20T15:52:48.951+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.p.l.AuthProfileEventListener : Handling UserCreatedEvent for username: champion
+2026-05-20T15:52:49.049+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Unlocked 16 achievements for user 'champion'.
+2026-05-20T15:52:49.049+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : All Achievements User Seeding completed successfully.
+2026-05-20T15:52:49.131+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 68 dummy clans (including 2 special QA test clans).
+2026-05-20T15:52:49.274+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 pending join requests for 'Join Request Test Clan' clan.
+2026-05-20T15:52:49.275+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded dummy clan data for end-season simulation.
+2026-05-20T15:52:49.278+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded initial season state for social module.
+2026-05-20T15:52:49.282+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 categories.
+2026-05-20T15:52:49.299+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 10 reading texts.
+2026-05-20T15:52:49.333+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded quiz questions with options.
+2026-05-20T15:52:49.334+07:00  INFO 11204 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded reading and quiz data.
+2026-05-20T15:53:27.800+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-20T15:53:27.800+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-20T15:53:27.801+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-05-20T15:54:03.193+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-10] i.a.u.c.a.y.p.l.AuthProfileEventListener : Handling UserCreatedEvent for username: pzpraz
+2026-05-20T15:54:13.727+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-1] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T15:54:13.746+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-9] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T15:54:25.787+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-2] .u.c.a.y.s.l.ClanMembershipEventListener : Handling ClanCreatedEvent for leader: pzpraz and clan: d3089f3c-0e2d-4696-8279-33462b00caf1
+2026-05-20T15:54:25.797+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-2] a.u.c.a.y.p.l.SocialProfileEventListener : Handling UserJoinClanEvent for user: pzpraz and clan name: Oemski goat clan
+2026-05-20T15:54:25.899+07:00  WARN 11204 --- [yomu] [http-nio-8080-exec-4] ration$PageModule$WarningLoggingModifier : Serializing PageImpl instances as-is is not supported, meaning that there is no guarantee about the stability of the resulting JSON structure!
+	For a stable JSON structure, please use Spring Data's PagedModel (globally via @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO))
+	or Spring HATEOAS and Spring Data's PagedResourcesAssembler as documented in https://docs.spring.io/spring-data/commons/reference/repositories/core-extensions.html#core.web.pageables.
+
+2026-05-20T15:54:36.491+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-8] i.a.u.c.a.y.g.l.GamificationQuizListener : GamificationQuizListener received QuizCompletedEvent for userId=pzpraz score=100
+2026-05-20T15:54:36.521+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-8] .u.c.a.y.p.l.ReadingProfileEventListener : Handling QuizCompletedEvent for user: pzpraz
+2026-05-20T15:54:36.531+07:00  WARN 11204 --- [yomu] [http-nio-8080-exec-8] c.a.y.s.s.m.b.BuffApplicationServiceImpl : Buff LOW_ACCURACY_PENALTY not found for clan d3089f3c-0e2d-4696-8279-33462b00caf1 during deactivation.
+2026-05-20T15:54:50.339+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-8] i.a.u.c.a.y.g.l.GamificationQuizListener : GamificationQuizListener received QuizCompletedEvent for userId=pzpraz score=100
+2026-05-20T15:54:50.359+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-8] .u.c.a.y.p.l.ReadingProfileEventListener : Handling QuizCompletedEvent for user: pzpraz
+2026-05-20T15:54:50.362+07:00  WARN 11204 --- [yomu] [http-nio-8080-exec-8] c.a.y.s.s.m.b.BuffApplicationServiceImpl : Buff LOW_ACCURACY_PENALTY not found for clan d3089f3c-0e2d-4696-8279-33462b00caf1 during deactivation.
+2026-05-20T15:55:04.511+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-5] i.a.u.c.a.y.g.l.GamificationQuizListener : GamificationQuizListener received QuizCompletedEvent for userId=pzpraz score=100
+2026-05-20T15:55:04.514+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-5] y.s.l.DailyMissionCompletedEventListener : Received DailyMissionCompletedEvent for user: pzpraz with reward score: 200
+2026-05-20T15:55:04.517+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-5] y.s.l.DailyMissionCompletedEventListener : Successfully updated clan score for clan d3089f3c-0e2d-4696-8279-33462b00caf1 by 200 points due to daily mission completion
+2026-05-20T15:55:04.543+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-5] .u.c.a.y.p.l.ReadingProfileEventListener : Handling QuizCompletedEvent for user: pzpraz
+2026-05-20T15:55:04.563+07:00  WARN 11204 --- [yomu] [http-nio-8080-exec-5] c.a.y.s.s.m.b.BuffApplicationServiceImpl : Buff LOW_ACCURACY_PENALTY not found for clan d3089f3c-0e2d-4696-8279-33462b00caf1 during deactivation.
+2026-05-20T15:55:14.340+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-7] .u.c.a.y.g.l.GamificationReadingListener : GamificationReadingListener received ReadingCompletedEvent for username=pzpraz
+2026-05-20T15:55:14.343+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-7] y.s.l.DailyMissionCompletedEventListener : Received DailyMissionCompletedEvent for user: pzpraz with reward score: 50
+2026-05-20T15:55:14.345+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-7] y.s.l.DailyMissionCompletedEventListener : Successfully updated clan score for clan d3089f3c-0e2d-4696-8279-33462b00caf1 by 50 points due to daily mission completion
+2026-05-20T15:55:14.358+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-7] .u.c.a.y.p.l.ReadingProfileEventListener : Handling ReadingCompletedEvent for user: pzpraz
+2026-05-20T15:55:25.084+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-1] i.a.u.c.a.y.g.l.GamificationQuizListener : GamificationQuizListener received QuizCompletedEvent for userId=pzpraz score=50
+2026-05-20T15:55:25.098+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-1] .u.c.a.y.p.l.ReadingProfileEventListener : Handling QuizCompletedEvent for user: pzpraz
+2026-05-20T15:55:25.102+07:00  WARN 11204 --- [yomu] [http-nio-8080-exec-1] c.a.y.s.s.m.b.BuffApplicationServiceImpl : Buff LOW_ACCURACY_PENALTY not found for clan d3089f3c-0e2d-4696-8279-33462b00caf1 during deactivation.
+2026-05-20T15:55:32.417+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-9] .u.c.a.y.g.l.GamificationReadingListener : GamificationReadingListener received ReadingCompletedEvent for username=pzpraz
+2026-05-20T15:55:32.424+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-9] .u.c.a.y.p.l.ReadingProfileEventListener : Handling ReadingCompletedEvent for user: pzpraz
+2026-05-20T15:55:44.453+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] i.a.u.c.a.y.g.l.GamificationQuizListener : GamificationQuizListener received QuizCompletedEvent for userId=pzpraz score=50
+2026-05-20T15:55:44.458+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] y.s.l.DailyMissionCompletedEventListener : Received AllDailyMissionsCompletedEvent for user: pzpraz
+2026-05-20T15:55:44.479+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] c.a.y.s.s.m.b.BuffApplicationServiceImpl : Applied buff DAILY_MISSION_BUFF for clan d3089f3c-0e2d-4696-8279-33462b00caf1
+2026-05-20T15:55:44.479+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] y.s.l.DailyMissionCompletedEventListener : Delegated applying daily mission buff for clan d3089f3c-0e2d-4696-8279-33462b00caf1 to BuffApplicationService
+2026-05-20T15:55:44.479+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] y.s.l.DailyMissionCompletedEventListener : Received DailyMissionCompletedEvent for user: pzpraz with reward score: 400
+2026-05-20T15:55:44.481+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] y.s.l.DailyMissionCompletedEventListener : Successfully updated clan score for clan d3089f3c-0e2d-4696-8279-33462b00caf1 by 400 points due to daily mission completion
+2026-05-20T15:55:44.492+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] .u.c.a.y.p.l.ReadingProfileEventListener : Handling QuizCompletedEvent for user: pzpraz
+2026-05-20T15:55:44.495+07:00  WARN 11204 --- [yomu] [http-nio-8080-exec-3] c.a.y.s.s.m.b.BuffApplicationServiceImpl : Buff LOW_ACCURACY_PENALTY not found for clan d3089f3c-0e2d-4696-8279-33462b00caf1 during deactivation.
+2026-05-20T15:56:50.763+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-8] a.y.p.l.GamificationProfileEventListener : Handling UserShowcaseAchievementChangedEvent for user: pzpraz
+2026-05-20T15:56:52.193+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] a.y.p.l.GamificationProfileEventListener : Handling UserShowcaseAchievementChangedEvent for user: pzpraz
+2026-05-20T15:57:04.142+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] .u.c.a.y.g.l.GamificationReadingListener : GamificationReadingListener received ReadingCompletedEvent for username=pzpraz
+2026-05-20T15:57:04.154+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] .u.c.a.y.p.l.ReadingProfileEventListener : Handling ReadingCompletedEvent for user: pzpraz
+2026-05-20T15:57:10.207+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-7] i.a.u.c.a.y.g.l.GamificationQuizListener : GamificationQuizListener received QuizCompletedEvent for userId=pzpraz score=100
+2026-05-20T15:57:10.217+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-7] .u.c.a.y.p.l.ReadingProfileEventListener : Handling QuizCompletedEvent for user: pzpraz
+2026-05-20T15:57:10.223+07:00  WARN 11204 --- [yomu] [http-nio-8080-exec-7] c.a.y.s.s.m.b.BuffApplicationServiceImpl : Buff LOW_ACCURACY_PENALTY not found for clan d3089f3c-0e2d-4696-8279-33462b00caf1 during deactivation.
+2026-05-20T15:58:27.469+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] i.a.u.c.a.y.p.l.AuthProfileEventListener : Handling UserCreatedEvent for username: pzpras
+2026-05-20T15:58:43.086+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpras
+2026-05-20T15:58:43.095+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-6] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpras
+2026-05-20T15:58:49.455+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-2] i.a.u.c.a.y.g.l.GamificationQuizListener : GamificationQuizListener received QuizCompletedEvent for userId=pzpras score=100
+2026-05-20T15:58:49.469+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-2] .u.c.a.y.p.l.ReadingProfileEventListener : Handling QuizCompletedEvent for user: pzpras
+2026-05-20T15:59:35.645+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpras
+2026-05-20T15:59:35.645+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-8] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpras
+2026-05-20T16:08:37.799+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-8] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpras
+2026-05-20T16:08:37.806+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-10] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpras
+2026-05-20T16:08:39.895+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-1] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpras
+2026-05-20T16:08:39.895+07:00  INFO 11204 --- [yomu] [http-nio-8080-exec-3] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpras
+2026-05-20T16:09:47.439+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Starting YomuBackendApplication using Java 21.0.10 with PID 18964 (C:\Users\Prasetya\Documents\yomu\yomu-backend\build\classes\java\main started by Prasetya in C:\Users\Prasetya\Documents\yomu\yomu-backend)
+2026-05-20T16:09:47.441+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : The following 1 profile is active: "dev"
+2026-05-20T16:09:48.624+07:00  INFO 18964 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-20T16:09:48.856+07:00  INFO 18964 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 216 ms. Found 20 JPA repository interfaces.
+2026-05-20T16:09:49.439+07:00  INFO 18964 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-20T16:09:49.452+07:00  INFO 18964 --- [yomu] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-20T16:09:49.452+07:00  INFO 18964 --- [yomu] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-05-20T16:09:49.521+07:00  INFO 18964 --- [yomu] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-20T16:09:49.522+07:00  INFO 18964 --- [yomu] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2044 ms
+2026-05-20T16:09:49.816+07:00  INFO 18964 --- [yomu] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-20T16:09:49.879+07:00  INFO 18964 --- [yomu] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.41.Final
+2026-05-20T16:09:49.913+07:00  INFO 18964 --- [yomu] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-20T16:09:50.192+07:00  INFO 18964 --- [yomu] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-20T16:09:50.221+07:00  INFO 18964 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-20T16:09:50.418+07:00  INFO 18964 --- [yomu] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:yomudb user=SA
+2026-05-20T16:09:50.420+07:00  INFO 18964 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-20T16:09:50.449+07:00  WARN 18964 --- [yomu] [main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-20T16:09:50.473+07:00  INFO 18964 --- [yomu] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-20T16:09:51.991+07:00  INFO 18964 --- [yomu] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-20T16:09:52.092+07:00  INFO 18964 --- [yomu] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-20T16:09:53.274+07:00  INFO 18964 --- [yomu] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-20T16:09:54.776+07:00  WARN 18964 --- [yomu] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-20T16:09:55.152+07:00  INFO 18964 --- [yomu] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-05-20T16:09:55.792+07:00  INFO 18964 --- [yomu] [main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:yomudb'
+2026-05-20T16:09:55.917+07:00  INFO 18964 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-05-20T16:09:55.931+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Started YomuBackendApplication in 8.991 seconds (process running for 9.405)
+2026-05-20T16:09:55.992+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Starting Gamification Data Seeding...
+2026-05-20T16:09:56.192+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 10 new daily missions.
+2026-05-20T16:09:56.237+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 16 new achievements.
+2026-05-20T16:09:56.238+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Gamification Data Seeding completed.
+2026-05-20T16:09:56.238+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Starting All Achievements User Seeding...
+2026-05-20T16:09:56.312+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Seeded user 'champion' successfully with ID: ad05f96f-ee85-46b6-98f4-03c2d47c2066
+2026-05-20T16:09:56.312+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.p.l.AuthProfileEventListener : Handling UserCreatedEvent for username: champion
+2026-05-20T16:09:56.388+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Unlocked 16 achievements for user 'champion'.
+2026-05-20T16:09:56.388+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : All Achievements User Seeding completed successfully.
+2026-05-20T16:09:56.474+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 68 dummy clans (including 2 special QA test clans).
+2026-05-20T16:09:56.633+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 pending join requests for 'Join Request Test Clan' clan.
+2026-05-20T16:09:56.633+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded dummy clan data for end-season simulation.
+2026-05-20T16:09:56.641+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded initial season state for social module.
+2026-05-20T16:09:56.646+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 categories.
+2026-05-20T16:09:56.664+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 10 reading texts.
+2026-05-20T16:09:56.705+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded quiz questions with options.
+2026-05-20T16:09:56.706+07:00  INFO 18964 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded reading and quiz data.
+2026-05-20T16:10:13.781+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-4] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-20T16:10:13.783+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-20T16:10:13.783+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-05-20T16:10:13.984+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-3] i.a.u.c.a.y.p.l.AuthProfileEventListener : Handling UserCreatedEvent for username: pzpraz
+2026-05-20T16:10:26.918+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-5] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T16:10:26.938+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-8] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T16:10:34.045+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-10] i.a.u.c.a.y.g.l.GamificationQuizListener : GamificationQuizListener received QuizCompletedEvent for userId=pzpraz score=100
+2026-05-20T16:10:34.057+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-10] y.s.l.DailyMissionCompletedEventListener : Received DailyMissionCompletedEvent for user: pzpraz with reward score: 50
+2026-05-20T16:10:34.067+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-10] y.s.l.DailyMissionCompletedEventListener : Received DailyMissionCompletedEvent for user: pzpraz with reward score: 200
+2026-05-20T16:10:34.109+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-10] .u.c.a.y.p.l.ReadingProfileEventListener : Handling QuizCompletedEvent for user: pzpraz
+2026-05-20T16:10:58.856+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-2] i.a.u.c.a.y.g.l.GamificationQuizListener : GamificationQuizListener received QuizCompletedEvent for userId=pzpraz score=50
+2026-05-20T16:10:58.882+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-2] .u.c.a.y.p.l.ReadingProfileEventListener : Handling QuizCompletedEvent for user: pzpraz
+2026-05-20T16:11:13.700+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-3] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T16:11:13.700+07:00  INFO 18964 --- [yomu] [http-nio-8080-exec-2] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T17:38:23.909+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Starting YomuBackendApplication using Java 21.0.10 with PID 17916 (C:\Users\Prasetya\Documents\yomu\yomu-backend\build\classes\java\main started by Prasetya in C:\Users\Prasetya\Documents\yomu\yomu-backend)
+2026-05-20T17:38:23.912+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : The following 1 profile is active: "dev"
+2026-05-20T17:38:25.276+07:00  INFO 17916 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-20T17:38:25.516+07:00  INFO 17916 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 229 ms. Found 20 JPA repository interfaces.
+2026-05-20T17:38:26.189+07:00  INFO 17916 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-20T17:38:26.204+07:00  INFO 17916 --- [yomu] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-20T17:38:26.204+07:00  INFO 17916 --- [yomu] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-05-20T17:38:26.290+07:00  INFO 17916 --- [yomu] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-20T17:38:26.290+07:00  INFO 17916 --- [yomu] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2333 ms
+2026-05-20T17:38:26.669+07:00  INFO 17916 --- [yomu] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-20T17:38:26.731+07:00  INFO 17916 --- [yomu] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.41.Final
+2026-05-20T17:38:26.773+07:00  INFO 17916 --- [yomu] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-20T17:38:27.117+07:00  INFO 17916 --- [yomu] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-20T17:38:27.152+07:00  INFO 17916 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-20T17:38:27.349+07:00  INFO 17916 --- [yomu] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:yomudb user=SA
+2026-05-20T17:38:27.351+07:00  INFO 17916 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-20T17:38:27.382+07:00  WARN 17916 --- [yomu] [main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-20T17:38:27.405+07:00  INFO 17916 --- [yomu] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-20T17:38:28.887+07:00  INFO 17916 --- [yomu] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-20T17:38:28.976+07:00  INFO 17916 --- [yomu] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-20T17:38:29.922+07:00  INFO 17916 --- [yomu] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-20T17:38:30.988+07:00  WARN 17916 --- [yomu] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-20T17:38:31.304+07:00  INFO 17916 --- [yomu] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-05-20T17:38:31.831+07:00  INFO 17916 --- [yomu] [main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:yomudb'
+2026-05-20T17:38:31.940+07:00  INFO 17916 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-05-20T17:38:31.953+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Started YomuBackendApplication in 8.619 seconds (process running for 9.018)
+2026-05-20T17:38:32.017+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Starting Gamification Data Seeding...
+2026-05-20T17:38:32.245+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 10 new daily missions.
+2026-05-20T17:38:32.298+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 16 new achievements.
+2026-05-20T17:38:32.298+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Gamification Data Seeding completed.
+2026-05-20T17:38:32.299+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Starting All Achievements User Seeding...
+2026-05-20T17:38:32.402+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Seeded user 'champion' successfully with ID: 0473ec91-8af2-4024-b371-b4f0776943a0
+2026-05-20T17:38:32.402+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.p.l.AuthProfileEventListener : Handling UserCreatedEvent for username: champion
+2026-05-20T17:38:32.509+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Unlocked 16 achievements for user 'champion'.
+2026-05-20T17:38:32.510+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : All Achievements User Seeding completed successfully.
+2026-05-20T17:38:32.532+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 68 dummy clans (including 2 special QA test clans).
+2026-05-20T17:38:32.714+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 pending join requests for 'Join Request Test Clan' clan.
+2026-05-20T17:38:32.714+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded dummy clan data for end-season simulation.
+2026-05-20T17:38:32.718+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded initial season state for social module.
+2026-05-20T17:38:32.725+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 categories.
+2026-05-20T17:38:32.744+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 10 reading texts.
+2026-05-20T17:38:32.790+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded quiz questions with options.
+2026-05-20T17:38:32.792+07:00  INFO 17916 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded reading and quiz data.
+2026-05-20T17:39:06.180+07:00  INFO 17916 --- [yomu] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-20T17:39:06.180+07:00  INFO 17916 --- [yomu] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-20T17:39:06.181+07:00  INFO 17916 --- [yomu] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-05-20T17:39:06.383+07:00  INFO 17916 --- [yomu] [http-nio-8080-exec-4] i.a.u.c.a.y.p.l.AuthProfileEventListener : Handling UserCreatedEvent for username: pzpraz
+2026-05-20T17:45:23.683+07:00  INFO 17916 --- [yomu] [http-nio-8080-exec-4] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz
+2026-05-20T17:45:23.707+07:00  INFO 17916 --- [yomu] [http-nio-8080-exec-8] i.a.u.c.a.y.p.s.ProfileServiceImpl       : Querying read-model profile for identifier: pzpraz

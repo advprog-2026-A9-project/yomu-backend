@@ -14,6 +14,7 @@ import id.ac.ui.cs.advprog.yomu.gamification.mapper.GamificationMapper;
 import id.ac.ui.cs.advprog.yomu.gamification.model.AccuracyDailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.CountBasedDailyMission;
 import id.ac.ui.cs.advprog.yomu.gamification.model.DailyMission;
+import id.ac.ui.cs.advprog.yomu.gamification.model.DailyMissionType;
 import id.ac.ui.cs.advprog.yomu.gamification.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.yomu.gamification.validation.GamificationValidator;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class DailyMissionServiceImpl implements DailyMissionService {
-
-    private static final String MISSION_TYPE_ACCURACY = "achieve_accuracy";
 
     private final DailyMissionRepository dailyMissionRepository;
     private final GamificationValidator validator;
@@ -40,7 +39,7 @@ public class DailyMissionServiceImpl implements DailyMissionService {
         });
 
         DailyMission mission;
-        if (MISSION_TYPE_ACCURACY.equalsIgnoreCase(request.getMissionType().trim())) {
+        if (DailyMissionType.from(request.getMissionType()) == DailyMissionType.ACHIEVE_ACCURACY) {
             AccuracyDailyMission accMission = new AccuracyDailyMission();
             accMission
                     .setAccuracyThreshold(request.getAccuracyThreshold() != null ? request.getAccuracyThreshold() : 0);
@@ -85,7 +84,7 @@ public class DailyMissionServiceImpl implements DailyMissionService {
                             "DUPLICATE_NAME");
                 });
 
-        boolean isRequestAccuracy = MISSION_TYPE_ACCURACY.equalsIgnoreCase(request.getMissionType().trim());
+        boolean isRequestAccuracy = DailyMissionType.from(request.getMissionType()) == DailyMissionType.ACHIEVE_ACCURACY;
         boolean isExistingAccuracy = mission instanceof AccuracyDailyMission;
 
         if (isRequestAccuracy != isExistingAccuracy) {

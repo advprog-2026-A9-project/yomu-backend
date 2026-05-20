@@ -7,15 +7,15 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
-import jakarta.validation.constraints.Positive;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -75,10 +75,11 @@ public abstract class DailyMission {
     }
 
     public boolean isEligibleForEvent(EventType eventType) {
+        DailyMissionType type = DailyMissionType.from(missionType);
         if (eventType == EventType.QUIZ_COMPLETED) {
-            return !"read_n_articles".equals(missionType);
+            return type != DailyMissionType.READ_N_ARTICLES;
         } else if (eventType == EventType.READING_COMPLETED) {
-            return "read_n_articles".equals(missionType);
+            return type == DailyMissionType.READ_N_ARTICLES;
         }
         return false;
     }

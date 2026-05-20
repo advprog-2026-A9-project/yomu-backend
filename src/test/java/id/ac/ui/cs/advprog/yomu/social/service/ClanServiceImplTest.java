@@ -14,32 +14,31 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
-
 import id.ac.ui.cs.advprog.yomu.social.dto.ClanRequest;
 import id.ac.ui.cs.advprog.yomu.social.dto.MyClanResponse;
 import id.ac.ui.cs.advprog.yomu.social.event.ClanCreatedEvent;
+import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.ClanMember;
+import id.ac.ui.cs.advprog.yomu.social.model.ClanRole;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanJoinRequestRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
-import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
-import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
-import static org.mockito.Mockito.lenient;
-
-import org.springframework.context.ApplicationEventPublisher;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.lifecycle.ClanLifecycleServiceImpl;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.membership.ClanMembershipServiceImpl;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.query.ClanQueryServiceImpl;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
 
 @SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
@@ -172,7 +171,7 @@ class ClanServiceImplTest {
         ClanMember dummyMember = new ClanMember();
         dummyMember.setClanId(clanId);
         dummyMember.setUsername(randomMember);
-        dummyMember.setRole(SocialConstants.ROLE_MEMBER);
+        dummyMember.setRole(ClanRole.MEMBER);
 
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
         when(memberRepository.findByClanIdAndUsername(clanId, randomMember)).thenReturn(Optional.of(dummyMember));
@@ -186,14 +185,14 @@ class ClanServiceImplTest {
     void testLeaveClan_AsLeader_WithSuccession() {
         ClanMember leader = new ClanMember();
         leader.setUsername(leaderId);
-        leader.setRole(SocialConstants.ROLE_LEADER);
+        leader.setRole(ClanRole.LEADER);
         ClanMember other = new ClanMember();
         other.setUsername(memberId);
-        other.setRole(SocialConstants.ROLE_MEMBER);
+        other.setRole(ClanRole.MEMBER);
 
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(memberRepository.findByClanId(clanId)).thenReturn(Arrays.asList(leader, other));
         when(memberRepository.findByClanIdAndUsername(clanId, leaderId)).thenReturn(Optional.of(leader));
+        when(memberRepository.findByClanId(clanId)).thenReturn(Arrays.asList(leader, other));
         when(clanValidation.resolveReplacementLeader(any(), eq(leaderId))).thenReturn(memberId);
 
         membershipService.leaveClan(clanId, leaderId);
@@ -208,7 +207,7 @@ class ClanServiceImplTest {
     void testLeaveClan_AsLastLeader_ShouldDeleteClan() {
         ClanMember leader = new ClanMember();
         leader.setUsername(leaderId);
-        leader.setRole(SocialConstants.ROLE_LEADER);
+        leader.setRole(ClanRole.LEADER);
 
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
         when(memberRepository.findByClanId(clanId)).thenReturn(Arrays.asList(leader));
