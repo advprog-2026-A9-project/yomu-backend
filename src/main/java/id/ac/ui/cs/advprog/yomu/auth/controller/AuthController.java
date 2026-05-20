@@ -9,9 +9,8 @@ import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
 import id.ac.ui.cs.advprog.yomu.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,45 +30,45 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<AccountResponse> getMe(java.security.Principal principal) {
-        if (principal == null) {
+    public ResponseEntity<AccountResponse> getMe(Authentication authentication) {
+        if (authentication == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(authService.getMe(principal.getName()));
+        return ResponseEntity.ok(authService.getMe(authentication.getName()));
     }
 
-   @PutMapping("/account")
+    @PutMapping("/account")
     public ResponseEntity<AccountResponse> updateAccount(
-            java.security.Principal principal,
+            Authentication authentication,
             @RequestBody UpdateAccountRequest request) {
-        if (principal == null) {
+        if (authentication == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(authService.updateAccount(principal.getName(), request));
+        return ResponseEntity.ok(authService.updateAccount(authentication.getName(), request));
     }
 
     @DeleteMapping("/account")
-    public ResponseEntity<Void> deleteAccount(java.security.Principal principal) {
-        if (principal == null) {
+    public ResponseEntity<Void> deleteAccount(Authentication authentication) {
+        if (authentication == null) {
             return ResponseEntity.status(401).build();
         }
-        authService.deleteAccount(principal.getName());
+        authService.deleteAccount(authentication.getName());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/account/link")
     public ResponseEntity<AccountResponse> linkLoginMethod(
-            java.security.Principal principal,
+            Authentication authentication,
             @RequestBody LinkLoginMethodRequest request) {
-        if (principal == null) {
+        if (authentication == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(authService.linkLoginMethod(principal.getName(), request));
+        return ResponseEntity.ok(authService.linkLoginMethod(authentication.getName(), request));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<AuthResponse> logout(java.security.Principal principal) {
-        if (principal == null) {
+    public ResponseEntity<AuthResponse> logout(Authentication authentication) {
+        if (authentication == null) {
             return ResponseEntity.status(401).build();
         }
         return ResponseEntity.ok(new AuthResponse(null, null, null, null, "Logout berhasil"));
