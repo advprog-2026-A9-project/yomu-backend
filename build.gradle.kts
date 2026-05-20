@@ -65,3 +65,15 @@ tasks.withType<Pmd>().configureEach {
         html.required.set(true)
     }
 }
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val dotenvFile = File(rootDir, ".env")
+    if (dotenvFile.exists()) {
+        dotenvFile.forEachLine { line ->
+            if (line.isNotBlank() && !line.startsWith("#")) {
+                val (key, value) = line.split("=", limit = 2)
+                environment(key.trim(), value.trim())
+            }
+        }
+    }
+}

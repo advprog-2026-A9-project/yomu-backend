@@ -31,7 +31,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Optional<User> existingUser = userRepository.findByEmail(email);
         if (existingUser.isEmpty()) {
             User newUser = new User();
-            newUser.setEmail(email);
+            String baseUsername = email.split("@")[0].replaceAll("[^a-zA-Z0-9_]", "_");
+            newUser.setUsername(baseUsername);
             newUser.setDisplayName(name);
             newUser.setRole("PELAJAR");
             newUser.setPassword("");
