@@ -134,16 +134,8 @@ public class AuthServiceImpl implements AuthService {
         final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
-        final String newUsername = normalize(request.getUsername());
         final String newDisplayName = normalize(request.getDisplayName());
         final String newPassword = normalize(request.getNewPassword());
-
-        if (newUsername != null) {
-            if (userRepository.existsByUsername(newUsername)) {
-                throw new IllegalArgumentException("Username sudah dipakai");
-            }
-            user.setUsername(newUsername);
-        }
 
         if (newDisplayName != null) {
             user.setDisplayName(newDisplayName);

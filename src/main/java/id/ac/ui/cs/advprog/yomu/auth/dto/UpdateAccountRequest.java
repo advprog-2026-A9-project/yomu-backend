@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 @Getter @Setter @NoArgsConstructor
 public class UpdateAccountRequest {
-    private String username;
     private String displayName;
     private String oldPassword;
     private String newPassword;
