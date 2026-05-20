@@ -5,9 +5,8 @@ import id.ac.ui.cs.advprog.yomu.profile.dto.UpdateBioRequest;
 import id.ac.ui.cs.advprog.yomu.profile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -17,11 +16,8 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @GetMapping("/me")
-    public ResponseEntity<ProfileResponse> getMyProfile(Principal principal) {
-        if (principal == null) {
-            return ResponseEntity.status(401).build();
-        }
-        return ResponseEntity.ok(profileService.getProfileByUserIdOrUsername(principal.getName()));
+    public ResponseEntity<ProfileResponse> getMyProfile(Authentication authentication) {
+        return ResponseEntity.ok(profileService.getProfileByUserIdOrUsername(authentication.getName()));
     }
 
     @GetMapping("/{identifier}")
@@ -30,11 +26,8 @@ public class ProfileController {
     }
 
     @PutMapping("/bio")
-    public ResponseEntity<ProfileResponse> updateBio(Principal principal, @RequestBody UpdateBioRequest request) {
-        if (principal == null) {
-            return ResponseEntity.status(401).build();
-        }
-        ProfileResponse updated = profileService.updateBio(principal.getName(), request.getBio());
+    public ResponseEntity<ProfileResponse> updateBio(Authentication authentication, @RequestBody UpdateBioRequest request) {
+        ProfileResponse updated = profileService.updateBio(authentication.getName(), request.getBio());
         return ResponseEntity.ok(updated);
     }
 }
