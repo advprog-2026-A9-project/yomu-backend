@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.yomu.gamification.listener;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.context.event.EventListener;
@@ -34,7 +33,8 @@ public class AchievementEventListener {
     @Transactional
     public void onQuizCompleted(QuizCompletedEvent event) {
         if (log.isInfoEnabled()) {
-            log.info("AchievementEventListener received QuizCompletedEvent for userId={} score={}", event.userId(), event.score());
+            log.info("AchievementEventListener received QuizCompletedEvent for userId={} score={}", event.userId(),
+                    event.score());
         }
         processAchievementsForContext(event.userId(), new QuizCompletionContext(event.score()));
     }
@@ -52,7 +52,8 @@ public class AchievementEventListener {
     @Transactional
     public void onSeasonRanking(SeasonRankingEvent event) {
         if (log.isInfoEnabled()) {
-            log.info("AchievementEventListener received SeasonRankingEvent: clan '{}' finished rank #{} in {} tier ({} members)",
+            log.info(
+                    "AchievementEventListener received SeasonRankingEvent: clan '{}' finished rank #{} in {} tier ({} members)",
                     event.getClanName(),
                     event.getRank(),
                     event.getTier(),

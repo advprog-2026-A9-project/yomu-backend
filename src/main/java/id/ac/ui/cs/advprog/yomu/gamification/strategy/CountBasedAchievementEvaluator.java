@@ -1,15 +1,21 @@
 package id.ac.ui.cs.advprog.yomu.gamification.strategy;
 
 import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Component;
+
 import id.ac.ui.cs.advprog.yomu.gamification.model.UserAchievementProgress;
 
 @Component
 public class CountBasedAchievementEvaluator implements AchievementProgressEvaluator {
 
+    private static final String MILESTONE_READINGS_COMPLETED = "readings_completed";
+    private static final String MILESTONE_QUIZZES_PASSED = "quizzes_passed";
+
     @Override
     public boolean supports(String milestoneType) {
-        return "readings_completed".equals(milestoneType) || "quizzes_passed".equals(milestoneType);
+        return MILESTONE_READINGS_COMPLETED.equals(milestoneType)
+                || MILESTONE_QUIZZES_PASSED.equals(milestoneType);
     }
 
     @Override
@@ -21,13 +27,13 @@ public class CountBasedAchievementEvaluator implements AchievementProgressEvalua
         String milestoneType = progress.getAchievement().getMilestoneType();
         int increment = 0;
 
-        if ("readings_completed".equals(milestoneType)) {
+        if (MILESTONE_READINGS_COMPLETED.equals(milestoneType)) {
             if (context instanceof ReadingCompletionContext) {
                 increment = 1;
             } else if (context instanceof Integer integerVal) {
                 increment = integerVal;
             }
-        } else if ("quizzes_passed".equals(milestoneType)) {
+        } else if (MILESTONE_QUIZZES_PASSED.equals(milestoneType)) {
             if (context instanceof QuizCompletionContext) {
                 increment = 1;
             } else if (context instanceof Integer integerVal) {
