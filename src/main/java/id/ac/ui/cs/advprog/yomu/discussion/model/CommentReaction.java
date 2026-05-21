@@ -24,7 +24,7 @@ public class CommentReaction {
     private UUID commentId;
 
     @Column(nullable = false)
-    private UUID userId;
+    private String userId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

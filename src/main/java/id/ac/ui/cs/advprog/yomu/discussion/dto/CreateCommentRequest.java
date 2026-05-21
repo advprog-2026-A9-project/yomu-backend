@@ -10,6 +10,6 @@ import java.util.UUID;
 public class CreateCommentRequest {
     private String content;
     private Long readingId;
-    private UUID userId;
+    private String userId;
     private UUID parentId; 
 }
