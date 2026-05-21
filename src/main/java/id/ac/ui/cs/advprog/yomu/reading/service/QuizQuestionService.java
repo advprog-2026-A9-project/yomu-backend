@@ -6,7 +6,8 @@ import id.ac.ui.cs.advprog.yomu.reading.dto.QuizQuestionResponse;
 import java.util.List;
 
 public interface QuizQuestionService {
-    QuizQuestionResponse createQuestion(Long readingTextId, QuizQuestionRequest request, String role);
+    QuizQuestionResponse createQuestion(Long readingTextId, QuizQuestionRequest request);
     List<QuizQuestionResponse> getQuestionsByReadingId(Long readingTextId);
-    void deleteQuestion(Long questionId, String role);
+    QuizQuestionResponse updateQuestion(Long questionId, QuizQuestionRequest request);
+    void deleteQuestion(Long questionId);
 }

@@ -14,11 +14,21 @@ public final class SocialConstants {
     public static final String ALREADY_IN_OTHER_CLAN_MESSAGE = "Kamu sudah tergabung di Clan lain";
     public static final String ONLY_LEADER_CAN_DELETE_MESSAGE = "Hanya Leader yang bisa menghapus Clan";
     public static final String FAILED_FIND_REPLACEMENT_LEADER_MESSAGE = "Gagal menemukan pengganti Leader";
+    public static final String CLAN_FULL_MESSAGE = "Clan sudah penuh (maksimum 50 anggota)";
+    public static final String ONLY_LEADER_CAN_ACCEPT_REQUEST_MESSAGE = "Hanya ketua yang dapat menerima request.";
+    public static final String ONLY_LEADER_CAN_REJECT_REQUEST_MESSAGE = "Hanya ketua yang dapat menolak request.";
+    public static final String REQUEST_NOT_FOUND_MESSAGE = "Request tidak ditemukan.";
+    public static final String REQUEST_INVALID_MESSAGE = "Request tidak valid.";
+    public static final String ALREADY_REQUESTED_JOIN_MESSAGE = "Anda sudah mengirimkan request join ke clan ini.";
 
     public static final String ROLE_LEADER = "LEADER";
     public static final String ROLE_MEMBER = "MEMBER";
     public static final String MY_CLAN_ROLE_LEADER = "KETUA";
     public static final String MY_CLAN_ROLE_MEMBER = "ANGGOTA";
+    
+    public static final String REQUEST_STATUS_PENDING = "PENDING";
+    public static final String REQUEST_STATUS_ACCEPTED = "ACCEPTED";
+    public static final String REQUEST_STATUS_REJECTED = "REJECTED";
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
@@ -26,9 +36,11 @@ public final class SocialConstants {
     public static final String JOIN_SUCCESS_MESSAGE = "Berhasil bergabung";
     public static final String LEAVE_SUCCESS_MESSAGE = "Berhasil keluar dari clan";
     public static final String DELETE_SUCCESS_MESSAGE = "Clan berhasil dihapus";
+    public static final String KICK_SUCCESS_MESSAGE = "Berhasil mengeluarkan anggota";
     public static final String END_SEASON_SUCCESS_MESSAGE = "Season ended. Clans promoted/demoted.";
 
     public static final int MIN_CLAN_SIZE = 1;
+    public static final int MAX_CLAN_SIZE = 50;
     public static final double SEASON_CHANGE_RATIO = 0.2d;
     public static final int LEADERBOARD_LIMIT = 100;
 
@@ -37,6 +49,9 @@ public final class SocialConstants {
     public static final double LOW_ACCURACY_MULTIPLIER = 0.8d;
     public static final int LOW_ACCURACY_MIN_QUESTIONS = 10;
     public static final long LOW_ACCURACY_PENALTY_DURATION_MINUTES = 30;
+
+    public static final String DAILY_MISSION_BUFF_KEY = "DAILY_MISSION_BUFF";
+    public static final double DAILY_MISSION_BUFF_MULTIPLIER = 1.2d;
 
     public static final double MULTIPLIER_MIN = 0.5d;
     public static final double MULTIPLIER_MAX = 10.0d;

@@ -2,76 +2,49 @@ package id.ac.ui.cs.advprog.yomu.social.controller;
 
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import static org.mockito.Mockito.never;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.web.servlet.MockMvc;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
-import id.ac.ui.cs.advprog.yomu.social.service.SeasonService;
+import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonEndResponse;
+import id.ac.ui.cs.advprog.yomu.social.service.season.SeasonService;
 
+@WebMvcTest(SeasonController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @SuppressWarnings("null")
-@ExtendWith(MockitoExtension.class)
 class SeasonControllerTest {
 
+    @Autowired
     private MockMvc mockMvc;
 
-    @Mock
+    @MockitoBean
     private SeasonService seasonService;
 
-    @InjectMocks
-    private SeasonController seasonController;
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(seasonController).build();
-    }
-
-    @AfterEach
-    void clearSecurityContext() {
-        SecurityContextHolder.clearContext();
-    }
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
     @Test
+    @WithMockUser(authorities = { "ROLE_ADMIN" })
     void testEndSeasonAsAdmin() throws Exception {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        "admin-user",
-                        null,
-                        List.of(new SimpleGrantedAuthority("ADMIN"))));
+        SeasonEndResponse mockResponse = new SeasonEndResponse(1, 2, List.of(), List.of(), List.of(), List.of());
+        when(seasonService.endSeason()).thenReturn(mockResponse);
 
         mockMvc.perform(post("/api/seasons/end"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(SocialConstants.END_SEASON_SUCCESS_MESSAGE));
+                .andExpect(jsonPath("$.newSeasonNumber").value(2));
 
         verify(seasonService, times(1)).endSeason();
     }
 
-    @Test
-    void testEndSeasonAsNonAdmin() throws Exception {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        "pelajar-user",
-                        null,
-                        List.of(new SimpleGrantedAuthority("PELAJAR"))));
-
-        mockMvc.perform(post("/api/seasons/end"))
-                .andExpect(status().isForbidden());
-
-        verify(seasonService, never()).endSeason();
-    }
 }

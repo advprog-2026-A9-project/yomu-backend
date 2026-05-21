@@ -12,6 +12,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import id.ac.ui.cs.advprog.yomu.auth.filter.JwtAuthenticationFilter;
+import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
+import id.ac.ui.cs.advprog.yomu.auth.service.CustomOAuth2UserService;
 
 import java.util.UUID;
 
@@ -34,13 +37,22 @@ class DiscussionControllerTest {
     @MockitoBean
     private DiscussionService discussionService;
 
+    @MockitoBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockitoBean
+    private JwtUtil jwtUtil;
+
+    @MockitoBean
+    private CustomOAuth2UserService customOAuth2UserService;
+
     private UUID commentId;
-    private UUID userId;
+    private String userId;
 
     @BeforeEach
     void setUp() {
         commentId = UUID.randomUUID();
-        userId = UUID.randomUUID();
+        userId = UUID.randomUUID().toString();
     }
 
     @Test
@@ -70,7 +82,7 @@ class DiscussionControllerTest {
     void testDeleteCommentEndpoint() throws Exception {
         // Menangkap response status untuk di-assert secara eksplisit
         int status = mockMvc.perform(delete("/api/discussion/" + commentId)
-                .param("userId", userId.toString()))
+                .param("userId", userId))
                 .andReturn().getResponse().getStatus();
 
         // Menyertakan message dan assertion eksplisit

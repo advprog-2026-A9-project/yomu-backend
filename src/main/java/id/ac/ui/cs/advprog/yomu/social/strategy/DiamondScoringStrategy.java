@@ -3,26 +3,33 @@ package id.ac.ui.cs.advprog.yomu.social.strategy;
 import org.springframework.stereotype.Component;
 
 import id.ac.ui.cs.advprog.yomu.social.model.Clan;
+import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 
-/**
- * Diamond tier scoring: Weighted average with special calculations.
- * Uses sophisticated algorithm for top-tier competition.
- */
+import id.ac.ui.cs.advprog.yomu.social.port.ClanMemberValidationPort;
+
+// Tier Diamond: rata-rata tertimbang
+// tidak hanya total — konsistensi anggota lebih dihargai
 @Component
 public class DiamondScoringStrategy implements ScoringStrategy {
 
-    private static final double WEIGHTED_MULTIPLIER = 1.5;
-    private static final double CONSISTENCY_FACTOR = 0.9;
+    private static final double CONSISTENCY_WEIGHT = 0.6;
+    private static final double PEAK_WEIGHT = 0.4;
+    private final ClanMemberValidationPort memberValidationPort;
+
+    public DiamondScoringStrategy(ClanMemberValidationPort memberValidationPort) {
+        this.memberValidationPort = memberValidationPort;
+    }
 
     @Override
     public int calculateScore(Clan clan, int basePoints) {
-        // Weighted average: emphasizes consistency
-        double weightedScore = basePoints * WEIGHTED_MULTIPLIER * CONSISTENCY_FACTOR;
-        return (int) Math.round(weightedScore);
+        long memberCount = memberValidationPort.countByClanId(clan.getId());
+        double averageContribution = clan.getScore() / (double) Math.max(memberCount, 1);
+        // rata-rata tertimbang antara konsistensi historis dan performa saat ini
+        double weighted = (averageContribution * CONSISTENCY_WEIGHT)
+                        + (basePoints * PEAK_WEIGHT);
+        return (int) Math.round(weighted);
     }
 
     @Override
-    public String getStrategyName() {
-        return "Diamond Weighted Average";
-    }
+    public Tier getSupportedTier() { return Tier.DIAMOND; }
 }

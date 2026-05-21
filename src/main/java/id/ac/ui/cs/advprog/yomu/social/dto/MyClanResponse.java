@@ -8,8 +8,11 @@ public record MyClanResponse(
         String id,
         String name,
         String description,
-        String leaderUserId,
+        String leaderUsername,
         String role,
+        String tier,
+        int score,
+        int rank,
         List<ClanMember> members
 ) {
 }
