@@ -12,8 +12,8 @@ public interface DiscussionService {
     CommentResponse createComment(CreateCommentRequest request);
     List<CommentResponse> getCommentsByReading(Long readingId);
     CommentResponse updateComment(UUID commentId, UpdateCommentRequest request);
-    void deleteComment(UUID commentId, UUID userId);
+    void deleteComment(UUID commentId, String userId);
     List<CommentResponse> getAllComments();
-    void addReaction(UUID commentId, UUID userId, ReactionRequest request);
+    CommentResponse addReaction(UUID commentId, String userId, ReactionRequest request);
     void deleteCommentByAdmin(UUID commentId);
 }

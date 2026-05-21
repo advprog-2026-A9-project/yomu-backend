@@ -9,9 +9,13 @@ import java.util.UUID;
 public class CommentResponse {
     private UUID id;
     private String content;
-    private UUID userId;
+    private String userId;
     private Long readingId;
-    private UUID parentId; // Tambahkan ini
+    private String authorName;
+    private UUID parentId; 
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt; // Tambahkan ini
+    private LocalDateTime updatedAt; 
+    private int upvotes;
+    private int downvotes;
+    private int fireReactions;
 }
