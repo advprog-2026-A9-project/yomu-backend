@@ -24,7 +24,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    @Value("${frontend.url:http://localhost:5173}")
+    @Value("${frontend.url}")
     private String frontendUrl;
     private final ApplicationEventPublisher eventPublisher;
 
