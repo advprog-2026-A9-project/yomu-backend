@@ -33,16 +33,28 @@ jobs:
           DB_PASSWORD: password
 
   deploy-staging:
-    name: Dummy CD (Staging - Railway)
+    name: Deploy to Azure VPS (Staging)
     runs-on: ubuntu-latest
     needs: [ build-and-check ]
     if: github.ref == 'refs/heads/staging'
     steps:
-      - name: Trigger Railway Staging Deployment
-        run: |
-          echo "✅ CI Backend Lulus! Memicu deployment ke Railway Environment: Staging..."
-          echo "⚙️ Menjalankan perintah: railway up --environment=staging"
-          echo "🌐 API Staging URL Target: (URL Railway Staging Sementara)"
+      - name: Execute SSH Commands to Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_PRIVATE_KEY }}
+          script: |
+            # 1. Masuk ke folder repository backend di server
+            cd ~/yomu-infra/staging/yomu-backend
+            
+            # 2. Sinkronisasi dengan GitHub
+            git fetch origin
+            git reset --hard origin/staging
+            
+            # 3. Kembali ke folder root infra dan rebuild container backend
+            cd ~/yomu-infra/staging
+            docker compose up -d --build staging-backend
 
 
   deploy-production:
