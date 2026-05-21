@@ -1,7 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.auth.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,7 +19,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import id.ac.ui.cs.advprog.yomu.auth.filter.JwtAuthenticationFilter;
 import id.ac.ui.cs.advprog.yomu.auth.service.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.filter.ForwardedHeaderFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -106,11 +104,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
-        FilterRegistrationBean<ForwardedHeaderFilter> filterRegistrationBean = new FilterRegistrationBean<>();
-        filterRegistrationBean.setFilter(new ForwardedHeaderFilter());
-        filterRegistrationBean.setOrder(Integer.MIN_VALUE);
-        return filterRegistrationBean;
-    }
 }
