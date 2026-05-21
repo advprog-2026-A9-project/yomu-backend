@@ -25,7 +25,7 @@ public class ClanModifier {
     @Column(nullable = false)
     private String clanId;
 
-    @Column(nullable = false)
+    @Column(name = "modifier_key", nullable = false)
     private String key;
 
     @Enumerated(EnumType.STRING)
@@ -42,4 +42,12 @@ public class ClanModifier {
     private Instant startAt;
 
     private Instant endAt;
+
+    public boolean isBuff() {
+        return this.type == ModifierType.BUFF;
+    }
+
+    public boolean isDebuff() {
+        return this.type == ModifierType.DEBUFF;
+    }
 }

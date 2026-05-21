@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class CreateCommentRequest {
     private String content;
-    private UUID readingId;
-    private UUID userId;
+    private Long readingId;
+    private String userId;
     private UUID parentId; 
 }

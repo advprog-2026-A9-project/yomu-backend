@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.discussion.controller;
 
+import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.CommentResponse;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.CreateCommentRequest;
 import id.ac.ui.cs.advprog.yomu.discussion.dto.UpdateCommentRequest;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class DiscussionController {
 
     private final DiscussionService discussionService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/create")
     public ResponseEntity<CommentResponse> createComment(@RequestBody CreateCommentRequest request) {
@@ -26,7 +28,7 @@ public class DiscussionController {
     }
 
     @GetMapping("/reading/{readingId}")
-    public ResponseEntity<List<CommentResponse>> getCommentsByReading(@PathVariable UUID readingId) {
+    public ResponseEntity<List<CommentResponse>> getCommentsByReading(@PathVariable Long readingId) {
         return ResponseEntity.ok(discussionService.getCommentsByReading(readingId));
     }
 
@@ -40,18 +42,19 @@ public class DiscussionController {
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable UUID commentId,
-            @RequestParam UUID userId) {
+            @RequestParam String userId) {
         discussionService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{commentId}/reaction")
-    public ResponseEntity<Void> addReaction(
+    public ResponseEntity<CommentResponse> addReaction(
             @PathVariable UUID commentId,
-            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("Authorization") String authHeader,
             @RequestBody ReactionRequest request) {
-        discussionService.addReaction(commentId, userId, request);
-        return ResponseEntity.ok().build();
+        final String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+        final String userId = jwtUtil.extractUserId(token);
+        return ResponseEntity.ok(discussionService.addReaction(commentId, userId, request));
     }
 
     @DeleteMapping("/{commentId}/moderate")
@@ -59,5 +62,11 @@ public class DiscussionController {
     public ResponseEntity<Void> moderateCommentAdmin(@PathVariable UUID commentId) {
         discussionService.deleteCommentByAdmin(commentId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<CommentResponse>> getAllCommentsAdmin() {
+        List<CommentResponse> allComments = discussionService.getAllComments();
+        return ResponseEntity.ok(allComments);
     }
 }

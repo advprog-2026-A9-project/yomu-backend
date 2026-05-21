@@ -1,39 +1,30 @@
 package id.ac.ui.cs.advprog.yomu.social.service.modifier;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
+import id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats;
+import id.ac.ui.cs.advprog.yomu.social.service.modifier.buff.BuffApplicationService;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ModifierEvaluatorRegistry {
+public class ModifierEvaluatorRegistry implements ModifierEvaluatorRegistryPort {
 
     private final List<ModifierEvaluator> evaluators;
+    private final BuffApplicationService buffApplicationService;
 
-    private Map<String, ModifierEvaluator> getEvaluatorMap() {
-        Map<String, ModifierEvaluator> map = new HashMap<>();
+    @Override
+    public void evaluateAll(String clanId, ClanQuizStats stats) {
         for (ModifierEvaluator evaluator : evaluators) {
-            map.put(evaluator.getKey(), evaluator);
-        }
-        return map;
-    }
-
-    public Optional<ModifierEvaluator> getEvaluator(String key) {
-        return Optional.ofNullable(getEvaluatorMap().get(key));
-    }
-
-    public void evaluate(String key, String clanId, id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats stats) {
-        getEvaluator(key).ifPresent(evaluator -> evaluator.evaluate(clanId, stats));
-    }
-
-    public void evaluateAll(String clanId, id.ac.ui.cs.advprog.yomu.social.model.ClanQuizStats stats) {
-        for (ModifierEvaluator evaluator : evaluators) {
-            evaluator.evaluate(clanId, stats);
+            Optional<String> result = evaluator.evaluate(clanId, stats);
+            if (result.isPresent()) {
+                buffApplicationService.applyBuff(clanId, result.get());
+            } else {
+                buffApplicationService.deactivateBuff(clanId, evaluator.getKey());
+            }
         }
     }
 }
