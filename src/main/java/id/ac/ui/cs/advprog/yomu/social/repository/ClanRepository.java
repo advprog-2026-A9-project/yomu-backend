@@ -40,11 +40,9 @@ public interface ClanRepository extends JpaRepository<Clan, String>, ClanLookupP
                                c.name as clanName,
                                c.tier as tier,
                                c.score as score,
-                               COUNT(m) as memberCount
+                               (SELECT COUNT(m) FROM ClanMember m WHERE m.clanId = c.id) as memberCount
                         FROM Clan c
-                        LEFT JOIN ClanMember m ON m.clanId = c.id
                         WHERE c.tier = :tier
-                        GROUP BY c.id, c.name, c.tier, c.score
                         ORDER BY c.score DESC, c.id ASC
                         """)
         List<ClanLeaderboardRow> findLeaderboardByTier(@Param("tier") Tier tier, Pageable pageable);
@@ -56,13 +54,11 @@ public interface ClanRepository extends JpaRepository<Clan, String>, ClanLookupP
                                c.leaderUsername as leaderUsername,
                                c.tier as tier,
                                c.score as score,
-                               COUNT(m) as memberCount
+                               (SELECT COUNT(m) FROM ClanMember m WHERE m.clanId = c.id) as memberCount
                         FROM Clan c
-                        LEFT JOIN ClanMember m ON m.clanId = c.id
-                        GROUP BY c.id, c.name, c.description, c.leaderUsername, c.tier, c.score
                         ORDER BY c.score DESC, c.id ASC
                         """)
-        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow> findAllClanSummaries();
+        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow> findAllClanSummaries(Pageable pageable);
 
         @Query(value = """
                         SELECT c.id as clanId,
@@ -71,14 +67,15 @@ public interface ClanRepository extends JpaRepository<Clan, String>, ClanLookupP
                                c.leader_username as leaderUsername,
                                c.tier as tier,
                                c.score as score,
-                               COUNT(m.username) as memberCount
+                               (SELECT COUNT(m.id) FROM clan_members m WHERE m.clan_id = c.id) as memberCount
                         FROM clans c
-                        LEFT JOIN clan_members m ON m.clan_id = c.id
-                        GROUP BY c.id, c.name, c.description, c.leader_username, c.tier, c.score
-                        ORDER BY RAND()
+                        ORDER BY RANDOM()
                         LIMIT :limit
                         """, nativeQuery = true)
         List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow> findRandomClanSummaries(@Param("limit") int limit);
+
+        @Query("SELECT c.id FROM Clan c WHERE c.id >= :randomUuid ORDER BY c.id ASC")
+        List<String> findRandomIds(@Param("randomUuid") String randomUuid, Pageable pageable);
 
         @Query("""
                         SELECT c.id as clanId,
@@ -87,26 +84,36 @@ public interface ClanRepository extends JpaRepository<Clan, String>, ClanLookupP
                                c.leaderUsername as leaderUsername,
                                c.tier as tier,
                                c.score as score,
-                               COUNT(m) as memberCount
+                               (SELECT COUNT(m) FROM ClanMember m WHERE m.clanId = c.id) as memberCount
                         FROM Clan c
-                        LEFT JOIN ClanMember m ON m.clanId = c.id
+                        WHERE c.id IN :ids
+                        """)
+        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow> findClanSummariesByIds(@Param("ids") List<String> ids);
+
+
+        @Query("""
+                        SELECT c.id as clanId,
+                               c.name as clanName,
+                               c.description as description,
+                               c.leaderUsername as leaderUsername,
+                               c.tier as tier,
+                               c.score as score,
+                               (SELECT COUNT(m) FROM ClanMember m WHERE m.clanId = c.id) as memberCount
+                        FROM Clan c
                         WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%'))
                            OR LOWER(c.description) LIKE LOWER(CONCAT('%', :query, '%'))
-                        GROUP BY c.id, c.name, c.description, c.leaderUsername, c.tier, c.score
                         ORDER BY c.score DESC, c.id ASC
                         """)
-        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow> findClanSummariesByQuery(@Param("query") String query);
+        List<id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryRow> findClanSummariesByQuery(@Param("query") String query, Pageable pageable);
 
         @Query("""
                         SELECT c.id as clanId,
                                c.name as clanName,
                                c.tier as tier,
                                c.score as score,
-                               COUNT(m) as memberCount
+                               (SELECT COUNT(m) FROM ClanMember m WHERE m.clanId = c.id) as memberCount
                         FROM Clan c
-                        LEFT JOIN ClanMember m ON m.clanId = c.id
                         WHERE c.tier = :tier AND LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%'))
-                        GROUP BY c.id, c.name, c.tier, c.score
                         ORDER BY c.score DESC, c.id ASC
                         """)
         List<ClanLeaderboardRow> findLeaderboardByTierAndName(@Param("tier") Tier tier, @Param("query") String query,

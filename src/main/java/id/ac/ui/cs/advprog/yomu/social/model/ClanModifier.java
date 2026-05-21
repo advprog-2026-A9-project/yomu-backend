@@ -9,12 +9,19 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "clan_modifiers")
+@Table(
+    name = "clan_modifiers",
+    indexes = {
+        @Index(name = "idx_clan_modifiers_clan_id_active", columnList = "clan_id, active"),
+        @Index(name = "idx_clan_modifiers_clan_id_key", columnList = "clan_id, modifier_key")
+    }
+)
 @Getter
 @Setter
 public class ClanModifier {
