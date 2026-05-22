@@ -22,6 +22,7 @@ public class JwtBenchmark {
         jwtUtil = new JwtUtil();
         ReflectionTestUtils.setField(jwtUtil, "secretString",
             "YomuSuperSecretKeyForLocalTestingWhichIsAtLeast32BytesLong");
+        jwtUtil.init();
         token = jwtUtil.generateToken("uuid-123", "testuser", "PELAJAR");
     }
 
