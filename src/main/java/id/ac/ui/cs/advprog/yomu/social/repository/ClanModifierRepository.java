@@ -17,6 +17,8 @@ import id.ac.ui.cs.advprog.yomu.social.model.ClanModifier;
 public interface ClanModifierRepository extends JpaRepository<ClanModifier, Long>, IBuffModifierRepository {
     List<ClanModifier> findByClanIdAndActiveTrue(String clanId);
 
+    List<ClanModifier> findByClanIdInAndActiveTrue(List<String> clanIds);
+
     @Override
     Optional<ClanModifier> findByClanIdAndKey(String clanId, String key);
 
