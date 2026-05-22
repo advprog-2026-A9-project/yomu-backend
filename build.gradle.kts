@@ -3,6 +3,7 @@ plugins {
     id("org.springframework.boot") version "3.5.10"
     id("io.spring.dependency-management") version "1.1.7"
     pmd
+    jacoco
 }
 
 group = "id.ac.ui.cs.advprog"
@@ -75,5 +76,13 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
                 environment(key.trim(), value.trim())
             }
         }
+    }
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test) 
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
     }
 }
