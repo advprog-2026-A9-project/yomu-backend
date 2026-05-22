@@ -40,30 +40,61 @@ public class ClanQueryServiceImpl implements ClanQueryService {
     private final SocialMapper socialMapper;
     private final ClanModifierService modifierService;
 
-    private ClanSummaryResponse mapToSummaryResponse(ClanSummaryRow row) {
-        ModifierSummary mod = modifierService.getModifierSummary(row.getClanId());
-        int effectiveScore = (int) Math.round(row.getScore() * mod.multiplier());
-        return socialMapper.toClanSummaryResponse(row, mod.buffs(), mod.debuffs(), effectiveScore);
+    private List<ClanSummaryResponse> mapToSummaryResponses(List<ClanSummaryRow> rows) {
+        List<String> clanIds = rows.stream()
+                .map(ClanSummaryRow::getClanId)
+                .toList();
+
+        var modifierSummaries = modifierService.getModifierSummaries(clanIds);
+
+        return rows.stream()
+                .map(row -> {
+                    ModifierSummary mod = modifierSummaries.getOrDefault(row.getClanId(),
+                            new ModifierSummary(List.of(), List.of(), 1.0));
+                    int effectiveScore = (int) Math.round(row.getScore() * mod.multiplier());
+                    return socialMapper.toClanSummaryResponse(row, mod.buffs(), mod.debuffs(), effectiveScore);
+                })
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ClanSummaryResponse> findAll(String search) {
+        PageRequest pageRequest = PageRequest.of(0, 100);
         var rows = (search == null || search.isBlank())
-                ? clanRepository.findAllClanSummaries()
-                : clanRepository.findClanSummariesByQuery(search);
+                ? clanRepository.findAllClanSummaries(pageRequest)
+                : clanRepository.findClanSummariesByQuery(search, pageRequest);
 
-        return rows.stream()
-                .map(this::mapToSummaryResponse)
-                .toList();
+        return mapToSummaryResponses(rows);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ClanSummaryResponse> findRandomClans(int limit) {
-        return clanRepository.findRandomClanSummaries(limit).stream()
-                .map(this::mapToSummaryResponse)
-                .toList();
+        if (limit <= 0) {
+            return List.of();
+        }
+        String randomUuid = java.util.UUID.randomUUID().toString();
+        List<String> ids = clanRepository.findRandomIds(randomUuid, PageRequest.of(0, limit));
+        if (ids.size() < limit) {
+            int remaining = limit - ids.size();
+            List<String> wrapAroundIds = clanRepository.findRandomIds("0", PageRequest.of(0, remaining));
+            java.util.List<String> modifiableIds = new java.util.ArrayList<>(ids);
+            for (String id : wrapAroundIds) {
+                if (!modifiableIds.contains(id)) {
+                    modifiableIds.add(id);
+                }
+            }
+            ids = modifiableIds;
+        }
+
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        var rows = new java.util.ArrayList<>(clanRepository.findClanSummariesByIds(ids));
+        java.util.Collections.shuffle(rows);
+        return mapToSummaryResponses(rows);
     }
 
     @Override
