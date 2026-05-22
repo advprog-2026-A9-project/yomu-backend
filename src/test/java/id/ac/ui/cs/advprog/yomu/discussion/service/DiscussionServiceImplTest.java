@@ -10,6 +10,8 @@ import id.ac.ui.cs.advprog.yomu.discussion.model.Comment;
 import id.ac.ui.cs.advprog.yomu.discussion.model.CommentReaction;
 import id.ac.ui.cs.advprog.yomu.discussion.model.ReactionType;
 import id.ac.ui.cs.advprog.yomu.discussion.repository.CommentRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Counter;
 import id.ac.ui.cs.advprog.yomu.discussion.repository.CommentReactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,8 +42,16 @@ class DiscussionServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
-    @InjectMocks
+    
     private DiscussionServiceImpl discussionService;
+
+    
+    @Mock
+    private MeterRegistry meterRegistry; 
+
+
+    @Mock
+    private Counter counter;
 
     private Comment mockComment;
     private UUID commentId;
@@ -63,6 +74,10 @@ class DiscussionServiceImplTest {
                 .readingId(readingId)
                 .userId(userId)
                 .build();
+
+        lenient().when(meterRegistry.counter(anyString())).thenReturn(counter);
+
+        discussionService = new DiscussionServiceImpl(commentRepository, reactionRepository, userRepository, meterRegistry);
 
         lenient().when(reactionRepository.findAllByCommentId(any(UUID.class))).thenReturn(Collections.emptyList());
         lenient().when(userRepository.findById(userId)).thenReturn(Optional.of(buildUser(userId, "testuser", "Test User")));
