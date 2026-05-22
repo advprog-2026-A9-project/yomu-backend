@@ -22,7 +22,7 @@ import id.ac.ui.cs.advprog.yomu.social.service.season.SeasonService;
 
 @WebMvcTest(SeasonController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "PMD"})
 class SeasonControllerTest {
 
     @Autowired

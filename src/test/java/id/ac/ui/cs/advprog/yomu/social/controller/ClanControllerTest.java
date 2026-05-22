@@ -36,8 +36,9 @@ import id.ac.ui.cs.advprog.yomu.social.model.ClanRole;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.lifecycle.ClanLifecycleService;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.membership.ClanMembershipService;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.query.ClanQueryService;
+import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "PMD"})
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ClanControllerTest {
@@ -197,5 +198,45 @@ class ClanControllerTest {
                 .andExpect(content().string(deleteSuccessMsg));
 
         verify(lifecycleService, times(1)).deleteClan(eq(clanId), eq(leaderId));
+    }
+
+    @Test
+    void testGetAllClansRandom() throws Exception {
+        id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse summary = new id.ac.ui.cs.advprog.yomu.social.dto.ClanSummaryResponse(
+                clanId, clanName, "Description", leaderId, "Bronze", 0, 1, 0L, List.of(), List.of());
+        when(queryService.findRandomClans(10)).thenReturn(List.of(summary));
+
+        mockMvc.perform(get(BASE_API)
+                .param("random", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].name").value(clanName));
+
+        verify(queryService, times(1)).findRandomClans(10);
+    }
+
+    @Test
+    void testGetClanDetail() throws Exception {
+        id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse detail = new id.ac.ui.cs.advprog.yomu.social.dto.ClanDetailResponse(
+                clanId, clanName, "Description", leaderId, "Bronze", 1, 0, 1, 100, 100.0, List.of(), List.of(), List.of());
+        when(queryService.getClanDetail(clanId)).thenReturn(detail);
+
+        mockMvc.perform(get(BASE_API + "/" + clanId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(clanId));
+
+        verify(queryService, times(1)).getClanDetail(clanId);
+    }
+
+    @Test
+    void testKickMember() throws Exception {
+        when(authentication.getName()).thenReturn(leaderId);
+
+        mockMvc.perform(post("/api/clans/" + clanId + "/kick/" + memberId)
+                .principal(authentication))
+                .andExpect(status().isOk())
+                .andExpect(content().string(SocialConstants.KICK_SUCCESS_MESSAGE));
+
+        verify(membershipService, times(1)).kickMember(clanId, leaderId, memberId);
     }
 }

@@ -21,7 +21,7 @@ import id.ac.ui.cs.advprog.yomu.social.constant.SocialConstants;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.joinrequest.ClanJoinRequestService;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.membership.ClanMembershipService;
 
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "PMD"})
 @ExtendWith(MockitoExtension.class)
 class ClanMemberControllerTest {
 

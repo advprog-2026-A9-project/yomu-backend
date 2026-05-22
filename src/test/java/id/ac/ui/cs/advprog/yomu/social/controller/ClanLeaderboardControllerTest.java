@@ -24,7 +24,7 @@ import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardResponse;
 import id.ac.ui.cs.advprog.yomu.social.service.clan.query.ClanQueryService;
 
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "PMD"})
 @ExtendWith(MockitoExtension.class)
 class ClanLeaderboardControllerTest {
 

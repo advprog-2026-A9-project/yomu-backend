@@ -67,7 +67,6 @@ public class DailyMissionProgressServiceImpl implements DailyMissionProgressServ
 
         UserDailyMissionProgress progress = getOrCreateMissionProgress(safeUsername, mission, today);
 
-        boolean wasCompleted = progress.isCompleted();
         progress.setProgressValue(request.getProgressValue());
 
         int targetCountVal = mission.getTargetValue();
@@ -75,10 +74,8 @@ public class DailyMissionProgressServiceImpl implements DailyMissionProgressServ
         if (!progress.isCompleted() && request.getProgressValue() >= targetCountVal) {
             progress.setCompleted(true);
             progress.setCompletedAt(LocalDateTime.now());
-            if (!wasCompleted) {
-                eventPublisher.publishEvent(new DailyMissionCompletedEvent(
-                        safeUsername, mission.getRewardScore()));
-            }
+            eventPublisher.publishEvent(new DailyMissionCompletedEvent(
+                    safeUsername, mission.getRewardScore()));
         }
 
         UserDailyMissionProgress saved = userDailyMissionProgressRepository.save(progress);
