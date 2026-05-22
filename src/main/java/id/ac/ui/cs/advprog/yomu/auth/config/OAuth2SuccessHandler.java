@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.auth.config;
 
 import id.ac.ui.cs.advprog.yomu.auth.event.UserCreatedEvent;
+import id.ac.ui.cs.advprog.yomu.auth.monitoring.AuthMonitoringService;
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import id.ac.ui.cs.advprog.yomu.auth.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,32 +28,40 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     @Value("${frontend.url}")
     private String frontendUrl;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuthMonitoringService authMonitoringService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("name");
-        
+        final long startTime = System.nanoTime();
+        boolean success = false;
 
-        User user = userRepository.findByEmail(email)
-                .or(() -> userRepository.findByEmailIgnoreCase(email))
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setEmail(email);
-                    newUser.setDisplayName(name);
-                    newUser.setRole("PELAJAR");
-                    newUser.setPassword("");
-                    String baseUsername = email.split("@")[0].replaceAll("[^a-zA-Z0-9_]", "_");
-                    newUser.setUsername(baseUsername);
-                    User saved = userRepository.save(newUser);
-                    eventPublisher.publishEvent(new UserCreatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
-                    return saved;
-                });
+        try {
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            String email = oAuth2User.getAttribute("email");
+            String name = oAuth2User.getAttribute("name");
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
-        response.sendRedirect(frontendUrl + "/oauth2/callback?token=" + token);
+            User user = userRepository.findByEmail(email)
+                    .or(() -> userRepository.findByEmailIgnoreCase(email))
+                    .orElseGet(() -> {
+                        User newUser = new User();
+                        newUser.setEmail(email);
+                        newUser.setDisplayName(name);
+                        newUser.setRole("PELAJAR");
+                        newUser.setPassword("");
+                        String baseUsername = email.split("@")[0].replaceAll("[^a-zA-Z0-9_]", "_");
+                        newUser.setUsername(baseUsername);
+                        User saved = userRepository.save(newUser);
+                        eventPublisher.publishEvent(new UserCreatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
+                        return saved;
+                    });
+
+            String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+            response.sendRedirect(frontendUrl + "/oauth2/callback?token=" + token);
+            success = true;
+        } finally {
+            authMonitoringService.recordTimedOperation("oauth2_callback", success, System.nanoTime() - startTime);
+        }
     }
 }

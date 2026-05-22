@@ -1,0 +1,41 @@
+groups:
+  - name: yomu-auth-alerts
+    rules:
+      - alert: AuthLoginFailureRateHigh
+        expr: |
+          sum(rate(yomu_auth_operations_total{operation="login",outcome="failure"}[5m]))
+          /
+          clamp_min(sum(rate(yomu_auth_operations_total{operation="login"}[5m])), 1e-6)
+          > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          service: yomu-backend
+        annotations:
+          summary: "Login failure rate is high"
+          description: "More than 20% of login requests are failing over the last 5 minutes."
+
+      - alert: AuthJwtValidationIssues
+        expr: |
+          sum(rate(yomu_auth_jwt_validation_total{outcome=~"invalid|error"}[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+          service: yomu-backend
+        annotations:
+          summary: "JWT validation problems detected"
+          description: "Invalid or error JWT validations are being observed in the last 5 minutes."
+
+      - alert: AuthOperationLatencyHigh
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(yomu_auth_operation_duration_seconds_bucket{operation=~"login|register"}[5m])) by (le, operation)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: yomu-backend
+        annotations:
+          summary: "Auth operations are slow"
+          description: "P95 latency for login or register is above 1 second over the last 5 minutes."

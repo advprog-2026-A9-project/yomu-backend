@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.yomu.auth.dto.LinkLoginMethodRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
+import id.ac.ui.cs.advprog.yomu.auth.monitoring.AuthMonitoringService;
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import id.ac.ui.cs.advprog.yomu.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,9 @@ class AuthServiceImplTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private AuthMonitoringService authMonitoringService;
+
     private RegisterRequest registerRequest;
     private LoginRequest loginRequest;
     private User mockUser;
@@ -94,6 +98,7 @@ class AuthServiceImplTest {
         final AuthResponse response = authService.register(registerRequest);
 
         assertEquals(TEST_USERNAME, response.getUsername(), "Username harus sesuai");
+        verify(authMonitoringService).recordTimedOperation(eq("register"), eq(true), anyLong());
     }
 
     @Test
@@ -132,6 +137,8 @@ class AuthServiceImplTest {
         assertThrows(IllegalArgumentException.class,
             () -> authService.register(registerRequest),
             "Harus throw exception jika username sudah ada");
+
+        verify(authMonitoringService).recordTimedOperation(eq("register"), eq(false), anyLong());
     }
 
     @Test
@@ -186,6 +193,7 @@ class AuthServiceImplTest {
         final AuthResponse response = authService.login(loginRequest);
 
         assertEquals(TEST_USERNAME, response.getUsername(), "Username harus sesuai");
+        verify(authMonitoringService).recordTimedOperation(eq("login"), eq(true), anyLong());
     }
 
     @Test
@@ -207,6 +215,8 @@ class AuthServiceImplTest {
         assertThrows(IllegalArgumentException.class,
             () -> authService.login(loginRequest),
             "Harus throw exception jika password salah");
+
+        verify(authMonitoringService).recordTimedOperation(eq("login"), eq(false), anyLong());
     }
 
     @Test

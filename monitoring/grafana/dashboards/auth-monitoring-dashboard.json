@@ -1,0 +1,138 @@
+{
+  "uid": "yomu-auth-monitoring",
+  "title": "Yomu Auth Monitoring",
+  "tags": ["yomu", "auth", "monitoring"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Login Requests per Second",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(yomu_auth_operations_total{operation=\"login\",outcome=\"success\"}[5m]))",
+          "legendFormat": "login success"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(yomu_auth_operations_total{operation=\"login\",outcome=\"failure\"}[5m]))",
+          "legendFormat": "login failure"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "JWT Validation Outcomes",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(yomu_auth_jwt_validation_total{outcome=\"valid\"}[5m]))",
+          "legendFormat": "valid"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(yomu_auth_jwt_validation_total{outcome=\"missing\"}[5m]))",
+          "legendFormat": "missing"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(rate(yomu_auth_jwt_validation_total{outcome=~\"invalid|error\"}[5m]))",
+          "legendFormat": "invalid / error"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Auth P95 Latency",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum(rate(yomu_auth_operation_duration_seconds_bucket{operation=~\"login|register\"}[5m])) by (le, operation))",
+          "legendFormat": "{{operation}} p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Login Failure Ratio",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(yomu_auth_operations_total{operation=\"login\",outcome=\"failure\"}[5m])) / clamp_min(sum(rate(yomu_auth_operations_total{operation=\"login\"}[5m])), 1e-6)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.1 },
+              { "color": "red", "value": 0.2 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.auth.filter;
 
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
+import id.ac.ui.cs.advprog.yomu.auth.monitoring.AuthMonitoringService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final AuthMonitoringService authMonitoringService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -30,7 +32,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String token = extractTokenFromRequest(request);
 
-            if (token != null && jwtUtil.validateToken(token)) {
+            if (token == null) {
+                authMonitoringService.recordJwtValidation("missing");
+            } else if (jwtUtil.validateToken(token)) {
+                authMonitoringService.recordJwtValidation("valid");
               
                 String userId = jwtUtil.extractUserId(token);
                 String username = jwtUtil.extractUsername(token);
@@ -44,9 +49,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new JwtAuthenticationDetails(userId, username, role));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                authMonitoringService.recordJwtValidation("invalid");
             }
         } catch (Exception e) {
-        
+            authMonitoringService.recordJwtValidation("error");
             logger.error("Tidak bisa set user authentication", e);
         }
 

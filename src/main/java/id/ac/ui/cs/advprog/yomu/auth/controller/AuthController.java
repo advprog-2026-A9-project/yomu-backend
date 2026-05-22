@@ -6,6 +6,7 @@ import id.ac.ui.cs.advprog.yomu.auth.dto.LinkLoginMethodRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
+import id.ac.ui.cs.advprog.yomu.auth.monitoring.AuthMonitoringService;
 import id.ac.ui.cs.advprog.yomu.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final AuthMonitoringService authMonitoringService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
@@ -71,6 +73,7 @@ public class AuthController {
         if (authentication == null) {
             return ResponseEntity.status(401).build();
         }
+        authMonitoringService.recordEvent("logout", "success");
         return ResponseEntity.ok(new AuthResponse(null, null, null, null, "Logout berhasil"));
     }
 }

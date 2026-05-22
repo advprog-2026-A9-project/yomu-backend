@@ -9,6 +9,7 @@ import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
 import id.ac.ui.cs.advprog.yomu.auth.event.UserCreatedEvent;
 import id.ac.ui.cs.advprog.yomu.auth.event.UserUpdatedEvent;
+import id.ac.ui.cs.advprog.yomu.auth.monitoring.AuthMonitoringService;
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import id.ac.ui.cs.advprog.yomu.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,54 +39,63 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuthMonitoringService authMonitoringService;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
+        final long startTime = System.nanoTime();
+        boolean success = false;
+
         final String email = normalize(request.getEmail());
         final String phoneNumber = normalize(request.getPhoneNumber());
         final String username = request.getUsername();
 
-        if (email == null && phoneNumber == null) {
-            throw new IllegalArgumentException("Email atau nomor HP harus diisi");
-        }
-        if (userRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException("Username sudah dipakai");
-        }
+        try {
+            if (email == null && phoneNumber == null) {
+                throw new IllegalArgumentException("Email atau nomor HP harus diisi");
+            }
+            if (userRepository.existsByUsername(username)) {
+                throw new IllegalArgumentException("Username sudah dipakai");
+            }
 
-        if (username.length() < MIN_USERNAME_LENGTH ||
-                username.length() > MAX_USERNAME_LENGTH) {
-            throw new IllegalArgumentException("Username harus antara 3-20 karakter");
-        }
-        if (!USERNAME_PATTERN.matcher(username).matches()) {
-            throw new IllegalArgumentException("Username hanya boleh mengandung huruf, angka, dan underscore");
-        }
-        if (request.getPassword().length() < MIN_PASSWORD_LENGTH) {
-            throw new IllegalArgumentException("Password minimal 8 karakter");
-        }
+            if (username.length() < MIN_USERNAME_LENGTH ||
+                    username.length() > MAX_USERNAME_LENGTH) {
+                throw new IllegalArgumentException("Username harus antara 3-20 karakter");
+            }
+            if (!USERNAME_PATTERN.matcher(username).matches()) {
+                throw new IllegalArgumentException("Username hanya boleh mengandung huruf, angka, dan underscore");
+            }
+            if (request.getPassword().length() < MIN_PASSWORD_LENGTH) {
+                throw new IllegalArgumentException("Password minimal 8 karakter");
+            }
 
-        if (email != null && !EMAIL_PATTERN.matcher(email).matches()) {
-            throw new IllegalArgumentException("Format email tidak valid. Contoh: example@gmail.com");
-        }
-        if (email != null && userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email sudah terdaftar");
-        }
-        if (phoneNumber != null && userRepository.existsByPhoneNumber(phoneNumber)) {
-            throw new IllegalArgumentException("Nomor HP sudah terdaftar");
-        }
+            if (email != null && !EMAIL_PATTERN.matcher(email).matches()) {
+                throw new IllegalArgumentException("Format email tidak valid. Contoh: example@gmail.com");
+            }
+            if (email != null && userRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("Email sudah terdaftar");
+            }
+            if (phoneNumber != null && userRepository.existsByPhoneNumber(phoneNumber)) {
+                throw new IllegalArgumentException("Nomor HP sudah terdaftar");
+            }
 
-        final User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPhoneNumber(phoneNumber);
-        user.setDisplayName(request.getDisplayName());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole("PELAJAR");
+            final User user = new User();
+            user.setUsername(username);
+            user.setEmail(email);
+            user.setPhoneNumber(phoneNumber);
+            user.setDisplayName(request.getDisplayName());
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setRole("PELAJAR");
 
-        final User saved = userRepository.save(user);
-        eventPublisher
-                .publishEvent(new UserCreatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
-        final String token = jwtUtil.generateToken(saved.getId(), saved.getUsername(), saved.getRole());
-        return new AuthResponse(saved.getId(), saved.getUsername(), saved.getRole(), token, "Registrasi berhasil");
+            final User saved = userRepository.save(user);
+            eventPublisher
+                    .publishEvent(new UserCreatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
+            final String token = jwtUtil.generateToken(saved.getId(), saved.getUsername(), saved.getRole());
+            success = true;
+            return new AuthResponse(saved.getId(), saved.getUsername(), saved.getRole(), token, "Registrasi berhasil");
+        } finally {
+            authMonitoringService.recordTimedOperation("register", success, System.nanoTime() - startTime);
+        }
     }
 
     private String normalize(String value) {
@@ -99,20 +109,28 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
+        final long startTime = System.nanoTime();
+        boolean success = false;
+
         final String identifier = normalize(request.getIdentifier());
 
-        final User user = userRepository.findByUsername(identifier)
-                .or(() -> userRepository.findByEmail(identifier))
-                .or(() -> userRepository.findByEmailIgnoreCase(identifier))
-                .or(() -> userRepository.findByPhoneNumber(identifier))
-                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
+        try {
+            final User user = userRepository.findByUsername(identifier)
+                    .or(() -> userRepository.findByEmail(identifier))
+                    .or(() -> userRepository.findByEmailIgnoreCase(identifier))
+                    .or(() -> userRepository.findByPhoneNumber(identifier))
+                    .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Password salah");
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new IllegalArgumentException("Password salah");
+            }
+
+            final String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+            success = true;
+            return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), token, "Login berhasil");
+        } finally {
+            authMonitoringService.recordTimedOperation("login", success, System.nanoTime() - startTime);
         }
-
-        final String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
-        return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), token, "Login berhasil");
     }
 
     @Override
@@ -131,82 +149,106 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AccountResponse updateAccount(String username, UpdateAccountRequest request) {
-        final User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
+        final long startTime = System.nanoTime();
+        boolean success = false;
 
-        final String newDisplayName = normalize(request.getDisplayName());
-        final String newPassword = normalize(request.getNewPassword());
+        try {
+            final User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
-        if (newDisplayName != null) {
-            user.setDisplayName(newDisplayName);
-        }
+            final String newDisplayName = normalize(request.getDisplayName());
+            final String newPassword = normalize(request.getNewPassword());
 
-        if (newPassword != null) {
-            final boolean hasNoPassword = user.getPassword() == null || 
-                    user.getPassword().isEmpty() ||
-                    passwordEncoder.matches("", user.getPassword());
-            if (!hasNoPassword && !passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-                throw new IllegalArgumentException("Password lama salah");
+            if (newDisplayName != null) {
+                user.setDisplayName(newDisplayName);
             }
-            user.setPassword(passwordEncoder.encode(newPassword));
-        }
 
-        final User saved = userRepository.save(user);
-        eventPublisher
-                .publishEvent(new UserUpdatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
-        return new AccountResponse(
-                saved.getId(),
-                saved.getUsername(),
-                saved.getDisplayName(),
-                saved.getEmail(),
-                saved.getPhoneNumber(),
-                saved.getRole(),
-                "Akun berhasil diperbarui");
+            if (newPassword != null) {
+                final boolean hasNoPassword = user.getPassword() == null ||
+                        user.getPassword().isEmpty() ||
+                        passwordEncoder.matches("", user.getPassword());
+                if (!hasNoPassword && !passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+                    throw new IllegalArgumentException("Password lama salah");
+                }
+                user.setPassword(passwordEncoder.encode(newPassword));
+            }
+
+            final User saved = userRepository.save(user);
+            eventPublisher
+                    .publishEvent(new UserUpdatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
+            success = true;
+            return new AccountResponse(
+                    saved.getId(),
+                    saved.getUsername(),
+                    saved.getDisplayName(),
+                    saved.getEmail(),
+                    saved.getPhoneNumber(),
+                    saved.getRole(),
+                    "Akun berhasil diperbarui");
+        } finally {
+            authMonitoringService.recordTimedOperation("update_account", success, System.nanoTime() - startTime);
+        }
     }
 
     @Override
     public void deleteAccount(String username) {
-        final User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
+        final long startTime = System.nanoTime();
+        boolean success = false;
 
-        userRepository.delete(user);
-        eventPublisher.publishEvent(new UserDeletedEvent(this, user.getId(), user.getUsername()));
+        try {
+            final User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
+
+            userRepository.delete(user);
+            eventPublisher.publishEvent(new UserDeletedEvent(this, user.getId(), user.getUsername()));
+            success = true;
+        } finally {
+            authMonitoringService.recordTimedOperation("delete_account", success, System.nanoTime() - startTime);
+        }
 
     }
 
     @Override
     public AccountResponse linkLoginMethod(String username, LinkLoginMethodRequest request) {
-        final User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
+        final long startTime = System.nanoTime();
+        boolean success = false;
 
-        final String email = normalize(request.getEmail());
-        final String phoneNumber = normalize(request.getPhoneNumber());
+        try {
+            final User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
-        if (email != null) {
-            if (!EMAIL_PATTERN.matcher(email).matches()) {
-                throw new IllegalArgumentException("Format email tidak valid");
+            final String email = normalize(request.getEmail());
+            final String phoneNumber = normalize(request.getPhoneNumber());
+
+            if (email != null) {
+                if (!EMAIL_PATTERN.matcher(email).matches()) {
+                    throw new IllegalArgumentException("Format email tidak valid");
+                }
+                if (userRepository.existsByEmail(email)) {
+                    throw new IllegalArgumentException("Email sudah terdaftar");
+                }
+                user.setEmail(email);
             }
-            if (userRepository.existsByEmail(email)) {
-                throw new IllegalArgumentException("Email sudah terdaftar");
+
+            if (phoneNumber != null) {
+                if (userRepository.existsByPhoneNumber(phoneNumber)) {
+                    throw new IllegalArgumentException("Nomor HP sudah terdaftar");
+                }
+                user.setPhoneNumber(phoneNumber);
             }
-            user.setEmail(email);
+
+            final User saved = userRepository.save(user);
+            success = true;
+            return new AccountResponse(
+                    saved.getId(),
+                    saved.getUsername(),
+                    saved.getDisplayName(),
+                    saved.getEmail(),
+                    saved.getPhoneNumber(),
+                    saved.getRole(),
+                    "Metode login berhasil ditautkan");
+        } finally {
+            authMonitoringService.recordTimedOperation("link_login_method", success, System.nanoTime() - startTime);
         }
-
-        if (phoneNumber != null) {
-            if (userRepository.existsByPhoneNumber(phoneNumber)) {
-                throw new IllegalArgumentException("Nomor HP sudah terdaftar");
-            }
-            user.setPhoneNumber(phoneNumber);
-        }
-
-        final User saved = userRepository.save(user);
-        return new AccountResponse(
-                saved.getId(),
-                saved.getUsername(),
-                saved.getDisplayName(),
-                saved.getEmail(),
-                saved.getPhoneNumber(),
-                saved.getRole(),
-                "Metode login berhasil ditautkan");
     }
 }
