@@ -262,3 +262,56 @@ Caused by: org.springframework.util.PlaceholderResolutionException: Could not re
 2026-05-22T17:08:34.899+07:00  INFO 29780 --- [yomu] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
 2026-05-22T17:08:34.971+07:00  INFO 29780 --- [yomu] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
 2026-05-22T17:08:34.975+07:00  INFO 29780 --- [yomu] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-05-22T17:08:50.521+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Starting YomuBackendApplication using Java 21.0.10 with PID 24760 (C:\Users\LENOVO\Documents\Adpuro\Yomu\yomu-backend\build\classes\java\main started by LENOVO in C:\Users\LENOVO\Documents\Adpuro\Yomu\yomu-backend)
+2026-05-22T17:08:50.525+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : The following 1 profile is active: "dev"
+2026-05-22T17:08:52.357+07:00  INFO 24760 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-22T17:08:52.607+07:00  INFO 24760 --- [yomu] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 236 ms. Found 20 JPA repository interfaces.
+2026-05-22T17:08:53.570+07:00  INFO 24760 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-22T17:08:53.602+07:00  INFO 24760 --- [yomu] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-22T17:08:53.603+07:00  INFO 24760 --- [yomu] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-05-22T17:08:53.694+07:00  INFO 24760 --- [yomu] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-22T17:08:53.695+07:00  INFO 24760 --- [yomu] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3083 ms
+2026-05-22T17:08:54.249+07:00  INFO 24760 --- [yomu] [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-22T17:08:54.360+07:00  INFO 24760 --- [yomu] [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.41.Final
+2026-05-22T17:08:54.422+07:00  INFO 24760 --- [yomu] [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-22T17:08:54.974+07:00  INFO 24760 --- [yomu] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-22T17:08:55.026+07:00  INFO 24760 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-22T17:08:55.975+07:00  INFO 24760 --- [yomu] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:yomudb user=SA
+2026-05-22T17:08:55.982+07:00  INFO 24760 --- [yomu] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-22T17:08:56.366+07:00  WARN 24760 --- [yomu] [main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-22T17:08:56.530+07:00  INFO 24760 --- [yomu] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-22T17:08:58.526+07:00  INFO 24760 --- [yomu] [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-22T17:08:58.654+07:00  INFO 24760 --- [yomu] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-22T17:08:59.914+07:00  INFO 24760 --- [yomu] [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-22T17:09:01.303+07:00  WARN 24760 --- [yomu] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-22T17:09:01.715+07:00  INFO 24760 --- [yomu] [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-05-22T17:09:02.442+07:00  INFO 24760 --- [yomu] [main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:yomudb'
+2026-05-22T17:09:02.608+07:00  INFO 24760 --- [yomu] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-05-22T17:09:02.622+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.yomu.YomuBackendApplication    : Started YomuBackendApplication in 14.334 seconds (process running for 16.054)
+2026-05-22T17:09:02.633+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Starting Gamification Data Seeding...
+2026-05-22T17:09:02.899+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 10 new daily missions.
+2026-05-22T17:09:02.945+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Seeded 16 new achievements.
+2026-05-22T17:09:02.946+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.g.b.GamificationDataSeeder   : Gamification Data Seeding completed.
+2026-05-22T17:09:02.946+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Starting All Achievements User Seeding...
+2026-05-22T17:09:03.074+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Seeded user 'champion' successfully with ID: aee61acd-e85c-4c34-92de-7b3ba1110484
+2026-05-22T17:09:03.075+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.p.l.AuthProfileEventListener : Handling UserCreatedEvent for username: champion
+2026-05-22T17:09:03.169+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : Unlocked 16 achievements for user 'champion'.
+2026-05-22T17:09:03.169+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.g.b.AllAchievementsSeeder    : All Achievements User Seeding completed successfully.
+2026-05-22T17:09:03.317+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 68 dummy clans (including 2 special QA test clans).
+2026-05-22T17:09:03.550+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 pending join requests for 'Join Request Test Clan' clan.
+2026-05-22T17:09:03.550+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded dummy clan data for end-season simulation.
+2026-05-22T17:09:03.553+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded initial season state for social module.
+2026-05-22T17:09:03.561+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 5 categories.
+2026-05-22T17:09:03.639+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded 10 reading texts.
+2026-05-22T17:09:03.727+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded quiz questions with options.
+2026-05-22T17:09:03.727+07:00  INFO 24760 --- [yomu] [main] i.a.u.c.a.y.s.bootstrap.ClanDataSeeder   : Seeded reading and quiz data.
+2026-05-22T17:10:43.489+07:00  INFO 24760 --- [yomu] [http-nio-8080-exec-5] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-22T17:10:43.490+07:00  INFO 24760 --- [yomu] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-22T17:10:43.492+07:00  INFO 24760 --- [yomu] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms

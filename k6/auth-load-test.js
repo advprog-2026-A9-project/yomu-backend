@@ -6,13 +6,13 @@ export const options = {
     duration: '30s', // selama 30 detik
 };
 
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'https://api-staging.yomu.info';
 
 export default function () {
     // Test login
     const loginPayload = JSON.stringify({
-        identifier: 'admin',
-        password: 'Admin123!',
+        identifier: 'pies',
+        password: 'piespiespies',
     });
 
     const loginRes = http.post(`${BASE_URL}/api/auth/login`, loginPayload, {
