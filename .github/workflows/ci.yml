@@ -45,15 +45,12 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_PRIVATE_KEY }}
           script: |
-            # 1. Masuk ke folder repository backend di server
-            cd ~/yomu-infra/staging/yomu-backend
-            
-            # 2. Sinkronisasi dengan GitHub
+            cd ~/yomu-backend-staging
             git fetch origin
             git reset --hard origin/staging
             
-            # 3. Kembali ke folder root infra dan rebuild container backend
             cd ~/yomu-infra/staging
+            
             docker compose up -d --build staging-backend
 
 
