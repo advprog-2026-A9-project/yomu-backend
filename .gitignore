@@ -1,3 +1,19 @@
+/.gradle
+/build
+/.idea
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+/.DS_Store
+Thumbs.db
+
+# Gradle wrapper
+gradle/wrapper/gradle-wrapper.jar
+
+# Logs
+*.log
 HELP.md
 .gradle
 build/
