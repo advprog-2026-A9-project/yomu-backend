@@ -9,12 +9,19 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "clan_join_requests")
+@Table(
+    name = "clan_join_requests",
+    indexes = {
+        @Index(name = "idx_clan_join_requests_clan_id_status", columnList = "clan_id, status"),
+        @Index(name = "idx_clan_join_requests_username_status", columnList = "username, status")
+    }
+)
 @Getter
 @Setter
 public class ClanJoinRequest {

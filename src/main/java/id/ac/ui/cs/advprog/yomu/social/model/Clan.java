@@ -7,12 +7,18 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "clans")
+@Table(
+    name = "clans",
+    indexes = {
+        @Index(name = "idx_clans_tier_score", columnList = "tier, score DESC")
+    }
+)
 @Getter @Setter
 public class Clan {
     @Id
