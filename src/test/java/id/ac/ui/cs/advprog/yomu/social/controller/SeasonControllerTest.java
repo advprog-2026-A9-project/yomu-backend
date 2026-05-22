@@ -12,12 +12,20 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+<<<<<<< HEAD
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+=======
+>>>>>>> origin/staging
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
 import id.ac.ui.cs.advprog.yomu.social.dto.SeasonEndResponse;
+<<<<<<< HEAD
+import id.ac.ui.cs.advprog.yomu.social.dto.SeasonStatusResponse;
+=======
+>>>>>>> origin/staging
 import id.ac.ui.cs.advprog.yomu.social.service.season.SeasonService;
 
 @WebMvcTest(SeasonController.class)
@@ -47,4 +55,19 @@ class SeasonControllerTest {
         verify(seasonService, times(1)).endSeason();
     }
 
+<<<<<<< HEAD
+    @Test
+    void testGetCurrentSeason() throws Exception {
+        SeasonStatusResponse mockResponse = new SeasonStatusResponse(3, "Active");
+        when(seasonService.getCurrentSeason()).thenReturn(mockResponse);
+
+        mockMvc.perform(get("/api/seasons/current"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.seasonNumber").value(3))
+                .andExpect(jsonPath("$.status").value("Active"));
+
+        verify(seasonService, times(1)).getCurrentSeason();
+    }
+=======
+>>>>>>> origin/staging
 }

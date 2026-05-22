@@ -8,7 +8,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.ArgumentMatchers.any;
+<<<<<<< HEAD
+import static org.mockito.ArgumentMatchers.eq;
+=======
 import static org.mockito.ArgumentMatchers.anyString;
+>>>>>>> origin/staging
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,6 +32,11 @@ import id.ac.ui.cs.advprog.yomu.social.service.clan.query.ClanQueryService;
 @ExtendWith(MockitoExtension.class)
 class ClanLeaderboardControllerTest {
 
+<<<<<<< HEAD
+    private static final String BRONZE = "Bronze";
+
+=======
+>>>>>>> origin/staging
     private MockMvc mockMvc;
 
     @Mock
@@ -45,6 +54,17 @@ class ClanLeaderboardControllerTest {
     }
 
     @Test
+<<<<<<< HEAD
+    void testGetLeaderboard_WithAuth() throws Exception {
+        String clanId = "clan-123";
+        String clanName = "Wibu Elite";
+        String username = "user-123";
+        LeaderboardEntryResponse entry = new LeaderboardEntryResponse(clanId, clanName, BRONZE, 100, 1, 10);
+        LeaderboardResponse leaderboard = new LeaderboardResponse(BRONZE, List.of(entry), entry);
+
+        when(authentication.getName()).thenReturn(username);
+        when(queryService.getLeaderboardByTier(eq(username), any())).thenReturn(List.of(leaderboard));
+=======
     void testGetLeaderboard() throws Exception {
         String clanId = "clan-123";
         String clanName = "Wibu Elite";
@@ -54,12 +74,33 @@ class ClanLeaderboardControllerTest {
 
         when(authentication.getName()).thenReturn(username);
         when(queryService.getLeaderboardByTier(anyString(), any())).thenReturn(List.of(leaderboard));
+>>>>>>> origin/staging
 
         mockMvc.perform(get("/api/clans/leaderboard")
                 .principal(authentication))
                 .andExpect(status().isOk())
+<<<<<<< HEAD
+                .andExpect(jsonPath("$[0].tier").value(BRONZE));
+
+        verify(queryService, times(1)).getLeaderboardByTier(eq(username), any());
+    }
+
+    @Test
+    void testGetLeaderboard_WithoutAuth() throws Exception {
+        LeaderboardEntryResponse entry = new LeaderboardEntryResponse("clan-1", "Name", BRONZE, 100, 1, 10);
+        LeaderboardResponse leaderboard = new LeaderboardResponse(BRONZE, List.of(entry), entry);
+
+        when(queryService.getLeaderboardByTier(eq(null), any())).thenReturn(List.of(leaderboard));
+
+        mockMvc.perform(get("/api/clans/leaderboard"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].tier").value(BRONZE));
+
+        verify(queryService, times(1)).getLeaderboardByTier(eq(null), any());
+=======
                 .andExpect(jsonPath("$[0].tier").value("Bronze"));
 
         verify(queryService, times(1)).getLeaderboardByTier(anyString(), any());
+>>>>>>> origin/staging
     }
 }
