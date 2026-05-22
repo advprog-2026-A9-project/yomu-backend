@@ -1,9 +1,11 @@
 package id.ac.ui.cs.advprog.yomu.auth.config;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +21,15 @@ public class JwtUtil {
 
     private static final long EXPIRATION = 86400000L;
 
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
+    private Key signingKey;
+    private JwtParser jwtParser;
+
+    @PostConstruct
+    public void init() {
+        this.signingKey = Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
+        this.jwtParser = Jwts.parserBuilder()
+                .setSigningKey(this.signingKey)
+                .build();
     }
 
     public String generateToken(String userId, String username, String role) {
@@ -30,7 +39,7 @@ public class JwtUtil {
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -55,11 +64,7 @@ public class JwtUtil {
         }
     }
 
-    private Claims getClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public Claims getClaims(String token) {
+        return jwtParser.parseClaimsJws(token).getBody();
     }
 }

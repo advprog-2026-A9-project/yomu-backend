@@ -1,12 +1,12 @@
 package id.ac.ui.cs.advprog.yomu.auth.filter;
 
 import id.ac.ui.cs.advprog.yomu.auth.config.JwtUtil;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,21 +30,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String token = extractTokenFromRequest(request);
 
-            if (token != null && jwtUtil.validateToken(token)) {
-              
-                String userId = jwtUtil.extractUserId(token);
-                String username = jwtUtil.extractUsername(token);
-                String role = jwtUtil.extractRole(token);
+           if (token != null && jwtUtil.validateToken(token)) {
+                Claims claims = jwtUtil.getClaims(token);
+                String userId = claims.getSubject();
+                String username = claims.get("username", String.class);
+                String role = claims.get("role", String.class);
 
                 SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(username, null, Collections.singletonList(authority));
 
-                
                 authentication.setDetails(new JwtAuthenticationDetails(userId, username, role));
-
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+
         } catch (Exception e) {
         
             logger.error("Tidak bisa set user authentication", e);

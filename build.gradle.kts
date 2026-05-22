@@ -48,6 +48,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-security")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.openjdk.jmh:jmh-core:1.37")
+    testAnnotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")
     implementation("io.micrometer:micrometer-registry-prometheus")
 }
 
@@ -86,4 +88,9 @@ tasks.jacocoTestReport {
         xml.required.set(true)
         html.required.set(true)
     }
+}
+
+tasks.register<JavaExec>("benchmark") {
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("id.ac.ui.cs.advprog.yomu.auth.benchmark.BenchmarkRunner")
 }
