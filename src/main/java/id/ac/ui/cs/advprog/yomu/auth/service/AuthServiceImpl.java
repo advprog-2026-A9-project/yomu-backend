@@ -7,6 +7,8 @@ import id.ac.ui.cs.advprog.yomu.auth.dto.LinkLoginMethodRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.RegisterRequest;
 import id.ac.ui.cs.advprog.yomu.auth.dto.UpdateAccountRequest;
+import id.ac.ui.cs.advprog.yomu.auth.event.UserCreatedEvent;
+import id.ac.ui.cs.advprog.yomu.auth.event.UserUpdatedEvent;
 import id.ac.ui.cs.advprog.yomu.auth.model.User;
 import id.ac.ui.cs.advprog.yomu.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,30 +23,46 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
-        "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
-    );
+            "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     private static final String USER_NOT_FOUND = "Akun tidak ditemukan";
 
+    private static final int MIN_PASSWORD_LENGTH = 8;
+    private static final int MIN_USERNAME_LENGTH = 3;
+    private static final int MAX_USERNAME_LENGTH = 20;
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]+$");
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil; 
+    private final JwtUtil jwtUtil;
     private final ApplicationEventPublisher eventPublisher;
-    
+
     @Override
     public AuthResponse register(RegisterRequest request) {
         final String email = normalize(request.getEmail());
         final String phoneNumber = normalize(request.getPhoneNumber());
+        final String username = request.getUsername();
 
         if (email == null && phoneNumber == null) {
             throw new IllegalArgumentException("Email atau nomor HP harus diisi");
         }
-        if (userRepository.existsByUsername(request.getUsername())) {
+        if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username sudah dipakai");
         }
+
+        if (username.length() < MIN_USERNAME_LENGTH ||
+                username.length() > MAX_USERNAME_LENGTH) {
+            throw new IllegalArgumentException("Username harus antara 3-20 karakter");
+        }
+        if (!USERNAME_PATTERN.matcher(username).matches()) {
+            throw new IllegalArgumentException("Username hanya boleh mengandung huruf, angka, dan underscore");
+        }
+        if (request.getPassword().length() < MIN_PASSWORD_LENGTH) {
+            throw new IllegalArgumentException("Password minimal 8 karakter");
+        }
+
         if (email != null && !EMAIL_PATTERN.matcher(email).matches()) {
             throw new IllegalArgumentException("Format email tidak valid. Contoh: example@gmail.com");
         }
@@ -56,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         final User user = new User();
-        user.setUsername(request.getUsername());
+        user.setUsername(username);
         user.setEmail(email);
         user.setPhoneNumber(phoneNumber);
         user.setDisplayName(request.getDisplayName());
@@ -64,6 +82,8 @@ public class AuthServiceImpl implements AuthService {
         user.setRole("PELAJAR");
 
         final User saved = userRepository.save(user);
+        eventPublisher
+                .publishEvent(new UserCreatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
         final String token = jwtUtil.generateToken(saved.getId(), saved.getUsername(), saved.getRole());
         return new AuthResponse(saved.getId(), saved.getUsername(), saved.getRole(), token, "Registrasi berhasil");
     }
@@ -79,9 +99,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        final User user = userRepository.findByUsername(request.getIdentifier())
-                .or(() -> userRepository.findByEmail(request.getIdentifier()))
-                .or(() -> userRepository.findByPhoneNumber(request.getIdentifier()))
+        final String identifier = normalize(request.getIdentifier());
+
+        final User user = userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier))
+                .or(() -> userRepository.findByEmailIgnoreCase(identifier))
+                .or(() -> userRepository.findByPhoneNumber(identifier))
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -93,40 +116,44 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse getMe(String username) {
+    public AccountResponse getMe(String username) {
         final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
-        return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), null, "OK");
+        return new AccountResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getDisplayName(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getRole(),
+                "OK");
     }
 
-   @Override
-    public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
-        final User user = userRepository.findById(userId)
+    @Override
+    public AccountResponse updateAccount(String username, UpdateAccountRequest request) {
+        final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
-        final String newUsername = normalize(request.getUsername());
         final String newDisplayName = normalize(request.getDisplayName());
         final String newPassword = normalize(request.getNewPassword());
-
-        if (newUsername != null) {
-            if (userRepository.existsByUsername(newUsername)) {
-                throw new IllegalArgumentException("Username sudah dipakai");
-            }
-            user.setUsername(newUsername);
-        }
 
         if (newDisplayName != null) {
             user.setDisplayName(newDisplayName);
         }
 
         if (newPassword != null) {
-            if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            final boolean hasNoPassword = user.getPassword() == null || 
+                    user.getPassword().isEmpty() ||
+                    passwordEncoder.matches("", user.getPassword());
+            if (!hasNoPassword && !passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
                 throw new IllegalArgumentException("Password lama salah");
             }
             user.setPassword(passwordEncoder.encode(newPassword));
         }
 
         final User saved = userRepository.save(user);
+        eventPublisher
+                .publishEvent(new UserUpdatedEvent(this, saved.getId(), saved.getUsername(), saved.getDisplayName()));
         return new AccountResponse(
                 saved.getId(),
                 saved.getUsername(),
@@ -134,24 +161,22 @@ public class AuthServiceImpl implements AuthService {
                 saved.getEmail(),
                 saved.getPhoneNumber(),
                 saved.getRole(),
-                "Akun berhasil diperbarui"
-        );
+                "Akun berhasil diperbarui");
     }
 
     @Override
-    public void deleteAccount(String userId) {
-
-        final User user = userRepository.findById(userId)
+    public void deleteAccount(String username) {
+        final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         userRepository.delete(user);
-        eventPublisher.publishEvent(new UserDeletedEvent(this, userId));
+        eventPublisher.publishEvent(new UserDeletedEvent(this, user.getId(), user.getUsername()));
 
     }
 
     @Override
-    public AccountResponse linkLoginMethod(String userId, LinkLoginMethodRequest request) {
-        final User user = userRepository.findById(userId)
+    public AccountResponse linkLoginMethod(String username, LinkLoginMethodRequest request) {
+        final User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         final String email = normalize(request.getEmail());
@@ -182,7 +207,6 @@ public class AuthServiceImpl implements AuthService {
                 saved.getEmail(),
                 saved.getPhoneNumber(),
                 saved.getRole(),
-                "Metode login berhasil ditautkan"
-        );
+                "Metode login berhasil ditautkan");
     }
 }

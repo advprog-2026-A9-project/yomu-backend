@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class AuthControllerTest {
 
     private static final String TEST_USER = "testuser";
@@ -43,7 +45,7 @@ class AuthControllerTest {
     @WithMockUser(username = TEST_USER, roles = ROLE_PELAJAR)
     void getMeShouldReturnUserInfo() throws Exception {
         when(authService.getMe(TEST_USER)).thenReturn(
-            new AuthResponse("123", TEST_USER, ROLE_PELAJAR, null, "OK")
+            new AccountResponse("123", TEST_USER, "Mizuki", null, null, ROLE_PELAJAR, "OK")
         );
 
         final var result = mockMvc.perform(get("/api/auth/me"))
@@ -126,6 +128,23 @@ class AuthControllerTest {
         final var result = mockMvc.perform(post("/api/auth/account/link")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"email\":\"new@test.com\"}"))
+            .andExpect(status().isUnauthorized())
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
+    }
+
+    @Test
+    @WithMockUser(username = TEST_USER, roles = ROLE_PELAJAR)
+    void logoutShouldReturn200() throws Exception {
+        final var result = mockMvc.perform(post("/api/auth/logout"))
+            .andExpect(status().isOk())
+            .andReturn();
+        assertNotNull(result, RESPONSE_NOT_NULL);
+    }
+
+    @Test
+    void logoutShouldReturn401WhenNotAuthenticated() throws Exception {
+        final var result = mockMvc.perform(post("/api/auth/logout"))
             .andExpect(status().isUnauthorized())
             .andReturn();
         assertNotNull(result, RESPONSE_NOT_NULL);

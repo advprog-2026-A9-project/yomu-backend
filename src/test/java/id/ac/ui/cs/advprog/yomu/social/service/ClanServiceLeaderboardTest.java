@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,8 +17,15 @@ import id.ac.ui.cs.advprog.yomu.social.model.Clan;
 import id.ac.ui.cs.advprog.yomu.social.model.Tier;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanMemberRepository;
 import id.ac.ui.cs.advprog.yomu.social.repository.ClanRepository;
-import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyFactory;
-import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidation;
+import id.ac.ui.cs.advprog.yomu.social.strategy.ScoringStrategyResolver;
+import id.ac.ui.cs.advprog.yomu.social.validation.ClanValidator;
+import id.ac.ui.cs.advprog.yomu.social.mapper.SocialMapper;
+import id.ac.ui.cs.advprog.yomu.social.dto.LeaderboardEntryResponse;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.ArgumentMatchers.anyInt;
+import id.ac.ui.cs.advprog.yomu.social.service.clan.query.ClanQueryServiceImpl;
+import id.ac.ui.cs.advprog.yomu.social.service.modifier.ClanModifierService;
+import id.ac.ui.cs.advprog.yomu.social.service.score.ClanQuizStatsService;
 
 /**
  * Tests for leaderboard functionality - will fail until Tier and scoring are
@@ -35,7 +41,7 @@ class ClanServiceLeaderboardTest {
     private ClanMemberRepository memberRepository;
 
     @Mock
-    private ScoringStrategyFactory scoringStrategyFactory;
+    private ScoringStrategyResolver scoringStrategyFactory;
 
     @Mock
     private ClanModifierService modifierService;
@@ -44,10 +50,15 @@ class ClanServiceLeaderboardTest {
     private ClanQuizStatsService statsService;
 
     @Mock
-    private ClanValidation clanValidation;
+    private ClanValidator clanValidation;
 
-    @InjectMocks
-    private ClanServiceImpl clanService;
+    @Mock
+    private SocialMapper socialMapper;
+
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
+    private ClanQueryServiceImpl queryService;
 
     private Clan bronzeClan;
     private Clan silverClan;
@@ -57,23 +68,31 @@ class ClanServiceLeaderboardTest {
         bronzeClan = new Clan();
         bronzeClan.setId("clan-1");
         bronzeClan.setName("Bronze Warriors");
-        bronzeClan.setLeaderUserId("user-1");
+        bronzeClan.setLeaderUsername("user-1");
         bronzeClan.setTier(Tier.BRONZE);
         bronzeClan.setScore(100);
 
         silverClan = new Clan();
         silverClan.setId("clan-2");
         silverClan.setName("Silver Champions");
-        silverClan.setLeaderUserId("user-2");
+        silverClan.setLeaderUsername("user-2");
         silverClan.setTier(Tier.SILVER);
         silverClan.setScore(200);
+
+        lenient().when(socialMapper.toLeaderboardEntryResponse(any(), anyInt()))
+                .thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
+        lenient().when(socialMapper.toLeaderboardEntryResponse(any(Clan.class), anyInt(), anyInt()))
+                .thenReturn(new LeaderboardEntryResponse("id", "name", "tier", 0, 1, 1));
+
+        queryService = new ClanQueryServiceImpl(clanRepository, memberRepository, clanValidation, socialMapper,
+                modifierService);
     }
 
     @Test
     void testGetLeaderboardByTier_ShouldNotReturnNull() {
         when(clanRepository.findLeaderboardByTier(any(Tier.class), any())).thenReturn(List.of());
 
-        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier("user-1");
+        List<LeaderboardResponse> leaderboard = queryService.getLeaderboardByTier("user-1", null);
 
         assertNotNull(leaderboard, "Leaderboard should not be null");
     }
@@ -82,7 +101,7 @@ class ClanServiceLeaderboardTest {
     void testGetLeaderboardByTier_ShouldContainTiers() {
         when(clanRepository.findLeaderboardByTier(any(Tier.class), any())).thenReturn(List.of());
 
-        List<LeaderboardResponse> leaderboard = clanService.getLeaderboardByTier("user-1");
+        List<LeaderboardResponse> leaderboard = queryService.getLeaderboardByTier("user-1", null);
 
         assertFalse(leaderboard.isEmpty(), "Leaderboard should contain at least one tier");
     }

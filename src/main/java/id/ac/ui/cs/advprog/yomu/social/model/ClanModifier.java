@@ -9,12 +9,19 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "clan_modifiers")
+@Table(
+    name = "clan_modifiers",
+    indexes = {
+        @Index(name = "idx_clan_modifiers_clan_id_active", columnList = "clan_id, active"),
+        @Index(name = "idx_clan_modifiers_clan_id_key", columnList = "clan_id, modifier_key")
+    }
+)
 @Getter
 @Setter
 public class ClanModifier {
@@ -25,7 +32,7 @@ public class ClanModifier {
     @Column(nullable = false)
     private String clanId;
 
-    @Column(nullable = false)
+    @Column(name = "modifier_key", nullable = false)
     private String key;
 
     @Enumerated(EnumType.STRING)
@@ -42,4 +49,12 @@ public class ClanModifier {
     private Instant startAt;
 
     private Instant endAt;
+
+    public boolean isBuff() {
+        return this.type == ModifierType.BUFF;
+    }
+
+    public boolean isDebuff() {
+        return this.type == ModifierType.DEBUFF;
+    }
 }

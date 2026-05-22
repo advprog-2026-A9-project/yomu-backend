@@ -3,6 +3,7 @@ plugins {
     id("org.springframework.boot") version "3.5.10"
     id("io.spring.dependency-management") version "1.1.7"
     pmd
+    jacoco
 }
 
 group = "id.ac.ui.cs.advprog"
@@ -22,6 +23,9 @@ configurations {
 }
 
 repositories {
+    maven {
+        url = uri("https://repo1.maven.org/maven2/")
+    }
     mavenCentral()
 }
 
@@ -44,6 +48,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-security")
     testImplementation("org.springframework.security:spring-security-test")
+    implementation("io.micrometer:micrometer-registry-prometheus")
 }
 
 tasks.withType<Test> {
@@ -57,6 +62,26 @@ pmd {
 }
 
 tasks.withType<Pmd>().configureEach {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val dotenvFile = File(rootDir, ".env")
+    if (dotenvFile.exists()) {
+        dotenvFile.forEachLine { line ->
+            if (line.isNotBlank() && !line.startsWith("#")) {
+                val (key, value) = line.split("=", limit = 2)
+                environment(key.trim(), value.trim())
+            }
+        }
+    }
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test) 
     reports {
         xml.required.set(true)
         html.required.set(true)

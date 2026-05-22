@@ -49,3 +49,6 @@ application.properties
 # Ignore Build results
 build/
 .gradle/
+
+# Ignore log files
+app.log

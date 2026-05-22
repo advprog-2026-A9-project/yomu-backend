@@ -1,15 +1,25 @@
 package id.ac.ui.cs.advprog.yomu.social.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "clan_members")
+@Table(
+    name = "clan_members",
+    indexes = {
+        @Index(name = "idx_clan_members_clan_id", columnList = "clan_id"),
+        @Index(name = "idx_clan_members_username", columnList = "username"),
+        @Index(name = "idx_clan_members_clan_id_username", columnList = "clan_id, username")
+    }
+)
 @Getter @Setter
 public class ClanMember {
     @Id
@@ -18,6 +28,7 @@ public class ClanMember {
 
     private String username;
     private String clanId;
-    private String userId;
-    private String role;
+    
+    @Enumerated(EnumType.STRING)
+    private ClanRole role;
 }

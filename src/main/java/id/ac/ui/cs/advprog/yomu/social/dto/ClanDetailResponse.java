@@ -6,7 +6,7 @@ public record ClanDetailResponse(
         String id,
         String name,
         String description,
-        String leaderUserId,
+        String leaderUsername,
         String tier,
         int rank,
         int score,
